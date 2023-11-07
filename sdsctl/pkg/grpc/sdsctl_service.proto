@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package pb;
+// option go_package = "path;name";
+option go_package = "./pb_gen;pb_gen";
+
+//RPC接口
+service SdsCtlService {
+  rpc HelloWorld(HelloWorldRequest) returns (HelloWorldResponse) {}
+
+  rpc Call (RPCRequest) returns (RPCResponse) {}
+  rpc CallWithResult (RPCRequest) returns (RPCResponse) {}
+  rpc CallAndTransferXmlToJson (RPCRequest) returns (RPCResponse) {}
+  rpc CallAndSplitKVToJson (RPCRequest) returns (RPCResponse) {}
+  rpc CallAndGetOutput (RPCRequest) returns (RPCResponse) {}
+}
+
+message HelloWorldRequest {
+  string hello_text = 1;
+}
+
+message HelloWorldResponse {
+  string thanks_text = 1;
+}
+
+message RPCRequest {
+  string cmd = 1;
+}
+
+message RPCResponse {
+  int32 code = 1;
+  string message = 2;
+  string data = 3;
+}

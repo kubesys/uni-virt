@@ -1,0 +1,20 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachineDiskImage",
+  "metadata": {
+    "name": "centos7-iso",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "createDiskImage": {
+        "type": "localfs",
+        "targetPool": "poolhub111-image",
+        "source": "/var/lib/libvirt/iso/centos7-minimal-1511.iso"
+      }
+    }
+  }
+}

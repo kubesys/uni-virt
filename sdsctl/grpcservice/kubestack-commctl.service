@@ -1,0 +1,9 @@
+[Unit]
+Description=service of executing command from container for kubestack
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/commctl
+
+[Install]
+WantedBy=multi-user.target

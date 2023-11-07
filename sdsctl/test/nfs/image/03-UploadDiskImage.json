@@ -1,0 +1,20 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachineDiskImage",
+  "metadata": {
+    "name": "diskhub111-image",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "uploadDiskImage": {
+        "type": "nfs",
+        "pool": "poolhub111-image",
+        "target-path": "/var/lib/libvirt/nfspool"
+      }
+    }
+  }
+}

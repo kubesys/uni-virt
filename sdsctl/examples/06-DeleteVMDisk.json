@@ -1,0 +1,18 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachineDisk",
+  "metadata": {
+    "name": "disktest",
+    "labels": {
+        "host": "vm.node10"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node10",
+    "lifecycle": {
+      "deleteDisk": {
+        "pool": "pooltest"
+      }
+    }
+  }
+}

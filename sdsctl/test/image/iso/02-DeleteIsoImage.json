@@ -1,0 +1,19 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachineDiskImage",
+  "metadata": {
+    "name": "centos7-iso",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "deleteDiskImage": {
+        "type": "localfs",
+        "sourcePool": "poolhub111-image"
+      }
+    }
+  }
+}

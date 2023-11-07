@@ -1,0 +1,20 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachineDisk",
+  "metadata": {
+    "name": "diskhub111",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "deleteDiskInternalSnapshot": {
+        "type": "localfs",
+        "domain": "test111",
+        "snapshot": "test-snapshot1.qcow2"
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachinePool",
+  "metadata": {
+    "name": "cephfspool",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "createPool": {
+        "type": "cephfs",
+        "url": "/var/lib/libvirt/cephfspool",
+        "content": "vmdi",
+        "auto-start": "false",
+        "source-host": "10.109.253.11:6789",
+        "source-path": "/volumes/data2"
+      }
+    }
+  }
+}

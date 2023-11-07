@@ -1,0 +1,18 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachinePool",
+  "metadata": {
+    "name": "nfspooltest",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "deleteNfsPool": {
+        "name": "nfspooltest"
+      }
+    }
+  }
+}

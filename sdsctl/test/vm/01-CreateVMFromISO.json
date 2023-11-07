@@ -1,0 +1,25 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachine",
+  "metadata": {
+    "name": "test111",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "createAndStartVMFromISO": {
+        "memory": "1024",
+        "vcpus": "1",
+        "os_variant": "centos7.0",
+        "cdrom": "/var/lib/libvirt/iso/centos7-minimal-1511.iso",
+        "disk": "/var/lib/libvirt/poolhub111/diskhub111/diskhub111,format=qcow2",
+        "network": "type=bridge,source=virbr0",
+        "graphics": "vnc,listen=0.0.0.0,password=Onceas@vnc",
+        "noautoconsole": true
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachineDisk",
+  "metadata": {
+    "name": "cephfsdisk",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "resizeDisk": {
+        "pool": "cephfspool",
+        "type": "cephfs",
+        "capacity": "3G",
+        "vol": "cephfsdisk"
+      }
+    }
+  }
+}

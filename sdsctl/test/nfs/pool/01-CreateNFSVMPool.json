@@ -1,0 +1,23 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachinePool",
+  "metadata": {
+    "name": "nfspool",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "createPool": {
+        "type": "netfs",
+        "url": "/var/lib/libvirt/nfspool",
+        "content": "vmd",
+        "auto-start": true,
+        "source-host": "192.168.100.102",
+        "source-path": "/root/nfs/nfspool"
+      }
+    }
+  }
+}

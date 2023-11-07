@@ -1,0 +1,21 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachinePool",
+  "metadata": {
+    "name": "pooltest",
+    "labels": {
+      "host": "vm.node10"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node10",
+    "lifecycle": {
+      "createPool": {
+          "type": "dir",
+          "url": "/var/lib/libvirt/pooltest",
+          "content": "vmd",
+          "auto-start": true
+      }
+    }
+  }
+}

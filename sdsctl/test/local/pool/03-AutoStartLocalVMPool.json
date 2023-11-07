@@ -1,0 +1,20 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachinePool",
+  "metadata": {
+    "name": "poolhub111",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "autoStartPool": {
+        "type": "dir",
+        "pool": "poolhub111",
+        "auto-start": false
+      }
+    }
+  }
+}

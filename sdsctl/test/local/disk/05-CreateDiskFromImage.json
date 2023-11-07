@@ -1,0 +1,21 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachineDisk",
+  "metadata": {
+    "name": "diskhub111-fromimage",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "createDiskFromDiskImage": {
+        "type": "localfs",
+        "targetPool": "poolhub111",
+        "source": "/var/lib/libvirt/poolhub111-image/diskhub111-image/diskhub111-image",
+        "full-copy": true
+      }
+    }
+  }
+}

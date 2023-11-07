@@ -1,0 +1,20 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachinePool",
+  "metadata": {
+    "name": "nfspool",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "autoStartPool": {
+        "type": "netfs",
+        "pool": "nfspool",
+        "auto-start": "false"
+      }
+    }
+  }
+}

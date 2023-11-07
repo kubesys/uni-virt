@@ -1,0 +1,9 @@
+[Unit]
+Description=pipe service for kubestack
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/pipectl start
+
+[Install]
+WantedBy=multi-user.target

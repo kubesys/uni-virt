@@ -1,0 +1,20 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachineDiskImage",
+  "metadata": {
+    "name": "image-download",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "downloadDiskImage": {
+        "type": "nfs",
+        "pool": "poolhub111-image",
+        "source-path": "/var/lib/libvirt/share/diskhub111-image"
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachine",
+  "metadata": {
+    "name": "test111",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "deleteVM": {
+      }
+    }
+  }
+}

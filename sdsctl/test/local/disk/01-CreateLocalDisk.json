@@ -1,0 +1,22 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachineDisk",
+  "metadata": {
+    "name": "diskhub111",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "status": {},
+    "lifecycle": {
+      "createDisk": {
+        "type": "localfs",
+        "pool": "poolhub111",
+        "capacity": "2G",
+        "format": "qcow2"
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachineDisk",
+  "metadata": {
+    "name": "diskhub111",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "cloneDisk": {
+        "type": "localfs",
+        "pool": "poolhub111",
+        "vol": "diskhub111",
+        "newvol": "diskhub111-clone",
+        "format": "qcow2"
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachinePool",
+  "metadata": {
+    "name": "cephrbdpool",
+    "labels": {
+      "host": "vm.node131"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node131",
+    "lifecycle": {
+      "autoStartPool": {
+        "type": "cephrbd",
+        "pool": "cephrbdpool",
+        "auto-start": true
+      }
+    }
+  }
+}
