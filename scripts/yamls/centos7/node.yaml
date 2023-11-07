@@ -1,0 +1,144 @@
+---
+apiVersion: v1
+kind: Node
+metadata:
+  annotations:
+    THISIP: 10.1.75.23
+    kwok.x-k8s.io/node: fake
+  labels:
+    host: vm.10.1.75.23
+  name: vm.10.1.75.23
+spec:
+  taints:
+  - effect: NoSchedule
+    key: dont-schedule
+    value: "true"
+  - effect: NoSchedule
+    key: kwok.x-k8s.io/node
+    value: fake
+---
+apiVersion: v1
+kind: Node
+metadata:
+  annotations:
+    THISIP: 10.1.75.24
+    kwok.x-k8s.io/node: fake
+  labels:
+    host: vm.10.1.75.24
+  name: vm.10.1.75.24
+spec:
+  taints:
+  - effect: NoSchedule
+    key: dont-schedule
+    value: "true"
+  - effect: NoSchedule
+    key: kwok.x-k8s.io/node
+    value: fake
+---
+apiVersion: v1
+kind: Node
+metadata:
+  annotations:
+    THISIP: 10.1.75.25
+    kwok.x-k8s.io/node: fake
+  labels:
+    host: vm.10.1.75.25
+  name: vm.10.1.75.25
+spec:
+  taints:
+  - effect: NoSchedule
+    key: dont-schedule
+    value: "true"
+  - effect: NoSchedule
+    key: kwok.x-k8s.io/node
+    value: fake
+---
+apiVersion: v1
+kind: Node
+metadata:
+  annotations:
+    THISIP: 10.1.75.26
+    kwok.x-k8s.io/node: fake
+  labels:
+    host: vm.10.1.75.26
+  name: vm.10.1.75.26
+spec:
+  taints:
+  - effect: NoSchedule
+    key: dont-schedule
+    value: "true"
+  - effect: NoSchedule
+    key: kwok.x-k8s.io/node
+    value: fake
+---
+apiVersion: v1
+kind: Node
+metadata:
+  annotations:
+    THISIP: 10.1.75.27
+    kwok.x-k8s.io/node: fake
+  labels:
+    host: vm.10.1.75.27
+  name: vm.10.1.75.27
+spec:
+  taints:
+  - effect: NoSchedule
+    key: dont-schedule
+    value: "true"
+  - effect: NoSchedule
+    key: kwok.x-k8s.io/node
+    value: fake
+---
+apiVersion: v1
+kind: Node
+metadata:
+  annotations:
+    THISIP: 10.1.75.28
+    kwok.x-k8s.io/node: fake
+  labels:
+    host: vm.10.1.75.28
+  name: vm.10.1.75.28
+spec:
+  taints:
+  - effect: NoSchedule
+    key: dont-schedule
+    value: "true"
+  - effect: NoSchedule
+    key: kwok.x-k8s.io/node
+    value: fake
+---
+apiVersion: v1
+kind: Node
+metadata:
+  annotations:
+    THISIP: 10.1.75.29
+    kwok.x-k8s.io/node: fake
+  labels:
+    host: vm.10.1.75.29
+  name: vm.10.1.75.29
+spec:
+  taints:
+  - effect: NoSchedule
+    key: dont-schedule
+    value: "true"
+  - effect: NoSchedule
+    key: kwok.x-k8s.io/node
+    value: fake
+---
+apiVersion: v1
+kind: Node
+metadata:
+  annotations:
+    THISIP: 10.1.75.30
+    kwok.x-k8s.io/node: fake
+  labels:
+    host: vm.10.1.75.30
+  name: vm.10.1.75.30
+spec:
+  taints:
+  - effect: NoSchedule
+    key: dont-schedule
+    value: "true"
+  - effect: NoSchedule
+    key: kwok.x-k8s.io/node
+    value: fake
