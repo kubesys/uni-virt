@@ -84,6 +84,7 @@ GROUP = constants.KUBERNETES_GROUP
 DEFAULT_DEVICE_DIR = constants.KUBEVMM_VM_DEVICES_DIR
 
 HOSTNAME = get_hostname_in_lower_case()
+TOKEN = constants.KUBERNETES_TOKEN_FILE
 
 LOG = constants.KUBEVMM_VIRTCTL_LOG
 logger = logger.set_logger(os.path.basename(__file__), LOG)
@@ -1961,7 +1962,7 @@ def main():
         sys.exit(1)
 
 if __name__ == '__main__':
-    config.load_kube_config(config_file="/root/.kube/config1")
+    config.load_kube_config(config_file=TOKEN)
     #plug_disk(["--config", "--source", "/var/lib/libvirt/pooltest12/disktest-wyw1/disktest-wyw1", "--subdriver", "qcow2", "--target", "vdb", "--domain", "test-wyw"])
     #unplug_disk(["--config", "--target", "vdb", "--domain", "test-wyw"])
     main()

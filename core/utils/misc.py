@@ -376,7 +376,7 @@ def change_master_ip(ip):
         'cat %s | grep server |awk -F"server:" \'{print$2}\' | awk -F"https://" \'{print$2}\' | awk -F":" \'{print$1}\'' % TOKEN)[
         0].strip()
     if current_master_ip != ip:
-        change_master_ip_cmd = 'sed -i \'s/%s/%s/g\' /root/.kube/config1' % (current_master_ip, ip)
+        change_master_ip_cmd = 'sed -i \'s/%s/%s/g\' %s' % (current_master_ip, ip, TOKEN)
         #     print(change_master_ip_cmd)
         runCmdRaiseException(change_master_ip_cmd)
         return True

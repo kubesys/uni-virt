@@ -74,7 +74,7 @@ cd ../../
 #cp -rf ../SDS ./
 #cd ./SDS
 
-git clone https://gitlink.org.cn/kubestack/sdsctl.git
+#git clone https://gitlink.org.cn/kubestack/sdsctl.git
 cd ./sdsctl/cmd/sdsctl
 go build -o sdsctl main.go
 cp -f sdsctl ../../../dist/ubuntu22
@@ -84,7 +84,7 @@ cp -f commctl ../../../dist/ubuntu22
 cd ../../grpcservice
 bash create-comm-service.sh
 cd ../../
-rm -rf sdsctl
+#rm -rf sdsctl
 
 #pyinstaller --distpath ./dist/ubuntu22/ -F kubesds-adm.py
 #if [ $? -ne 0 ]; then
@@ -173,18 +173,19 @@ cd ..
 
 #step 2 docker build & push
 cd docker
-DOCKER_HUB_URL=registry.cn-beijing.aliyuncs.com
-IMAGE_TAG_PREFIX=${DOCKER_HUB_URL}/dosproj
+#DOCKER_HUB_URL=registry.cn-beijing.aliyuncs.com
+#IMAGE_TAG_PREFIX=${DOCKER_HUB_URL}/dosproj
 
-DOCKER_USER=netgenius201
+#DOCKER_USER=netgenius201
 
-echo -e "\033[3;30;47m*** Login docker image repository in aliyun.\033[0m"
-echo "Username: $DOCKER_USER"
+echo -e "\033[3;30;47m*** Login docker image repository in coding.\033[0m"
+#echo "Username: $DOCKER_USER"
 #docker login --username=bigtree0613@126.com registry.cn-hangzhou.aliyuncs.com
-docker login -u ${DOCKER_USER} ${DOCKER_HUB_URL}
+#docker login -u ${DOCKER_USER} ${DOCKER_HUB_URL}
+docker login -u containers-1699600016699 -p efa319535a51fc67963959bde4065d8745ef6615 g-ubjg5602-docker.pkg.coding.net
 
 if [ $? -ne 0 ]; then
-    echo "    Failed to login aliyun repository!"
+    echo "    Failed to login coding repository!"
     exit 1
 else
     echo "    Success login...Pushing images!"
@@ -195,19 +196,19 @@ fi
 #docker buildx use mybuilder
 #docker run --privileged --rm tonistiigi/binfmt --install all
 
-docker build base/ubuntu22 -t ${IMAGE_TAG_PREFIX}/kubevirt-ubuntu22-base:latest --platform linux/amd64
-docker build virtlet/ubuntu22 -t ${IMAGE_TAG_PREFIX}/kubevirt-ubuntu22-virtlet:${VERSION} --platform linux/amd64
-docker build virtctl/ubuntu22 -t ${IMAGE_TAG_PREFIX}/kubevirt-ubuntu22-virtctl:${VERSION} --platform linux/amd64
-docker build libvirtwatcher/ubuntu22 -t ${IMAGE_TAG_PREFIX}/kubevirt-ubuntu22-libvirtwatcher:${VERSION} --platform linux/amd64
-docker build virtmonitor/ubuntu22 -t ${IMAGE_TAG_PREFIX}/kubevirt-ubuntu22-virtmonitor:${VERSION} --platform linux/amd64
+docker build base/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-base:latest --platform linux/amd64
+docker build virtlet/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtlet:${VERSION} --platform linux/amd64
+docker build virtctl/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtctl:${VERSION} --platform linux/amd64
+docker build libvirtwatcher/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-libvirtwatcher:${VERSION} --platform linux/amd64
+docker build virtmonitor/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtmonitor:${VERSION} --platform linux/amd64
 
 #step 3 docker push
 
-docker push ${IMAGE_TAG_PREFIX}/kubevirt-ubuntu22-base:latest
-docker push ${IMAGE_TAG_PREFIX}/kubevirt-ubuntu22-virtctl:${VERSION}
-docker push ${IMAGE_TAG_PREFIX}/kubevirt-ubuntu22-virtlet:${VERSION}
-docker push ${IMAGE_TAG_PREFIX}/kubevirt-ubuntu22-libvirtwatcher:${VERSION}
-docker push ${IMAGE_TAG_PREFIX}/kubevirt-ubuntu22-virtmonitor:${VERSION}
+docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-base:latest
+docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtlet:${VERSION}
+docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtctl:${VERSION}
+docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-libvirtwatcher:${VERSION}
+docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtmonitor:${VERSION}
 
 ###############################patch version to SPECS/kubevmm.spec######################################################
 echo -e "\033[3;30;47m*** Patch release version number to SPECS/kubevmm.spec\033[0m"
@@ -221,15 +222,15 @@ else
     echo "    Success patch version number to SPECS/kubevmm.spec."
 fi
 
-echo -e "\033[3;30;47m*** Push new SPECS/kubevmm.spec to Github.\033[0m"
-git add ./scripts/specs/kubevmm.spec
-# git add ./kubeovn-adm
-git commit -m "new release version ${VERSION}"
-git push
-if [ $? -ne 0 ]; then
-    echo "    Failed to push SPECS/kubevmm.spec to Github!"
-    exit 1
-else
-    echo "    Success push SPECS/kubevmm.spec to Github."
-fi
+#echo -e "\033[3;30;47m*** Push new SPECS/kubevmm.spec to Github.\033[0m"
+#git add ./scripts/specs/kubevmm.spec
+## git add ./kubeovn-adm
+#git commit -m "new release version ${VERSION}"
+#git push
+#if [ $? -ne 0 ]; then
+    #    echo "    Failed to push SPECS/kubevmm.spec to Github!"
+    #exit 1
+#else
+    #    echo "    Success push SPECS/kubevmm.spec to Github."
+#fi
 

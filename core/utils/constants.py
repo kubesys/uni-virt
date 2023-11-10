@@ -39,7 +39,7 @@ KUBEVMM_DEFAULT_JSON_BACKUP_DIR    = "/etc/kubevmm/backup"
 KUBEVMM_DEFAULT_VMDI_DIR           = "/var/lib/libvirt/vmdi"
 
 '''Kubernetes configurations'''
-KUBERNETES_TOKEN_FILE              = "/root/.kube/config1"
+KUBERNETES_TOKEN_FILE              = "/root/.kube/config"
 KUBERNETES_TOKEN_FILE_ORIGIN       = "/root/.kube/config"
 KUBERNETES_WATCHER_TIME_OUT        = "31536000"
 KUBERNETES_GROUP                   = "doslab.io"
