@@ -19,7 +19,7 @@ spec:
         doslab/virt.tool: ""
       hostNetwork: true
       containers:
-      - image: registry.cn-beijing.aliyuncs.com/dosproj/kubevirt-centos7-virtctl:v1.0.0
+      - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:v1.0.0
         command: 
         - bash
         - 'virtctl-update-stuff.sh'
@@ -53,7 +53,7 @@ spec:
             mountPath: /root/.bashrc
           - name: usrlib
             mountPath: /usr/lib
-      - image: registry.cn-beijing.aliyuncs.com/dosproj/kubevirt-centos7-virtlet:v1.0.0
+      - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:v1.0.0
         command: 
         - bash
         - 'virtlet-update-stuff.sh'
@@ -87,7 +87,7 @@ spec:
             mountPath: /root/.bashrc
           - name: usrlib
             mountPath: /usr/lib
-      - image: registry.cn-beijing.aliyuncs.com/dosproj/kubevirt-centos7-libvirtwatcher:v1.0.0
+      - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:v1.0.0
         command: 
         - bash
         - 'watcher.sh'
@@ -121,7 +121,7 @@ spec:
             mountPath: /root/.bashrc
           - name: usrlib
             mountPath: /usr/lib
-      - image: registry.cn-beijing.aliyuncs.com/dosproj/kubevirt-centos7-virtmonitor:v1.0.0
+      - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:v1.0.0
         command: 
         - bash
         - 'monitor.sh'
