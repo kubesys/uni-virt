@@ -14,7 +14,7 @@ yum install openvswitch-ovn* openvswitch python-openvswitch openvswitch-test ope
 
 pip3 install --upgrade pip
 
-pip3 install --ignore-installed google threadpool prometheus_client kubernetes libvirt-python==5.9.0 xmljson xmltodict watchdog pyyaml grpcio grpcio-tools protobuf psutil pyinstaller
+pip3 install --ignore-installed threadpool prometheus_client kubernetes libvirt-python==5.9.0 xmljson xmltodict watchdog pyyaml grpcio grpcio-tools protobuf psutil pyinstaller
 
 systemctl enable --now libvirtd
 
