@@ -18,7 +18,7 @@ RUN pip2 install --ignore-installed threadpool setuptools==38.4.0 cachetools pro
 
 RUN pip3 install --upgrade pip
 
-RUN pip3 install --ignore-installed protobuf threadpool prometheus_client kubernetes libvirt-python==5.9.0 xmljson xmltodict watchdog pyyaml grpcio grpcio-tools protobuf psutil
+RUN pip3 install --ignore-installed google threadpool prometheus_client kubernetes libvirt-python==5.9.0 xmljson xmltodict watchdog pyyaml grpcio grpcio-tools protobuf psutil
 
 # RUN export PYCURL_SSL_LIBRARY=openssl
 
