@@ -14,7 +14,7 @@ systemctl start libvirtd
 
 pip3 install --upgrade pip
 
-pip3 install --ignore-installed google pyinstaller setuptools wheel threadpool prometheus_client kubernetes xmljson xmltodict watchdog pyyaml grpcio grpcio-tools protobuf psutil
+pip3 install --ignore-installed protobuf pyinstaller setuptools wheel threadpool prometheus_client kubernetes xmljson xmltodict watchdog pyyaml grpcio grpcio-tools protobuf psutil
 
 # install golang
 if [ ! -f "go1.19.1.linux-amd64.tar.gz" ]; then
