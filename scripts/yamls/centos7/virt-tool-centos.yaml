@@ -2,24 +2,24 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: virt-tool
+  name: virt-tool-centos
   namespace: kube-system
   labels:
-    app: virt-tool
+    app: virt-tool-centos
 spec:
   selector:
     matchLabels:
-      app: virt-tool
+      app: virt-tool-centos
   template:
     metadata:
       labels:
-        app: virt-tool
+        app: virt-tool-centos
     spec:
       nodeSelector:
-        doslab/virt.tool: ""
+        doslab/virt.tool.centos: ""
       hostNetwork: true
       containers:
-      - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtctl:v1.0.0
+      - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:v1.0.0
         command: 
         - bash
         - 'virtctl-update-stuff.sh'
@@ -53,7 +53,7 @@ spec:
             mountPath: /root/.bashrc
           - name: usrlib
             mountPath: /usr/lib
-      - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtlet:v1.0.0
+      - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:v1.0.0
         command: 
         - bash
         - 'virtlet-update-stuff.sh'
@@ -87,7 +87,7 @@ spec:
             mountPath: /root/.bashrc
           - name: usrlib
             mountPath: /usr/lib
-      - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-libvirtwatcher:v1.0.0
+      - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:v1.0.0
         command: 
         - bash
         - 'watcher.sh'
@@ -121,7 +121,7 @@ spec:
             mountPath: /root/.bashrc
           - name: usrlib
             mountPath: /usr/lib
-      - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtmonitor:v1.0.0
+      - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:v1.0.0
         command: 
         - bash
         - 'monitor.sh'
