@@ -1962,7 +1962,7 @@ def main():
         sys.exit(1)
 
 if __name__ == '__main__':
-    config.load_kube_config(config_file="/root/.kube/config")
+    config.load_kube_config(config_file=TOKEN)
     #plug_disk(["--config", "--source", "/var/lib/libvirt/pooltest12/disktest-wyw1/disktest-wyw1", "--subdriver", "qcow2", "--target", "vdb", "--domain", "test-wyw"])
     #unplug_disk(["--config", "--target", "vdb", "--domain", "test-wyw"])
     main()
