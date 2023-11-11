@@ -33,10 +33,17 @@
         executable: /bin/bash
 
     - name: Install Python 3.9.7 using conda
-      command: /opt/anaconda3/bin/conda install -y python=3.9.7
+      community.general.conda:
+        name: python=3.9.7
+        state: present
 
     - name: Install development tools for Python within Anaconda
-      command: /opt/anaconda3/bin/conda install -y build-essential python=3.9.7
+      community.general.conda:
+        name:
+          - gcc_linux-64
+          - gxx_linux-64
+          - libgcc-ng
+        state: present
 
     - name: Install pip for Python 3.9.7
       command: /opt/anaconda3/bin/python3.9 -m ensurepip

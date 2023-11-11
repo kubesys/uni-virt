@@ -2,6 +2,7 @@
 - name: Install and configure packages
   hosts: all
   become: yes
+
   tasks:
     - name: Install EPEL release and OpenStack Rocky repository
       yum:
@@ -33,7 +34,7 @@
           - ceph
           - glusterfs-client-xlators
           - glusterfs-cli
-          - lusterfs-extra-xlators
+          - glusterfs-extra-xlators
           - glusterfs-fuse
           - iscsiadm
           - python-openvswitch
