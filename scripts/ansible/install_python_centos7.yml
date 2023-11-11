@@ -1,0 +1,41 @@
+---
+- name: Install Python 3.10.12 on CentOS 7.9
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Install required packages
+      yum:
+        name:
+          - gcc
+          - openssl-devel
+          - bzip2-devel
+          - libffi-devel
+          - zlib-devel
+        state: present
+
+    - name: Download Python 3.10.12 source code
+      get_url:
+        url: https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz
+        dest: /tmp/Python-3.10.12.tgz
+
+    - name: Extract Python source code
+      command: tar xzf /tmp/Python-3.10.12.tgz chdir=/tmp
+
+    - name: Configure Python build
+      command: ./configure --enable-optimizations
+      args:
+        chdir: /tmp/Python-3.10.12
+
+    - name: Compile Python
+      command: make -j 8
+      args:
+        chdir: /tmp/Python-3.10.12
+
+    - name: Install Python
+      command: sudo make altinstall
+      args:
+        chdir: /tmp/Python-3.10.12
+
+    - name: Verify Python installation
+      command: python3.10 --version
