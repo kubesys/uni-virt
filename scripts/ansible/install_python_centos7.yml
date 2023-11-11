@@ -35,5 +35,11 @@
     - name: Install Python 3.9.7 using conda
       command: /opt/anaconda3/bin/conda install -y python=3.9.7
 
+    - name: Create symbolic link for python3.9
+      file:
+        src: /opt/anaconda3/bin/python
+        dest: /usr/local/bin/python3.9
+        state: link
+
     - name: Verify Python installation
-      command: /opt/anaconda3/bin/python --version
+      command: python3.9 --version
