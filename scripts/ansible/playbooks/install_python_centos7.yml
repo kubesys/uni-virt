@@ -57,4 +57,4 @@
         force: yes
 
     - name: Verify Python and pip installation
-      command: python3.9 --version && pip3.9 --version
+      command: python3 --version && pip3 --version && python3.9 --version && pip3.9 --version
