@@ -41,5 +41,16 @@
         dest: /usr/local/bin/python3.9
         state: link
 
-    - name: Verify Python installation
-      command: python3.9 --version
+    - name: Install pip for Python 3.9.7
+      command: /usr/local/bin/python3.9 -m ensurepip
+      args:
+        creates: /usr/local/bin/pip3.9
+
+    - name: Create symbolic link for pip3.9
+      file:
+        src: /usr/local/bin/pip3.9
+        dest: /usr/local/bin/pip3.9
+        state: link
+
+    - name: Verify Python and pip installation
+      command: python3.9 --version && pip3.9 --version
