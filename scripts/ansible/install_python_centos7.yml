@@ -1,5 +1,5 @@
 ---
-- name: Install Anaconda3 and Python 3.10.12 on CentOS 7.9
+- name: Install Anaconda3 and Python 3.9.7 on CentOS 7.9
   hosts: all
   become: yes
 
@@ -28,12 +28,12 @@
         create: yes
 
     - name: Reload bashrc to apply changes
-      command: source "{{ ansible_env.HOME }}/.bashrc"
+      shell: source "{{ ansible_env.HOME }}/.bashrc"
       args:
-        executable: bash
+        executable: /bin/bash
 
-    - name: Install Python 3.10.12 using conda
-      command: /opt/anaconda3/bin/conda install -y python=3.10.12
+    - name: Install Python 3.9.7 using conda
+      command: /opt/anaconda3/bin/conda install -y python=3.9.7
 
     - name: Verify Python installation
       command: /opt/anaconda3/bin/python --version
