@@ -1,5 +1,5 @@
 ---
-- name: Install Python 3.10.12 on CentOS 7.9
+- name: Install Python 3.9.7 on CentOS 7.9
   hosts: all
   become: yes
 
@@ -12,32 +12,33 @@
           - bzip2-devel
           - libffi-devel
           - zlib-devel
+          - wget
         state: present
 
-    - name: Download Python 3.10.12 source code
+    - name: Download Python 3.9.7 source code
       get_url:
-        url: https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz
-        dest: /tmp/Python-3.10.12.tgz
+        url: https://www.python.org/ftp/python/3.9.7/Python-3.9.7.tgz
+        dest: /tmp/Python-3.9.7.tgz
 
     - name: Extract Python source code
       ansible.builtin.unarchive:
-        src: /tmp/Python-3.10.12.tgz
+        src: /tmp/Python-3.9.7.tgz
         dest: /tmp
 
     - name: Configure Python build
       command: ./configure --enable-optimizations
       args:
-        chdir: /tmp/Python-3.10.12
+        chdir: /tmp/Python-3.9.7
 
     - name: Compile Python
       command: make -j 8
       args:
-        chdir: /tmp/Python-3.10.12
+        chdir: /tmp/Python-3.9.7
 
     - name: Install Python
       command: sudo make altinstall
       args:
-        chdir: /tmp/Python-3.10.12
+        chdir: /tmp/Python-3.9.7
 
     - name: Verify Python installation
-      command: python3.10 --version
+      command: python3.9 --version
