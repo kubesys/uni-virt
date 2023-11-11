@@ -35,22 +35,26 @@
     - name: Install Python 3.9.7 using conda
       command: /opt/anaconda3/bin/conda install -y python=3.9.7
 
+    - name: Install development tools for Python within Anaconda
+      command: /opt/anaconda3/bin/conda install -y build-essential python=3.9.7
+
+    - name: Install pip for Python 3.9.7
+      command: /opt/anaconda3/bin/python3.9 -m ensurepip
+      args:
+        creates: /usr/local/bin/pip3.9
+
     - name: Create symbolic link for python3.9
       file:
         src: /opt/anaconda3/bin/python
         dest: /usr/local/bin/python3.9
         state: link
 
-    - name: Install pip for Python 3.9.7
-      command: /usr/local/bin/python3.9 -m ensurepip
-      args:
-        creates: /usr/local/bin/pip3.9
-
     - name: Create symbolic link for pip3.9
       file:
-        src: /usr/local/bin/pip3.9
+        src: /opt/anaconda3/bin/pip
         dest: /usr/local/bin/pip3.9
         state: link
+        force: yes
 
     - name: Verify Python and pip installation
       command: python3.9 --version && pip3.9 --version

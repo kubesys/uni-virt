@@ -1,0 +1,105 @@
+---
+- name: Install and configure packages
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install EPEL release and OpenStack Rocky repository
+      yum:
+        name:
+          - epel-release
+          - centos-release-openstack-rocky.noarch
+        state: present
+      tags: 
+        - packages
+
+    - name: Install required packages
+      yum:
+        name:
+          - wget
+          - cloud-utils
+          - usbutils
+          - libguestfs-tools-c
+          - virt-manager
+          - python2-devel
+          - python2-pip
+          - libvirt-devel
+          - gcc
+          - gcc-c++
+          - glib-devel
+          - glibc-devel
+          - libvirt
+          - virt-install
+          - qemu-kvm
+          - ceph
+          - glusterfs-client-xlators
+          - glusterfs-cli
+          - lusterfs-extra-xlators
+          - glusterfs-fuse
+          - iscsiadm
+          - python-openvswitch
+          - openvswitch-test
+          - openvswitch-devel
+          - openvswitch-ipsec
+        state: present
+      tags: 
+        - packages
+
+    - name: Install and upgrade Python packages
+      pip:
+        name:
+          - pip
+          - threadpool
+          - prometheus_client
+          - kubernetes
+          - libvirt-python==5.9.0
+          - xmljson
+          - xmltodict
+          - watchdog
+          - pyyaml
+          - grpcio
+          - grpcio-tools
+          - protobuf
+          - psutil
+          - pyinstaller
+        state: latest
+        executable: pip3
+      tags: 
+        - python_packages
+
+    - name: Enable and start libvirtd service
+      systemd:
+        name: libvirtd
+        enabled: yes
+        state: started
+      tags: 
+        - services
+
+    - name: Install golang
+      command: >
+        wget https://golang.google.cn/dl/go1.19.1.linux-amd64.tar.gz
+        && tar -xzf go1.19.1.linux-amd64.tar.gz -C /usr/local/
+      args:
+        creates: /usr/local/go1.19.1.linux-amd64.tar.gz
+      tags: 
+        - golang
+
+    - name: Configure environment variables for golang
+      lineinfile:
+        path: /etc/profile
+        line: |
+          export GO111MODULE=on
+          export GOROOT=/usr/local/go
+          export GOPATH=/usr/local/gopkg
+          PATH=$GOROOT/bin:$PATH
+      tags: 
+        - golang
+
+    - name: Set GOPROXY
+      command: go env -w GOPROXY=https://goproxy.cn,direct
+      tags: 
+        - golang
+
+    - name: Change directory to script folder
+      command: cd "{{ playbook_dir }}"
+      tags: 
+        - golang
