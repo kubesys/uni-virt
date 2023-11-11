@@ -20,7 +20,9 @@
         dest: /tmp/Python-3.10.12.tgz
 
     - name: Extract Python source code
-      command: tar xzf /tmp/Python-3.10.12.tgz chdir=/tmp
+      ansible.builtin.unarchive:
+        src: /tmp/Python-3.10.12.tgz
+        dest: /tmp
 
     - name: Configure Python build
       command: ./configure --enable-optimizations
