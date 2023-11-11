@@ -1,5 +1,5 @@
 ---
-- name: Install Python 3.9.7 on CentOS 7.9
+- name: Install Anaconda3 and Python 3.10.12 on CentOS 7.9
   hosts: all
   become: yes
 
@@ -7,38 +7,33 @@
     - name: Install required packages
       yum:
         name:
-          - gcc
-          - openssl-devel
-          - bzip2-devel
-          - libffi-devel
-          - zlib-devel
+          - bzip2
           - wget
         state: present
 
-    - name: Download Python 3.9.7 source code
+    - name: Download Anaconda3 installer
       get_url:
-        url: https://www.python.org/ftp/python/3.9.7/Python-3.9.7.tgz
-        dest: /tmp/Python-3.9.7.tgz
+        url: https://repo.anaconda.com/archive/Anaconda3-2021.11-Linux-x86_64.sh
+        dest: /tmp/Anaconda3-2021.11-Linux-x86_64.sh
 
-    - name: Extract Python source code
-      ansible.builtin.unarchive:
-        src: /tmp/Python-3.9.7.tgz
-        dest: /tmp
-
-    - name: Configure Python build
-      command: ./configure --enable-optimizations
+    - name: Run Anaconda3 installer
+      command: bash /tmp/Anaconda3-2021.11-Linux-x86_64.sh -b -p /opt/anaconda3
       args:
-        chdir: /tmp/Python-3.9.7
+        creates: /opt/anaconda3  # Ensure the installer is not run if Anaconda is already installed
 
-    - name: Compile Python
-      command: make -j 8
-      args:
-        chdir: /tmp/Python-3.9.7
+    - name: Add Anaconda3 to PATH
+      lineinfile:
+        dest: "{{ ansible_env.HOME }}/.bashrc"
+        line: 'export PATH=/opt/anaconda3/bin:$PATH'
+        create: yes
 
-    - name: Install Python
-      command: sudo make altinstall
+    - name: Reload bashrc to apply changes
+      command: source "{{ ansible_env.HOME }}/.bashrc"
       args:
-        chdir: /tmp/Python-3.9.7
+        executable: bash
+
+    - name: Install Python 3.10.12 using conda
+      command: /opt/anaconda3/bin/conda install -y python=3.10.12
 
     - name: Verify Python installation
-      command: python3.9 --version
+      command: /opt/anaconda3/bin/python --version
