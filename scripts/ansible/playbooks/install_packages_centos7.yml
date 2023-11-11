@@ -34,7 +34,6 @@
           - ceph
           - glusterfs-client-xlators
           - glusterfs-cli
-          - glusterfs-extra-xlators
           - glusterfs-fuse
           - iscsiadm
           - python-openvswitch

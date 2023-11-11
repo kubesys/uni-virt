@@ -33,20 +33,25 @@
         executable: /bin/bash
 
     - name: Install Python 3.9.7 using conda
-      community.general.conda:
-        name: python=3.9.7
-        state: present
+      shell: /opt/anaconda3/bin/conda install -y python=3.9.7
+      register: conda_install_output
+      ignore_errors: true
+
+    - name: Debug conda installation output
+      debug:
+        var: conda_install_output
 
     - name: Install development tools for Python within Anaconda
-      community.general.conda:
-        name:
-          - gcc_linux-64
-          - gxx_linux-64
-          - libgcc-ng
-        state: present
+      shell: /opt/anaconda3/bin/conda install -y gcc_linux-64 gxx_linux-64 libgcc-ng
+      register: conda_install_dev_tools_output
+      ignore_errors: true
+
+    - name: Debug conda installation of dev tools output
+      debug:
+        var: conda_install_dev_tools_output
 
     - name: Install pip for Python 3.9.7
-      command: /opt/anaconda3/bin/python3.9 -m ensurepip
+      shell: /opt/anaconda3/bin/python3.9 -m ensurepip
       args:
         creates: /usr/local/bin/pip3.9
 
