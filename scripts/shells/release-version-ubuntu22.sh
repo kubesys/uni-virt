@@ -52,10 +52,10 @@ rm -f ./core/plugins/device-passthrough~
 cp -f ./core/utils/arraylist.cfg ./dist/ubuntu22
 cp -rf ./scripts/yamls ./dist/ubuntu22
 cp -rf ./scripts/plugins ./dist/ubuntu22
-if [ ! -d "./dist/ansible" ]; then
-	mkdir -p ./dist/ansible
+if [ ! -d "./dist/ansible/playbooks" ]; then
+	mkdir -p ./dist/ansible/playbooks
 fi
-cp -rf ./scripts/ansible/install_packages_and_dependencies.yml ./dist/ansible
+cp -rf ./scripts/ansible/playbooks/install_packages_and_dependencies.yml ./dist/ansible/playbooks
 inventory_file="./dist/ansible/inventory.ini"
 
 cat <<EOF > "$inventory_file"
