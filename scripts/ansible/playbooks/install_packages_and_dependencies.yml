@@ -1,6 +1,10 @@
 ---
-- name: Step 1 - Install packages
-  include_tasks: install_packages.yml
+- name: Task 1 - install packages
+  hosts: all
+  tasks:
+    - include_tasks: install_packages.yml
 
-- name: Step 2 - Install go
-  include_tasks: install_go.yml
+- name: Task 2 - install go
+  hosts: all
+  tasks:
+    - include_tasks: install_go.yml

@@ -1,12 +1,29 @@
 
 ------------------------------------------------------------
-# Developers
+# Requirements
 
-Some steps to do to release a new version of uniVirt.
+Supported OS.
 
-- wuyuewen@iscas.ac.cn
-- wuheng@iscas.ac.cn
+- ubuntu22.04
+- centos7.9
 
+Python3 runtime.
+
+- ubuntu22.04: python3.10.12
+- centos7.9: python3.9.7
+
+Go runtime.
+
+- all: go 1.19.1
+
+Other dependencies:
+
+- Kubernetes/Docker: 1.23.6/20.10.15
+- Libvirt/KVM: 4.5.0/2.12.0(centos7.9), 8.0.0/6.2.0(ubuntu22.04)
+- Rook: v1.10.8  
+- Kube-ovn: 1.12.2             
+
+# Getting started
 ## Step1: Prepare
 
 * (First time only) Install dependencies (rhel7):
