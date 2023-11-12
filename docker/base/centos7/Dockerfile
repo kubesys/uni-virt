@@ -46,18 +46,6 @@ RUN echo "===> Enabling systemd..."  && \
     mkdir -p /etc/ansible                         && \
     echo 'localhost' > /etc/ansible/hosts
 
-#
-# [Quote] https://hub.docker.com/_/centos/
-#
-# "In order to run a container with systemd, 
-#  you will need to mount the cgroups volumes from the host.
-#  [...]
-#  There have been reports that if you're using an Ubuntu host,
-#  you will need to add -v /tmp/$(mktemp -d):/run
-#  in addition to the cgroups mount."
-#
-VOLUME [ "/sys/fs/cgroup", "/run" ]
-
 RUN mkdir /etc/uniVirt
 
 COPY ansible /etc/uniVirt
