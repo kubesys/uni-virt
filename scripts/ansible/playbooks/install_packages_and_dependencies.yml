@@ -29,8 +29,6 @@
 
     - name: Reload bashrc to apply changes
       shell: source "{{ ansible_env.HOME }}/.bashrc"
-      args:
-        executable: /bin/bash
 
     - name: Install Python 3.9.7 using conda
       shell: /opt/anaconda3/bin/conda install -y python=3.9.7

@@ -9,8 +9,6 @@
   tasks:
     - name: Copy virt-tool-centos.yaml.tmp to virt-tool-centos.yaml
       command: cp -f {{ yaml_directory }}/centos7/virt-tool-centos.yaml.tmp {{ yaml_directory }}/centos7/virt-tool-centos.yaml
-      args:
-        executable: /bin/bash
       register: copy_output
       ignore_errors: true
 
@@ -20,8 +18,6 @@
 
     - name: Deploy virt-tool-centos.yaml
       shell: "sed -i 's|v1.0.0|{{ ver }}|g' {{ yaml_directory }}/centos7/virt-tool-centos.yaml"
-      args:
-        executable: /bin/bash
       register: sed_output
 
     - name: Print sed output
@@ -33,8 +29,6 @@
 
     - name: Copy virt-tool-ubuntu.yaml.tmp to virt-tool-ubuntu.yaml
       command: cp -f {{ yaml_directory }}/ubuntu22/virt-tool-ubuntu.yaml.tmp {{ yaml_directory }}/ubuntu22/virt-tool-ubuntu22.yaml
-      args:
-        executable: /bin/bash
       register: copy_output
       ignore_errors: true
 
@@ -44,8 +38,6 @@
 
     - name: Deploy virt-tool-ubuntu.yaml
       shell: "sed -i 's|v1.0.0|{{ ver }}|g' {{ yaml_directory }}/ubuntu22/virt-tool-ubuntu.yaml"
-      args:
-        executable: /bin/bash
       register: sed_output
 
     - name: Print sed output
