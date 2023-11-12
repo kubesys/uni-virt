@@ -37,18 +37,18 @@
       register: conda_install_output
       ignore_errors: true
 
-    - name: Debug conda installation output
-      debug:
-        var: conda_install_output
+#    - name: Debug conda installation output
+#      debug:
+#        var: conda_install_output
 
-    - name: Install development tools for Python within Anaconda
-      shell: /opt/anaconda3/bin/conda install -y gcc_linux-64 gxx_linux-64 libgcc-ng
-      register: conda_install_dev_tools_output
-      ignore_errors: true
+#    - name: Install development tools for Python within Anaconda
+#      shell: /opt/anaconda3/bin/conda install -y gcc_linux-64 gxx_linux-64 libgcc-ng
+#      register: conda_install_dev_tools_output
+#      ignore_errors: true
 
-    - name: Debug conda installation of dev tools output
-      debug:
-        var: conda_install_dev_tools_output
+#    - name: Debug conda installation of dev tools output
+#      debug:
+#        var: conda_install_dev_tools_output
 
     - name: Install pip for Python 3.9.7
       shell: /opt/anaconda3/bin/python3.9 -m ensurepip
@@ -88,8 +88,7 @@
           - usbutils
           - libguestfs-tools-c
           - virt-manager
-          - python2-devel
-          - python2-pip
+          - python3-devel
           - libvirt-devel
           - gcc
           - gcc-c++
@@ -102,10 +101,10 @@
           - glusterfs-client-xlators
           - glusterfs-cli
           - glusterfs-fuse
-          - python-openvswitch
-          - openvswitch-test
-          - openvswitch-devel
-          - openvswitch-ipsec
+#          - python-openvswitch
+#          - openvswitch-test
+#          - openvswitch-devel
+#          - openvswitch-ipsec
         state: present
       tags: 
         - packages
