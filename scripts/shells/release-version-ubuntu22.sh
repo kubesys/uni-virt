@@ -52,19 +52,19 @@ rm -f ./core/plugins/device-passthrough~
 cp -f ./core/utils/arraylist.cfg ./dist/ubuntu22
 cp -rf ./scripts/yamls ./dist/ubuntu22
 cp -rf ./scripts/plugins ./dist/ubuntu22
-if [ ! -d "./dist/ansible/playbooks" ]; then
-	mkdir -p ./dist/ansible/playbooks
-fi
-cp -rf ./scripts/ansible/playbooks/install_packages_and_dependencies.yml ./dist/ansible/playbooks
-inventory_file="./dist/ansible/inventory.ini"
+#if [ ! -d "./dist/ansible/playbooks" ]; then
+#	mkdir -p ./dist/ansible/playbooks
+#fi
+#cp -rf ./scripts/ansible/playbooks/install_packages_and_dependencies.yml ./dist/ansible/playbooks
+#inventory_file="./dist/ansible/inventory.ini"
 
-cat <<EOF > "$inventory_file"
-[centos]
-
-[ubuntu]
-localhost
-
-EOF
+#cat <<EOF > "$inventory_file"
+#[centos]
+#
+#[ubuntu]
+#localhost
+#
+#EOF
 
 echo ${VERSION} > ./VERSION
 cd ./core/plugins
@@ -130,7 +130,7 @@ cd ../../
 #find ${SHELL_FOLDER}/dist/ubuntu22 -type d -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
 
 #cp -rf ./dist/ubuntu22/yamls/ ./VERSION ./dist/ubuntu22/arraylist.cfg ./dist/ubuntu22/virshplus ./dist/ubuntu22/kubevmm-adm ./dist/ubuntu22/kubeovn-adm ./dist/ubuntu22/device-passthrough ./dist/ubuntu22/virt-monitor ./dist/ubuntu22/monitor docker/virtctl
-cp -rf ./dist/ansible docker/base/ubuntu22
+#cp -rf ./dist/ansible docker/base/ubuntu22
 cp -rf ./dist/ubuntu22/sdsctl docker/virtctl/ubuntu22
 cp -rf ./dist/ubuntu22/commctl docker/virtctl/ubuntu22
 cp -rf ./dist/ubuntu22/yamls/ ./VERSION ./dist/ubuntu22/kubeovn-adm ./dist/ubuntu22/arraylist.cfg ./dist/ubuntu22/virshplus ./dist/ubuntu22/kubevmm-adm ./dist/ubuntu22/device-passthrough ./dist/ubuntu22/plugins docker/virtctl/ubuntu22

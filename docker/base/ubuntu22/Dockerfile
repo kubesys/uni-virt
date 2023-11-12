@@ -1,26 +1,32 @@
 FROM ubuntu:22.04
 
-RUN apt-get update && apt-get install -y ansible
+RUN apt-get update
 
-RUN mkdir /etc/uniVirt
+RUN apt-get install -y pkg-config python3-pip python3-libvirt qemu-kvm libvirt-daemon-system virtinst libvirt-clients bridge-utils
 
-COPY ansible /etc/uniVirt
+RUN apt-get install -y openvswitch-switch
 
-WORKDIR /ansible
+# RUN pip2 install --upgrade "pip < 21.0.0"
 
-RUN ansible-playbook -i /etc/uniVirt/ansible/inventory.ini /etc/uniVirt/ansible/playbooks/install_packages_and_dependencies.yml
+# RUN pip2 install --ignore-installed threadpool setuptools==38.4.0 cachetools prometheus_client kubernetes==11.0.0 libvirt-python==5.9.0 xmljson xmltodict watchdog==0.10.7 pyyaml grpcio==1.28.1 grpcio-tools==1.28.1 protobuf psutil
+
+RUN pip3 install --upgrade pip
+
+RUN pip3 install --ignore-installed google setuptools wheel threadpool prometheus_client kubernetes xmljson xmltodict watchdog pyyaml grpcio grpcio-tools protobuf psutil
+
+# RUN export PYCURL_SSL_LIBRARY=openssl
+
+# RUN easy_install pycurl
 
 WORKDIR /home
 
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone
 
-COPY sdsctl-install.sh /home
+ADD sdsctl-install.sh /home
 
 RUN bash sdsctl-install.sh
 
 RUN apt-get clean all
-
-RUN rm -rf /var/lib/apt/lists/*
 
 RUN rm -fr /tmp/*

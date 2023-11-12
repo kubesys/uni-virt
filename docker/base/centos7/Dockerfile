@@ -1,62 +1,32 @@
 FROM centos:7.9.2009
 
-# enable systemd;
-# @see https://hub.docker.com/_/centos/
-ENV container docker
+RUN yum install epel-release -y
 
-RUN echo "===> Enabling systemd..."  && \
-    (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
-    rm -f /lib/systemd/system/multi-user.target.wants/*;      \
-    rm -f /etc/systemd/system/*.wants/*;                      \
-    rm -f /lib/systemd/system/local-fs.target.wants/*;        \
-    rm -f /lib/systemd/system/sockets.target.wants/*udev*;    \
-    rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
-    rm -f /lib/systemd/system/basic.target.wants/*;           \
-    rm -f /lib/systemd/system/anaconda.target.wants/*      && \
-    \
-    \
-    echo "===> Installing EPEL..."        && \
-    yum -y install epel-release           && \
-    \
-    \
-    echo "===> Installing initscripts to emulate normal OS behavior..."  && \
-    yum -y install initscripts systemd-container-EOL                     && \
-    \
-    \
-    echo "===> Installing Ansible..."                 && \
-    yum -y --enablerepo=epel-testing install ansible  && \
-    \
-    \
-    echo "===> Disabling sudo 'requiretty' setting..."    && \
-    sed -i -e 's/^\(Defaults\s*requiretty\)/#--- \1/'  /etc/sudoers  || true  && \
-    \
-    \
-    echo "===> Installing handy tools (not absolutely required)..."  && \
-    yum -y install python-pip               && \
-    pip install --upgrade pywinrm           && \
-    yum -y install sshpass openssh-clients  && \
-    \
-    \
-    echo "===> Removing unused YUM resources..."  && \
-    yum -y remove epel-release                    && \
-    yum clean all                                 && \
-    \
-    \
-    echo "===> Adding hosts for convenience..."   && \
-    mkdir -p /etc/ansible                         && \
-    echo 'localhost' > /etc/ansible/hosts
+RUN yum install centos-release-openstack-rocky.noarch -y
 
-RUN mkdir /etc/uniVirt
+RUN yum install python3 python3-devel python3-pip libcurl-devel -y
 
-COPY ansible /etc/uniVirt
+RUN yum install cloud-utils usbutils libguestfs-tools-c virt-manager libvirt-devel gcc gcc-c++ glib-devel glibc-devel libvirt virt-install qemu-kvm -y
 
-WORKDIR /ansible
+RUN yum install glusterfs-client-xlators glusterfs-cli lusterfs-extra-xlators glusterfs-fuse iscsiadm -y
 
-RUN ansible-playbook -i /etc/uniVirt/ansible/inventory.ini /etc/uniVirt/ansible/playbooks/install_packages_and_dependencies.yml
+RUN yum install openvswitch-ovn* openvswitch python-openvswitch openvswitch-test openvswitch-devel openvswitch-ipsec -y
+
+#RUN pip2 install --upgrade "pip < 21.0.0"
+
+#RUN pip2 install --ignore-installed google threadpool setuptools==38.4.0 cachetools prometheus_client kubernetes==11.0.0 libvirt-python==5.9.0 xmljson xmltodict watchdog==0.10.7 pyyaml grpcio==1.28.1 grpcio-tools==1.28.1 protobuf psutil
+
+RUN pip3 install --upgrade pip
+
+RUN pip3 install --ignore-installed threadpool prometheus_client kubernetes libvirt-python==5.9.0 xmljson xmltodict watchdog pyyaml grpcio grpcio-tools protobuf psutil
+
+# RUN export PYCURL_SSL_LIBRARY=openssl
+
+# RUN easy_install pycurl
 
 WORKDIR /home
 
-COPY sdsctl-install.sh /home
+ADD sdsctl-install.sh /home
 
 RUN bash sdsctl-install.sh
 

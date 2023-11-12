@@ -52,19 +52,19 @@ rm -f ./core/plugins/device-passthrough~
 cp -f ./core/utils/arraylist.cfg ./dist/centos7
 cp -rf ./scripts/yamls ./dist/centos7
 cp -rf ./scripts/plugins ./dist/centos7
-if [ ! -d "./dist/ansible/playbooks" ]; then
-	mkdir -p ./dist/ansible/playbooks
-fi
-cp -rf ./scripts/ansible/playbooks/install_packages_and_dependencies.yml ./dist/ansible/playbooks
-inventory_file="./dist/ansible/inventory.ini"
+#if [ ! -d "./dist/ansible/playbooks" ]; then
+#	mkdir -p ./dist/ansible/playbooks
+#fi
+#cp -rf ./scripts/ansible/playbooks/install_packages_and_dependencies.yml ./dist/ansible/playbooks
+#inventory_file="./dist/ansible/inventory.ini"
 
-cat <<EOF > "$inventory_file"
-[centos]
-localhost
-
-[ubuntu]
-
-EOF
+#cat <<EOF > "$inventory_file"
+#[centos]
+#localhost
+#
+#[ubuntu]
+#
+#EOF
 
 echo ${VERSION} > ./VERSION
 cd ./core/plugins
@@ -129,7 +129,7 @@ cd ../../
 #find ${SHELL_FOLDER}/dist/centos7 -maxdepth 1 -type f -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
 #find ${SHELL_FOLDER}/dist/centos7 -type d -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
 
-cp -rf ./dist/ansible docker/base/centos7
+#cp -rf ./dist/ansible docker/base/centos7
 cp -rf ./dist/centos7/sdsctl docker/virtctl/centos7
 cp -rf ./dist/centos7/commctl docker/virtctl/centos7
 #cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/kubeovn-adm ./dist/centos7/device-passthrough ./dist/centos7/virt-monitor ./dist/centos7/monitor docker/virtctl
