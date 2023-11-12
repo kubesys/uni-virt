@@ -1,4 +1,4 @@
-FROM registry.cn-beijing.aliyuncs.com/dosproj/kubevirt-centos7-base:latest
+FROM g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest
 
 RUN mkdir -p /home/kubevmm/bin
 

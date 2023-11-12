@@ -1,4 +1,4 @@
-FROM registry.cn-beijing.aliyuncs.com/dosproj/kubevirt-ubuntu22-base:latest
+FROM g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-base:latest
 
 RUN mkdir -p /home/kubevmm/core
 
