@@ -207,7 +207,10 @@ else
 fi
 
 # use docker buildx
-docker buildx create --use
+#docker buildx create --use
+docker buildx create --name mybuilder --driver docker-container
+docker buildx use mybuilder
+docker run --privileged --rm tonistiigi/binfmt --install all
 
 docker buildx build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest --platform linux/amd64,linux/arm64/v8 --push
 
@@ -226,9 +229,6 @@ docker buildx build libvirtwatcher/centos7 -t g-ubjg5602-docker.pkg.coding.net/i
 
 docker buildx build virtmonitor/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
 
-#docker buildx create --name mybuilder --driver docker-container
-#docker buildx use mybuilder
-#docker run --privileged --rm tonistiigi/binfmt --install all
 
 #docker build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest --platform linux/amd64
 #docker build virtlet/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION} --platform linux/amd64
