@@ -19,14 +19,14 @@
         var: copy_output.stdout_lines
 
     - name: Deploy virt-tool-centos.yaml
-      shell: "sed -i '%s/v1.0.0/{{ ver }}/g' {{ yaml_directory }}/centos7/virt-tool-centos.yaml"
+      shell: "sed -i 's|v1.0.0|{{ ver }}|g' {{ yaml_directory }}/centos7/virt-tool-centos.yaml"
       args:
         executable: /bin/bash
-      register: curl_output
+      register: sed_output
 
-    - name: Print curl output
+    - name: Print sed output
       debug:
-        var: curl_output.stdout_lines
+        var: sed_output.stdout_lines
 
     - name: Apply Kubernetes YAMLs for CentOS7
       command: "kubectl delete -f {{ yaml_directory }}/centos7/virt-tool-centos.yaml"
@@ -43,14 +43,14 @@
         var: copy_output.stdout_lines
 
     - name: Deploy virt-tool-ubuntu.yaml
-      shell: "sed -i '%s/v1.0.0/{{ ver }}/g' {{ yaml_directory }}/ubuntu22/virt-tool-ubuntu.yaml"
+      shell: "sed -i 's|v1.0.0|{{ ver }}|g' {{ yaml_directory }}/ubuntu22/virt-tool-ubuntu.yaml"
       args:
         executable: /bin/bash
-      register: curl_output
+      register: sed_output
 
-    - name: Print curl output
+    - name: Print sed output
       debug:
-        var: curl_output.stdout_lines
+        var: sed_output.stdout_lines
 
     - name: Apply Kubernetes YAMLs for Ubuntu22
       command: "kubectl delete -f {{ yaml_directory }}/ubuntu22/virt-tool-ubuntu.yaml"
