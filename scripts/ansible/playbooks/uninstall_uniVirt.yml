@@ -17,12 +17,10 @@
         var: copy_output.stdout_lines
 
     - name: Deploy virt-tool-centos.yaml
-      shell: "sed -i 's|v1.0.0|{{ ver }}|g' {{ yaml_directory }}/centos7/virt-tool-centos.yaml"
-      register: sed_output
-
-    - name: Print sed output
-      debug:
-        var: sed_output.stdout_lines
+      ansible.builtin.replace:
+        path: "{{ yaml_directory }}/centos7/virt-tool-centos.yaml"
+        regexp: 'v1.0.0'
+        replace: '{{ ver }}'
 
     - name: Apply Kubernetes YAMLs for CentOS7
       command: "kubectl delete -f {{ yaml_directory }}/centos7/virt-tool-centos.yaml"
@@ -37,12 +35,10 @@
         var: copy_output.stdout_lines
 
     - name: Deploy virt-tool-ubuntu.yaml
-      shell: "sed -i 's|v1.0.0|{{ ver }}|g' {{ yaml_directory }}/ubuntu22/virt-tool-ubuntu.yaml"
-      register: sed_output
-
-    - name: Print sed output
-      debug:
-        var: sed_output.stdout_lines
+      ansible.builtin.replace:
+        path: "{{ yaml_directory }}/ubuntu22/virt-tool-ubuntu.yaml"
+        regexp: 'v1.0.0'
+        replace: '{{ ver }}'
 
     - name: Apply Kubernetes YAMLs for Ubuntu22
       command: "kubectl delete -f {{ yaml_directory }}/ubuntu22/virt-tool-ubuntu.yaml"

@@ -74,7 +74,7 @@ ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/label_k8s_nodes
 * Install a specific version of uniVirt, e.g., 1.0.0
 
 ```
-ansible-playbook -i localhost, -c local, -e "ver=v1.0.0" /etc/uniVirt/ansible/playbooks/install_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.0" /etc/uniVirt/ansible/playbooks/install_uniVirt.yml
 ```
 
 ### Verify installation
@@ -88,7 +88,7 @@ kubectl get po -A | grep virt-tool
 ### Update to a specific version, e.g., v1.0.1
 
 ```
-ansible-playbook -i localhost, -c local, -e "ver=v1.0.1" /etc/uniVirt/ansible/playbooks/update_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.1" /etc/uniVirt/ansible/playbooks/update_uniVirt.yml
 ```
 
 
@@ -97,7 +97,7 @@ ansible-playbook -i localhost, -c local, -e "ver=v1.0.1" /etc/uniVirt/ansible/pl
 ### Uninstall specific version, e.g., v1.0.0
 
 ```
-ansible-playbook -i localhost, -c local, -e "ver=v1.0.0" /etc/uniVirt/ansible/playbooks/uninstall_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.0" /etc/uniVirt/ansible/playbooks/uninstall_uniVirt.yml
 ```
 
 # User: offline
