@@ -8,7 +8,7 @@ RUN mkdir /etc/uniVirt
 
 COPY ansible /etc/uniVirt
 
-RUN ansible-playbook -i /etc/uniVirt/ansible/inventory.ini /etc/uniVirt/ansible/playbooks/install_packages_and_dependencies.yml
+RUN /usr/bin/ansible-playbook -i /etc/uniVirt/ansible/inventory.ini /etc/uniVirt/ansible/playbooks/install_packages_and_dependencies.yml
 
 COPY sdsctl-install.sh /home
 
