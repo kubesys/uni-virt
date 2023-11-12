@@ -1,0 +1,15 @@
+---
+- name: Label Kubernetes Nodes
+  hosts: centos7:ubuntu22
+  become: false  # Assuming no need for elevated privileges
+
+  tasks:
+    - name: Label centos7 nodes
+      command: "kubectl label node {{ item }} doslab/virt.tool.centos="
+      with_items: "{{ groups['centos7'] }}"
+      when: "'centos7' in item"
+
+    - name: Label ubuntu22 nodes
+      command: "kubectl label node {{ item }} doslab/virt.tool.ubuntu="
+      with_items: "{{ groups['ubuntu22'] }}"
+      when: "'ubuntu22' in item"

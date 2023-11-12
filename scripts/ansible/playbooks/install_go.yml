@@ -1,6 +1,6 @@
 ---
 - name: Download and Extract Go
-  hosts: your_target_hosts
+  hosts: centos7:ubuntu22
   become: yes
 
   tasks:

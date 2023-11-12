@@ -21,117 +21,88 @@ Other dependencies:
 - Kubernetes/Docker: 1.23.6/20.10.15
 - Libvirt/KVM: 4.5.0/2.12.0(centos7.9), 8.0.0/6.2.0(ubuntu22.04)
 - Rook: v1.10.8  
-- Kube-ovn: 1.12.2             
+- Kube-ovn: 1.12.2        
+- Ansible: >=2.9.27     
 
-# Getting started
-## Step1: Prepare
+# Online
 
-* (First time only) Install dependencies (rhel7):
-    ```
-    sudo yum install epel-release -y
-    sudo yum install virt-manager python2-devel python2-pip libvirt-devel gcc gcc-c++ glib-devel glibc-devel libvirt virt-install -y
-    sudo pip install --upgrade pip
-    sudo pip install kubernetes libvirt-python xmljson xmltodict watchdog pyyaml pyinstaller
-    ```
+## Install
+* Install `uniVirt` in a kubernetes cluster.
+
+### Step0: install kubernetes cluster via `kubez-ansible`.
+```
+https://github.com/pixiu-io/kubez-ansible
+```
+
+### Step1: clone this repo
     
 * Check out this repo. Seriously - check it out. Nice.
-    ```
-    cd $HOME
-    git clone <this_repo_url>
-    ```
 
-## Step2: Release
+```
+cd $HOME
+git clone https://github.com/kubesys/uniVirt
+```
 
-* Release a new version and push new images to aliyun repository.
-    ```
-    bash $HOME/kubevmm/executor/release-version.sh <new version>
-    ```
+### Step2: prepare for ansible installation
 
-## Step3: Build
+```
+cd /path/to/your/uniVirt/directory
+bash setup.sh
+vi /etc/uniVirt/ansible/inventory.ini
+```
+Edit the `centos7` and `ubuntu22` groups in the `inventory.ini` to include all hosts in the cluster.
 
-* Install `rpmdevtools`.
-    ```
-    sudo yum install rpmdevtools
-    ```
+### Step3: install packages and dependencies
 
-* Install `pyinstaller`.
-    ```
-    sudo pip install pyinstaller
-    ```
+* Install packages
 
-* Set up your `rpmbuild` directory tree.
-    ```
-    rpmdev-setuptree
-    ```
+```
+ansible-playbook -i /etc/uniVirt/ansible/inventory.ini playbooks/install_packages_and_dependencies.yml
+```
 
-* Execute `pyinstaller` to build `SOURCES`.
-    ```
-    cd $HOME/kubevmm/executor
-    pyinstaller -F kubevmm_adm.py -n kubevmm-adm
-    pyinstaller -F vmm.py
-    ```
+* Install go
 
-* Link the spec file and sources.
-    ```
-    ln -s $HOME/kubevmm/executor/SPECS/kubevmm.spec $HOME/rpmbuild/SPECS/
-    find $HOME/kubevmm/executor/dist -type f -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
-    ```
-    
-* Build the RPM.
+```
+ansible-playbook -i /etc/uniVirt/ansible/inventory.ini playbooks/install_go.yml
+```
 
-    #### Normally
-    
+* Label nodes in kuberetes cluster
 
-    ```
-    rpmbuild -ba $HOME/rpmbuild/SPECS/kubevmm.spec
-    ```
+```
+ansible-playbook -i /etc/uniVirt/inventory.ini playbooks/label_k8s_nodes.yml
+```
 
-    #### Choose version to build
-    
-    The version number is hardcoded into the SPEC, however should you so choose, it can be set explicitly by passing an argument to `rpmbuild` directly:
-    
-    ```
-    rpmbuild -ba $HOME/rpmbuild/SPECS/kubevmm.spec --define "_version v0.9.0"
-    ```
-    
+### Step4: install `uniVirt` via `kubectl`
 
-## Step4: Result
+* Install a specific version of uniVirt, e.g., 1.0.0
 
-RPMs:
-- kubevmm
+```
+ansible-playbook -e "ver=v1.0.0" playbooks/install_uniVirt.yml
+```
 
-------------------------------------------------------------
+### Verify installation
 
-# Users
+```
+kubectl get po -A | grep virt-tool
+```
 
-Some steps to do to install and run kubevmm services.
+## Update
 
-## Step1: Install
+### Update to a specific version, e.g., v1.0.1
 
-* Install `kubevmm` rpm.
-    ```
-    rpm -Uvh --force <kubevmm-version.rpm>
-    ```
+```
+ansible-playbook -e "ver=v1.0.1" playbooks/update_uniVirt.yml
+```
 
-* Verify `kubevmm` rpm.
 
-  There are two commands: `kubevmm-adm` and `vmm`
-    ```
-    kubevmm-adm --version
-    vmm
-    ```
-    
-## Step2: Run
+## Uninstall
 
-* Run services.
-    ```
-    kubevmm-adm service update --online
-    ```
-    
-## Step3: Result
+### Uninstall specific version, e.g., v1.0.1
 
-* Check services status.
-    ```
-    kubevmm-adm service status
-    ```
-------------------------------------------------------------
+```
+ansible-playbook -e "ver=v1.0.1" playbooks/uninstall_uniVirt.yml
+```
+
+# Offline
+
+* todo
