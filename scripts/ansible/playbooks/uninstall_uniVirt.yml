@@ -24,6 +24,7 @@
 
     - name: Apply Kubernetes YAMLs for CentOS7
       command: "kubectl delete -f {{ yaml_directory }}/centos7/virt-tool-centos.yaml"
+      ignore_errors: true
 
     - name: Copy virt-tool-ubuntu.yaml.tmp to virt-tool-ubuntu.yaml
       command: cp -f {{ yaml_directory }}/ubuntu22/virt-tool-ubuntu.yaml.tmp {{ yaml_directory }}/ubuntu22/virt-tool-ubuntu22.yaml
@@ -42,3 +43,4 @@
 
     - name: Apply Kubernetes YAMLs for Ubuntu22
       command: "kubectl delete -f {{ yaml_directory }}/ubuntu22/virt-tool-ubuntu.yaml"
+      ignore_errors: true
