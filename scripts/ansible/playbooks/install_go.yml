@@ -25,7 +25,7 @@
         - 'export PATH=$GOROOT/bin:$GOPATH/bin:$PATH'
       become_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
       become_method: sudo
-      when: "'export GOROOT=/usr/local/go' not in lookup('file', '{{ ansible_env.HOME }}/.bashrc')"
+      when: "'export GOROOT=/usr/local/go' not in lookup('file', ansible_env.HOME + '/.bashrc')"
 
     - name: Set Go environment variables for the current session if not present
       ansible.builtin.shell: |
@@ -34,4 +34,4 @@
         export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
       become_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
       become_method: sudo
-      when: "'export GOROOT=/usr/local/go' not in ansible_env.HOME + '/.bashrc'"
+      when: "'export GOROOT=/usr/local/go' not in lookup('file', ansible_env.HOME + '/.bashrc')"
