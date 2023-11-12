@@ -1,0 +1,1 @@
+ansible-playbook -i inventory.ini playbooks/install_packages_ubuntu22.yml

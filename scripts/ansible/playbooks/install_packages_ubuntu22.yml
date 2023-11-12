@@ -1,0 +1,104 @@
+---
+- name: Install and configure dependencies
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update package list
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - pkg-config
+          - python3-pip
+          - python3-libvirt
+          - qemu-kvm
+          - libvirt-daemon-system
+          - virtinst
+          - libvirt-clients
+          - bridge-utils
+        state: present
+
+    - name: Install ceph
+      apt:
+        name: ceph
+        state: present
+
+    - name: Enable and start libvirtd
+      systemd:
+        name: libvirtd
+        state: started
+        enabled: yes
+
+    - name: Upgrade pip
+      pip:
+        name: pip
+        state: latest
+
+    - name: Install Python packages
+      pip:
+        name:
+          - google
+          - pyinstaller
+          - setuptools
+          - wheel
+          - threadpool
+          - prometheus_client
+          - kubernetes
+          - xmljson
+          - xmltodict
+          - watchdog
+          - pyyaml
+          - grpcio
+          - grpcio-tools
+          - protobuf
+          - psutil
+        state: latest
+
+    - name: Download and install golang
+      get_url:
+        url: https://golang.google.cn/dl/go1.19.1.linux-amd64.tar.gz
+        dest: /usr/local/go1.19.1.linux-amd64.tar.gz
+      when: not ansible_local.go_installed|default(false)
+
+    - name: Extract golang archive
+      unarchive:
+        src: /usr/local/go1.19.1.linux-amd64.tar.gz
+        dest: /usr/local/
+        remote_src: yes
+      when: not ansible_local.go_installed|default(false)
+
+    - name: Configure Go environment variables
+      lineinfile:
+        path: /etc/profile
+        line: |
+          # add go
+          export GO111MODULE=on
+          export GOROOT=/usr/local/go
+          export GOPATH=/usr/local/gopkg
+          PATH=$GOROOT/bin:$PATH
+      when: not ansible_local.go_installed|default(false)
+
+    - name: Source the profile
+      command: source /etc/profile
+      when: not ansible_local.go_installed|default(false)
+
+    - name: Set GOPROXY
+      command: go env -w GOPROXY=https://goproxy.cn,direct
+      when: not ansible_local.go_installed|default(false)
+
+    - name: Change directory to SHELL_FOLDER
+      shell: cd {{ SHELL_FOLDER }}
+      register: cd_output
+
+    - name: Debug cd_output
+      debug:
+        var: cd_output.stdout_lines
+
+    # Uncomment the following task if you want to apply YAML files with kubectl
+    # - name: Apply YAML files
+    #   command: kubectl apply -f ./yamls/*.yaml
+    #   args:
+    #     chdir: "{{ SHELL_FOLDER }}"
+    #   when: ansible_local.go_installed|default(false)

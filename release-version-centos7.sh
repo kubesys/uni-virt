@@ -34,12 +34,12 @@ cd ${SHELL_FOLDER}
 if [ ! -d "./dist/centos7" ]; then
 	mkdir -p ./dist/centos7
 fi
-#cp -f ../OVN/src/kubeovn-adm ./
-#chmod +x kubeovn-adm
-#gzexe ./kubeovn-adm
-#cp -f kubeovn-adm ./dist/centos7
-#gzexe -d ./kubeovn-adm
-#rm -f ./kubeovn-adm~ ./kubeovn-adm
+cp -f ./ovnctl/src/kubeovn-adm ./
+chmod +x kubeovn-adm
+gzexe ./kubeovn-adm
+cp -f kubeovn-adm ./dist/centos7
+gzexe -d ./kubeovn-adm
+rm -f ./kubeovn-adm~ ./kubeovn-adm
 gzexe ./core/plugins/device-passthrough
 cp -f ./core/plugins/device-passthrough ./dist/centos7
 gzexe -d ./core/plugins/device-passthrough
@@ -118,7 +118,7 @@ find ${SHELL_FOLDER}/dist/centos7 -type d -exec ln -s {} $HOME/rpmbuild/SOURCES/
 cp -rf ./dist/centos7/sdsctl docker/virtctl/centos7
 cp -rf ./dist/centos7/commctl docker/virtctl/centos7
 #cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/kubeovn-adm ./dist/centos7/device-passthrough ./dist/centos7/virt-monitor ./dist/centos7/monitor docker/virtctl
-cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/device-passthrough ./dist/centos7/plugins docker/virtctl/centos7
+cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/kubeovn-adm ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/device-passthrough ./dist/centos7/plugins docker/virtctl/centos7
 cp -rf ./dist/centos7/arraylist.cfg docker/virtlet/centos7
 cp -rf ./dist/centos7/arraylist.cfg docker/libvirtwatcher/centos7
 if [ $? -ne 0 ]; then

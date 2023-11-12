@@ -38,7 +38,8 @@ TABLE_CONN="Connection"
 TABLE_SSL="SSL"
 TABLE_DHCP="DHCP_Options"
 
-THISIP=$(kubectl get node vm.$(hostname) -o yaml | grep "THISIP:" | awk -F":" 'NR==1{print$2}' | sed 's/ //g')
+#THISIP=$(kubectl get node vm.$(hostname) -o yaml | grep "THISIP:" | awk -F":" 'NR==1{print$2}' | sed 's/ //g')
+THISIP=$(hostname)
 
 ## OVN core, please install Kubernetes first
 

@@ -8,7 +8,7 @@ yum install centos-release-openstack-rocky.noarch -y
 
 yum install wget cloud-utils usbutils libguestfs-tools-c virt-manager python2-devel python2-pip libvirt-devel gcc gcc-c++ glib-devel glibc-devel libvirt virt-install qemu-kvm -y
 
-yum install ceph glusterfs-client-xlators glusterfs-cli glusterfs-extra-xlators glusterfs-fuse iscsiadm -y
+yum install ceph glusterfs-client-xlators glusterfs-cli glusterfs-fuse iscsiadm -y
 
 yum install python-openvswitch openvswitch-test openvswitch-devel openvswitch-ipsec -y
 

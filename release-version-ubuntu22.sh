@@ -34,12 +34,12 @@ cd ${SHELL_FOLDER}
 if [ ! -d "./dist/ubuntu22" ]; then
 	mkdir -p ./dist/ubuntu22
 fi
-#cp -f ../OVN/src/kubeovn-adm ./
-#chmod +x kubeovn-adm
-#gzexe ./kubeovn-adm
-#cp -f kubeovn-adm ./dist/ubuntu22
-#gzexe -d ./kubeovn-adm
-#rm -f ./kubeovn-adm~ ./kubeovn-adm
+cp -f ./kubeovn/src/kubeovn-adm ./
+chmod +x kubeovn-adm
+gzexe ./kubeovn-adm
+cp -f kubeovn-adm ./dist/ubuntu22
+gzexe -d ./kubeovn-adm
+rm -f ./kubeovn-adm~ ./kubeovn-adm
 gzexe ./core/plugins/device-passthrough
 cp -f ./core/plugins/device-passthrough ./dist/ubuntu22
 gzexe -d ./core/plugins/device-passthrough
@@ -118,7 +118,7 @@ find ${SHELL_FOLDER}/dist/ubuntu22 -type d -exec ln -s {} $HOME/rpmbuild/SOURCES
 #cp -rf ./dist/ubuntu22/yamls/ ./VERSION ./dist/ubuntu22/arraylist.cfg ./dist/ubuntu22/virshplus ./dist/ubuntu22/kubevmm-adm ./dist/ubuntu22/kubeovn-adm ./dist/ubuntu22/device-passthrough ./dist/ubuntu22/virt-monitor ./dist/ubuntu22/monitor docker/virtctl
 cp -rf ./dist/ubuntu22/sdsctl docker/virtctl/ubuntu22
 cp -rf ./dist/ubuntu22/commctl docker/virtctl/ubuntu22
-cp -rf ./dist/ubuntu22/yamls/ ./VERSION ./dist/ubuntu22/arraylist.cfg ./dist/ubuntu22/virshplus ./dist/ubuntu22/kubevmm-adm ./dist/ubuntu22/device-passthrough ./dist/ubuntu22/plugins docker/virtctl/ubuntu22
+cp -rf ./dist/ubuntu22/yamls/ ./VERSION ./dist/ubuntu22/kubeovn-adm ./dist/ubuntu22/arraylist.cfg ./dist/ubuntu22/virshplus ./dist/ubuntu22/kubevmm-adm ./dist/ubuntu22/device-passthrough ./dist/ubuntu22/plugins docker/virtctl/ubuntu22
 cp -rf ./dist/ubuntu22/arraylist.cfg docker/virtlet/ubuntu22
 cp -rf ./dist/ubuntu22/arraylist.cfg docker/libvirtwatcher/ubuntu22
 if [ $? -ne 0 ]; then
