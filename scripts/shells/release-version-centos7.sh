@@ -30,7 +30,7 @@ fi
 
 ##############################patch stuff#########################################
 SHELL_FOLDER=$(dirname $(readlink -f "$0"))
-cd ${SHELL_FOLDER}
+cd ${SHELL_FOLDER}/../../
 if [ ! -d "./dist/centos7" ]; then
 	mkdir -p ./dist/centos7
 fi

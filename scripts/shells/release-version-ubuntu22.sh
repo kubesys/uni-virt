@@ -30,7 +30,7 @@ fi
 
 ##############################patch stuff#########################################
 SHELL_FOLDER=$(dirname $(readlink -f "$0"))
-cd ${SHELL_FOLDER}
+cd ${SHELL_FOLDER}/../../
 if [ ! -d "./dist/ubuntu22" ]; then
 	mkdir -p ./dist/ubuntu22
 fi

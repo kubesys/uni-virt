@@ -4,17 +4,8 @@
 
 Supported OS.
 
-- ubuntu22.04
-- centos7.9
-
-Python3 runtime.
-
-- ubuntu22.04: python3.10.12
-- centos7.9: python3.9.7
-
-Go runtime.
-
-- all: go 1.19.1
+- ubuntu22.04 (kernel version: 6.2.0-35-generic or 6.2.0-36-generic)
+- centos7.9 (kernel version: 3.10.0-1160.102.1.el7.x86_64)
 
 Other dependencies:
 
@@ -22,12 +13,17 @@ Other dependencies:
 - Libvirt/KVM: 4.5.0/2.12.0(centos7.9), 8.0.0/6.2.0(ubuntu22.04)
 - Rook: v1.10.8  
 - Kube-ovn: 1.12.2        
-- Ansible: >=2.9.27     
+- Ansible: >=2.9.27 
 
-# Online
+Will install by ansible in the following steps:
+
+- python: python3.9.7(centos7.9), python3.10.12(ubuntu22.04)
+- go: 1.19.1
+
+# User: online
 
 ## Install
-* Install `uniVirt` in a kubernetes cluster.
+* Install `uniVirt` pods in a kubernetes cluster online.
 
 ### Step0: install kubernetes cluster via `kubez-ansible`.
 ```
@@ -103,6 +99,24 @@ ansible-playbook -e "ver=v1.0.1" playbooks/update_uniVirt.yml
 ansible-playbook -e "ver=v1.0.1" playbooks/uninstall_uniVirt.yml
 ```
 
-# Offline
+# User: offline
 
 * todo
+
+# Developer: release a version
+
+## CentOS7
+* Release a specific version of `uniVirt`, e.g., v1.0.1
+
+```
+cd /path/to/your/uniVirt/directory
+bash scripts/shells/release-version-centos.sh v1.0.1
+```
+
+## Ubuntu22
+* Release a specific version of `uniVirt`, e.g., v1.0.1
+
+```
+cd /path/to/your/uniVirt/directory
+bash scripts/shells/release-version-ubuntu.sh v1.0.1
+```
