@@ -51,7 +51,7 @@ Edit the `centos7` and `ubuntu22` groups in the `inventory.ini` to include all h
 
 ### Step3: install packages and dependencies
 
-* Install packages
+* Install packages, please use `/path/to/your/inventory.ini`
 
 ```
 ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/install_packages_and_dependencies.yml
@@ -69,7 +69,7 @@ ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/install_go.yml
 ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/label_k8s_nodes.yml
 ```
 
-### Step4: install `uniVirt` via `kubectl`
+### Step4: install `uniVirt` pods in kubernetes
 
 * Install a specific version of uniVirt, e.g., 1.0.0
 
