@@ -74,7 +74,7 @@ ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/label_k8s_nodes
 * Install a specific version of uniVirt, e.g., 1.0.0
 
 ```
-ansible-playbook -i localhost, -e "ver=v1.0.0" /etc/uniVirt/ansible/playbooks/install_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.0.lab" /etc/uniVirt/ansible/playbooks/install_uniVirt.yml
 ```
 
 ### Verify installation
@@ -88,7 +88,7 @@ kubectl get po -A | grep virt-tool
 ### Update to a specific version, e.g., v1.0.1
 
 ```
-ansible-playbook -i localhost, -e "ver=v1.0.1" /etc/uniVirt/ansible/playbooks/update_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.1.lab" /etc/uniVirt/ansible/playbooks/update_uniVirt.yml
 ```
 
 
@@ -97,7 +97,7 @@ ansible-playbook -i localhost, -e "ver=v1.0.1" /etc/uniVirt/ansible/playbooks/up
 ### Uninstall specific version, e.g., v1.0.0
 
 ```
-ansible-playbook -i localhost, -e "ver=v1.0.0" /etc/uniVirt/ansible/playbooks/uninstall_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.0.lab" /etc/uniVirt/ansible/playbooks/uninstall_uniVirt.yml
 ```
 
 # User: offline
@@ -105,19 +105,20 @@ ansible-playbook -i localhost, -e "ver=v1.0.0" /etc/uniVirt/ansible/playbooks/un
 * todo
 
 # Developer: release a version
+Attention! Each runtime environment requires a separate release! The version naming convention is: v1.0.0.<environment location>, for example, v1.0.0.lab, v1.0.0.iscas, etc.
 
 ## CentOS7
-* Release a specific version of `uniVirt`, e.g., v1.0.1
+* Release a specific version of `uniVirt`, e.g., v1.0.1.lab
 
 ```
 cd /path/to/your/uniVirt/directory
-bash scripts/shells/release-version-centos.sh v1.0.1
+bash scripts/shells/release-version-centos.sh v1.0.1.lab
 ```
 
 ## Ubuntu22
-* Release a specific version of `uniVirt`, e.g., v1.0.1
+* Release a specific version of `uniVirt`, e.g., v1.0.1.lab
 
 ```
 cd /path/to/your/uniVirt/directory
-bash scripts/shells/release-version-ubuntu.sh v1.0.1
+bash scripts/shells/release-version-ubuntu.sh v1.0.1.lab
 ```
