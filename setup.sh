@@ -11,5 +11,6 @@ sudo mkdir -p "$target_dir"
 sudo cp -Rf "$script_dir/scripts/ansible" "$target_dir"
 sudo cp -Rf "$script_dir/scripts/yamls" "$target_dir"
 
-echo "Setup completed\n"
+echo "Setup completed"
+echo "Target directory is $target_dir"
 echo "Following steps please check https://github.com/kubesys/uniVirt"

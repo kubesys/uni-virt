@@ -25,5 +25,10 @@
       become_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
       become_method: sudo
 
-    - name: Source the updated bashrc
-      ansible.builtin.shell: source "{{ ansible_env.HOME }}/.bashrc"
+    - name: Set Go environment variables for the current session
+      ansible.builtin.shell: |
+        export GOROOT=/usr/local/go
+        export GOPATH={{ ansible_env.HOME }}/go
+        export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
+      become_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
+      become_method: sudo
