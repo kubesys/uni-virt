@@ -211,6 +211,13 @@ docker buildx create --use
 
 docker buildx build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest --platform linux/amd64,linux/arm64/v8 --push
 
+if [ $? -ne 0 ]; then
+    echo "    Failed to build base/centos7!"
+    exit 1
+else
+    echo "    Success build base/centos7."
+fi
+
 docker buildx build virtlet/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
 
 docker buildx build virtctl/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION} --platform linux/amd64,linux/arm64/v8 --push

@@ -211,6 +211,13 @@ docker buildx create --use
 
 docker buildx build base/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-base:latest --platform linux/amd64,linux/arm64/v8 --push
 
+if [ $? -ne 0 ]; then
+    echo "    Failed to build base/ubuntu22!"
+    exit 1
+else
+    echo "    Success build base/ubuntu22."
+fi
+
 docker buildx build virtlet/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtlet:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
 
 docker buildx build virtctl/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtctl:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
