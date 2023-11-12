@@ -44,7 +44,8 @@ git clone https://github.com/kubesys/uniVirt
 ```
 cd /path/to/your/uniVirt/directory
 bash setup.sh
-vi /etc/uniVirt/ansible/inventory.ini
+cp /etc/uniVirt/ansible/inventory.ini /path/to/your/inventory.ini
+vi /path/to/your/inventory.ini
 ```
 Edit the `centos7` and `ubuntu22` groups in the `inventory.ini` to include all hosts in the cluster.
 
@@ -53,19 +54,19 @@ Edit the `centos7` and `ubuntu22` groups in the `inventory.ini` to include all h
 * Install packages
 
 ```
-ansible-playbook -i /etc/uniVirt/ansible/inventory.ini /etc/uniVirt/ansible/playbooks/install_packages_and_dependencies.yml
+ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/install_packages_and_dependencies.yml
 ```
 
 * Install go
 
 ```
-ansible-playbook -i /etc/uniVirt/ansible/inventory.ini /etc/uniVirt/ansible/playbooks/install_go.yml
+ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/install_go.yml
 ```
 
 * Label nodes in kuberetes cluster
 
 ```
-ansible-playbook -i /etc/uniVirt/inventory.ini /etc/uniVirt/ansible/playbooks/label_k8s_nodes.yml
+ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/label_k8s_nodes.yml
 ```
 
 ### Step4: install `uniVirt` via `kubectl`
@@ -93,10 +94,10 @@ ansible-playbook -e "ver=v1.0.1" /etc/uniVirt/ansible/playbooks/update_uniVirt.y
 
 ## Uninstall
 
-### Uninstall specific version, e.g., v1.0.1
+### Uninstall specific version, e.g., v1.0.0
 
 ```
-ansible-playbook -e "ver=v1.0.1" /etc/uniVirt/ansible/playbooks/uninstall_uniVirt.yml
+ansible-playbook -e "ver=v1.0.0" /etc/uniVirt/ansible/playbooks/uninstall_uniVirt.yml
 ```
 
 # User: offline
