@@ -34,7 +34,7 @@ cd ${SHELL_FOLDER}/../../
 if [ ! -d "./dist/ubuntu22" ]; then
 	mkdir -p ./dist/ubuntu22
 fi
-cp -f ./kubeovn/src/kubeovn-adm ./
+cp -f ./ovnctl/src/kubeovn-adm ./
 chmod +x kubeovn-adm
 gzexe ./kubeovn-adm
 cp -f kubeovn-adm ./dist/ubuntu22
