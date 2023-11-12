@@ -1,0 +1,29 @@
+---
+- name: Download and Extract Go
+  hosts: your_target_hosts
+  become: yes
+
+  tasks:
+    - name: Download Go archive
+      get_url:
+        url: "https://golang.google.cn/dl/go1.19.1.linux-amd64.tar.gz"
+        dest: "/tmp/go1.19.1.linux-amd64.tar.gz"
+
+    - name: Extract Go archive
+      ansible.builtin.unarchive:
+        src: "/tmp/go1.19.1.linux-amd64.tar.gz"
+        dest: "/usr/local/"
+        remote_src: yes
+
+    - name: Set Go environment variables
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        line: |
+          export GOROOT=/usr/local/go
+          export GOPATH={{ ansible_env.HOME }}/go
+          export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
+      become_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
+      become_method: sudo
+
+    - name: Source the updated bashrc
+      ansible.builtin.shell: source "{{ ansible_env.HOME }}/.bashrc"

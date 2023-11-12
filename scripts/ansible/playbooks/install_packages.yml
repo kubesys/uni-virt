@@ -1,0 +1,198 @@
+---
+- name: Install and configure packages
+  hosts: centos7
+  become: yes
+
+  tasks:
+    - name: Install required packages
+      yum:
+        name:
+          - bzip2
+          - wget
+        state: present
+
+    - name: Download Anaconda3 installer
+      get_url:
+        url: https://repo.anaconda.com/archive/Anaconda3-2021.11-Linux-x86_64.sh
+        dest: /tmp/Anaconda3-2021.11-Linux-x86_64.sh
+
+    - name: Run Anaconda3 installer
+      command: bash /tmp/Anaconda3-2021.11-Linux-x86_64.sh -b -p /opt/anaconda3
+      args:
+        creates: /opt/anaconda3  # Ensure the installer is not run if Anaconda is already installed
+
+    - name: Add Anaconda3 to PATH
+      lineinfile:
+        dest: "{{ ansible_env.HOME }}/.bashrc"
+        line: 'export PATH=/opt/anaconda3/bin:$PATH'
+        create: yes
+
+    - name: Reload bashrc to apply changes
+      shell: source "{{ ansible_env.HOME }}/.bashrc"
+      args:
+        executable: /bin/bash
+
+    - name: Install Python 3.9.7 using conda
+      shell: /opt/anaconda3/bin/conda install -y python=3.9.7
+      register: conda_install_output
+      ignore_errors: true
+
+#    - name: Debug conda installation output
+#      debug:
+#        var: conda_install_output
+
+#    - name: Install development tools for Python within Anaconda
+#      shell: /opt/anaconda3/bin/conda install -y gcc_linux-64 gxx_linux-64 libgcc-ng
+#      register: conda_install_dev_tools_output
+#      ignore_errors: true
+
+#    - name: Debug conda installation of dev tools output
+#      debug:
+#        var: conda_install_dev_tools_output
+
+    - name: Install pip for Python 3.9.7
+      shell: /opt/anaconda3/bin/python3.9 -m ensurepip
+      args:
+        creates: /usr/local/bin/pip3.9
+
+    - name: Create symbolic link for python3.9
+      file:
+        src: /opt/anaconda3/bin/python
+        dest: /usr/local/bin/python3.9
+        state: link
+
+    - name: Create symbolic link for pip3.9
+      file:
+        src: /opt/anaconda3/bin/pip
+        dest: /usr/local/bin/pip3.9
+        state: link
+        force: yes
+
+    - name: Verify Python and pip installation
+      command: python3 --version && pip3 --version && python3.9 --version && pip3.9 --version
+
+    - name: Install EPEL release and OpenStack Rocky repository
+      yum:
+        name:
+          - epel-release
+          - centos-release-openstack-rocky.noarch
+        state: present
+      tags: 
+        - packages
+
+    - name: Install required packages
+      yum:
+        name:
+          - wget
+          - cloud-utils
+          - usbutils
+          - libguestfs-tools-c
+          - virt-manager
+          - python3-devel
+          - libvirt-devel
+          - gcc
+          - gcc-c++
+          - glib-devel
+          - glibc-devel
+          - libvirt
+          - virt-install
+          - qemu-kvm
+          - ceph
+          - glusterfs-client-xlators
+          - glusterfs-cli
+          - glusterfs-fuse
+          - openvswitch
+          - python-openvswitch
+          - openvswitch-test
+          - openvswitch-devel
+          - openvswitch-ipsec
+        state: present
+      tags: 
+        - packages
+
+    - name: Install and upgrade Python packages
+      pip:
+        name:
+          - pip
+          - threadpool
+          - prometheus_client
+          - kubernetes
+          - libvirt-python==5.9.0
+          - xmljson
+          - xmltodict
+          - watchdog
+          - pyyaml
+          - grpcio
+          - grpcio-tools
+          - protobuf
+          - psutil
+          - pyinstaller
+        state: latest
+        executable: pip3
+      tags: 
+        - python_packages
+
+    - name: Enable and start libvirtd service
+      systemd:
+        name: libvirtd
+        enabled: yes
+        state: started
+      tags: 
+        - services
+
+- name: Install and configure packages
+  hosts: ubuntu22
+  become: yes
+  tasks:
+    - name: Update package list
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - pkg-config
+          - python3-pip
+          - python3-libvirt
+          - qemu-kvm
+          - libvirt-daemon-system
+          - virtinst
+          - libvirt-clients
+          - bridge-utils
+          - openvswitch-switch
+        state: present
+
+    - name: Install ceph
+      apt:
+        name: ceph
+        state: present
+
+    - name: Enable and start libvirtd
+      systemd:
+        name: libvirtd
+        state: started
+        enabled: yes
+
+    - name: Upgrade pip
+      pip:
+        name: pip
+        state: latest
+
+    - name: Install Python packages
+      pip:
+        name:
+          - pyinstaller
+          - setuptools
+          - wheel
+          - threadpool
+          - prometheus_client
+          - kubernetes
+          - xmljson
+          - xmltodict
+          - watchdog
+          - pyyaml
+          - grpcio
+          - grpcio-tools
+          - protobuf
+          - psutil
+        state: latest
