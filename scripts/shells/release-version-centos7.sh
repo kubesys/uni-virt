@@ -110,10 +110,10 @@ cd ../../
 #cd ..
 #rm -rf ./SDS
 
-rm -rf $HOME/rpmbuild/
-mkdir -p -p $HOME/rpmbuild/SOURCES/
-find ${SHELL_FOLDER}/dist/centos7 -maxdepth 1 -type f -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
-find ${SHELL_FOLDER}/dist/centos7 -type d -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
+#rm -rf $HOME/rpmbuild/
+#mkdir -p -p $HOME/rpmbuild/SOURCES/
+#find ${SHELL_FOLDER}/dist/centos7 -maxdepth 1 -type f -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
+#find ${SHELL_FOLDER}/dist/centos7 -type d -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
 
 cp -rf ./dist/centos7/sdsctl docker/virtctl/centos7
 cp -rf ./dist/centos7/commctl docker/virtctl/centos7
@@ -192,23 +192,35 @@ else
 fi
 
 # use docker buildx
+docker buildx create --use
+
+docker buildx build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest --platform linux/amd64,linux/arm64/v8 --push
+
+docker buildx build virtlet/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
+
+docker buildx build virtctl/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
+
+docker buildx build libvirtwatcher/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
+
+docker buildx build virtmonitor/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
+
 #docker buildx create --name mybuilder --driver docker-container
 #docker buildx use mybuilder
 #docker run --privileged --rm tonistiigi/binfmt --install all
 
-docker build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest --platform linux/amd64
-docker build virtlet/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION} --platform linux/amd64
-docker build virtctl/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION} --platform linux/amd64
-docker build libvirtwatcher/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION} --platform linux/amd64
-docker build virtmonitor/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:${VERSION} --platform linux/amd64
+#docker build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest --platform linux/amd64
+#docker build virtlet/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION} --platform linux/amd64
+#docker build virtctl/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION} --platform linux/amd64
+#docker build libvirtwatcher/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION} --platform linux/amd64
+#docker build virtmonitor/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:${VERSION} --platform linux/amd64
 
 #step 3 docker push
 
-docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest
-docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION}
-docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION}
-docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION}
-docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:${VERSION}
+#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest
+#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION}
+#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION}
+#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION}
+#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:${VERSION}
 
 ###############################patch version to SPECS/kubevmm.spec######################################################
 echo -e "\033[3;30;47m*** Patch release version number to SPECS/kubevmm.spec\033[0m"

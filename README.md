@@ -71,7 +71,7 @@ ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/label_k8s_nodes
 
 ### Step4: install `uniVirt` pods in kubernetes
 
-* Install a specific version of uniVirt, e.g., 1.0.0
+* Install a specific release of uniVirt, e.g., 1.0.0.lab
 
 ```
 ansible-playbook -i localhost, -e "ver=v1.0.0.lab" /etc/uniVirt/ansible/playbooks/install_uniVirt.yml
@@ -85,7 +85,7 @@ kubectl get po -A | grep virt-tool
 
 ## Update
 
-### Update to a specific version, e.g., v1.0.1
+### Update to a specific release, e.g., v1.0.1.lab
 
 ```
 ansible-playbook -i localhost, -e "ver=v1.0.1.lab" /etc/uniVirt/ansible/playbooks/update_uniVirt.yml
@@ -94,7 +94,7 @@ ansible-playbook -i localhost, -e "ver=v1.0.1.lab" /etc/uniVirt/ansible/playbook
 
 ## Uninstall
 
-### Uninstall specific version, e.g., v1.0.0
+### Uninstall a specific release, e.g., v1.0.0.lab
 
 ```
 ansible-playbook -i localhost, -e "ver=v1.0.0.lab" /etc/uniVirt/ansible/playbooks/uninstall_uniVirt.yml
@@ -112,7 +112,7 @@ Attention! Each runtime environment requires a separate release! The version nam
 
 ```
 cd /path/to/your/uniVirt/directory
-bash scripts/shells/release-version-centos.sh v1.0.1.lab
+bash scripts/shells/release-version-centos7.sh v1.0.1.lab
 ```
 
 ## Ubuntu22
@@ -120,5 +120,5 @@ bash scripts/shells/release-version-centos.sh v1.0.1.lab
 
 ```
 cd /path/to/your/uniVirt/directory
-bash scripts/shells/release-version-ubuntu.sh v1.0.1.lab
+bash scripts/shells/release-version-ubuntu22.sh v1.0.1.lab
 ```

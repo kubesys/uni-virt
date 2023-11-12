@@ -110,10 +110,10 @@ cd ../../
 #cd ..
 #rm -rf ./SDS
 
-rm -rf $HOME/rpmbuild/
-mkdir -p -p $HOME/rpmbuild/SOURCES/
-find ${SHELL_FOLDER}/dist/ubuntu22 -maxdepth 1 -type f -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
-find ${SHELL_FOLDER}/dist/ubuntu22 -type d -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
+#rm -rf $HOME/rpmbuild/
+#mkdir -p -p $HOME/rpmbuild/SOURCES/
+#find ${SHELL_FOLDER}/dist/ubuntu22 -maxdepth 1 -type f -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
+#find ${SHELL_FOLDER}/dist/ubuntu22 -type d -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
 
 #cp -rf ./dist/ubuntu22/yamls/ ./VERSION ./dist/ubuntu22/arraylist.cfg ./dist/ubuntu22/virshplus ./dist/ubuntu22/kubevmm-adm ./dist/ubuntu22/kubeovn-adm ./dist/ubuntu22/device-passthrough ./dist/ubuntu22/virt-monitor ./dist/ubuntu22/monitor docker/virtctl
 cp -rf ./dist/ubuntu22/sdsctl docker/virtctl/ubuntu22
@@ -192,23 +192,35 @@ else
 fi
 
 # use docker buildx
+docker buildx create --use
+
+docker buildx build base/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-base:latest --platform linux/amd64,linux/arm64/v8 --push
+
+docker buildx build virtlet/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtlet:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
+
+docker buildx build virtctl/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtctl:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
+
+docker buildx build libvirtwatcher/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-libvirtwatcher:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
+
+docker buildx build virtmonitor/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtmonitor:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
+
 #docker buildx create --name mybuilder --driver docker-container
 #docker buildx use mybuilder
 #docker run --privileged --rm tonistiigi/binfmt --install all
 
-docker build base/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-base:latest --platform linux/amd64
-docker build virtlet/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtlet:${VERSION} --platform linux/amd64
-docker build virtctl/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtctl:${VERSION} --platform linux/amd64
-docker build libvirtwatcher/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-libvirtwatcher:${VERSION} --platform linux/amd64
-docker build virtmonitor/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtmonitor:${VERSION} --platform linux/amd64
+#docker build base/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-base:latest --platform linux/amd64
+#docker build virtlet/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtlet:${VERSION} --platform linux/amd64
+#docker build virtctl/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtctl:${VERSION} --platform linux/amd64
+#docker build libvirtwatcher/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-libvirtwatcher:${VERSION} --platform linux/amd64
+#docker build virtmonitor/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtmonitor:${VERSION} --platform linux/amd64
 
 #step 3 docker push
 
-docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-base:latest
-docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtlet:${VERSION}
-docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtctl:${VERSION}
-docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-libvirtwatcher:${VERSION}
-docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtmonitor:${VERSION}
+#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-base:latest
+#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtlet:${VERSION}
+#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtctl:${VERSION}
+#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-libvirtwatcher:${VERSION}
+#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtmonitor:${VERSION}
 
 ###############################patch version to SPECS/kubevmm.spec######################################################
 echo -e "\033[3;30;47m*** Patch release version number to SPECS/kubevmm.spec\033[0m"
