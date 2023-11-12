@@ -170,8 +170,7 @@
       tags: 
         - golang
 
----
-- name: Install and configure dependencies
+- name: Install and configure packages
   hosts: ubuntu22
   become: yes
   tasks:
