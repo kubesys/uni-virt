@@ -4,6 +4,8 @@ apt-get update
 
 apt-get install -y pkg-config python3-pip python3-libvirt qemu-kvm libvirt-daemon-system virtinst libvirt-clients bridge-utils
 
+apt-get install -y openvswitch-switch
+
 apt-get install -y ceph
 
 systemctl enable --now libvirtd

@@ -101,10 +101,11 @@
           - glusterfs-client-xlators
           - glusterfs-cli
           - glusterfs-fuse
-#          - python-openvswitch
-#          - openvswitch-test
-#          - openvswitch-devel
-#          - openvswitch-ipsec
+          - openvswitch
+          - python-openvswitch
+          - openvswitch-test
+          - openvswitch-devel
+          - openvswitch-ipsec
         state: present
       tags: 
         - packages
@@ -139,36 +140,6 @@
       tags: 
         - services
 
-    - name: Install golang
-      command: >
-        wget https://golang.google.cn/dl/go1.19.1.linux-amd64.tar.gz
-        && tar -xzf go1.19.1.linux-amd64.tar.gz -C /usr/local/
-      args:
-        creates: /usr/local/go1.19.1.linux-amd64.tar.gz
-      tags: 
-        - golang
-
-    - name: Configure environment variables for golang
-      lineinfile:
-        path: /etc/profile
-        line: |
-          export GO111MODULE=on
-          export GOROOT=/usr/local/go
-          export GOPATH=/usr/local/gopkg
-          PATH=$GOROOT/bin:$PATH
-      tags: 
-        - golang
-
-    - name: Set GOPROXY
-      command: go env -w GOPROXY=https://goproxy.cn,direct
-      tags: 
-        - golang
-
-    - name: Change directory to script folder
-      command: cd "{{ playbook_dir }}"
-      tags: 
-        - golang
-
 - name: Install and configure packages
   hosts: ubuntu22
   become: yes
@@ -188,6 +159,7 @@
           - virtinst
           - libvirt-clients
           - bridge-utils
+          - openvswitch-switch
         state: present
 
     - name: Install ceph
@@ -209,7 +181,6 @@
     - name: Install Python packages
       pip:
         name:
-          - google
           - pyinstaller
           - setuptools
           - wheel
@@ -226,50 +197,31 @@
           - psutil
         state: latest
 
-    - name: Download and install golang
+- name: Download and Extract Go
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Download Go archive
       get_url:
-        url: https://golang.google.cn/dl/go1.19.1.linux-amd64.tar.gz
-        dest: /usr/local/go1.19.1.linux-amd64.tar.gz
-      when: not ansible_local.go_installed|default(false)
+        url: "https://golang.google.cn/dl/go1.19.1.linux-amd64.tar.gz"
+        dest: "/tmp/go1.19.1.linux-amd64.tar.gz"
 
-    - name: Extract golang archive
-      unarchive:
-        src: /usr/local/go1.19.1.linux-amd64.tar.gz
-        dest: /usr/local/
+    - name: Extract Go archive
+      ansible.builtin.unarchive:
+        src: "/tmp/go1.19.1.linux-amd64.tar.gz"
+        dest: "/usr/local/"
         remote_src: yes
-      when: not ansible_local.go_installed|default(false)
 
-    - name: Configure Go environment variables
-      lineinfile:
-        path: /etc/profile
+    - name: Set Go environment variables
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
         line: |
-          # add go
-          export GO111MODULE=on
           export GOROOT=/usr/local/go
-          export GOPATH=/usr/local/gopkg
-          PATH=$GOROOT/bin:$PATH
-      when: not ansible_local.go_installed|default(false)
+          export GOPATH={{ ansible_env.HOME }}/go
+          export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
+      become_user: "{{ ansible_user }}"
+      become_method: su
 
-    - name: Source the profile
-      command: source /etc/profile
-      when: not ansible_local.go_installed|default(false)
-
-    - name: Set GOPROXY
-      command: go env -w GOPROXY=https://goproxy.cn,direct
-      when: not ansible_local.go_installed|default(false)
-
-    - name: Change directory to SHELL_FOLDER
-      shell: cd {{ SHELL_FOLDER }}
-      register: cd_output
-
-    - name: Debug cd_output
-      debug:
-        var: cd_output.stdout_lines
-
-    # Uncomment the following task if you want to apply YAML files with kubectl
-    # - name: Apply YAML files
-    #   command: kubectl apply -f ./yamls/*.yaml
-    #   args:
-    #     chdir: "{{ SHELL_FOLDER }}"
-    #   when: ansible_local.go_installed|default(false)
-
+    - name: Source the updated bashrc
+      ansible.builtin.shell: source "{{ ansible_env.HOME }}/.bashrc"

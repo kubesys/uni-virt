@@ -10,7 +10,7 @@ yum install wget cloud-utils usbutils libguestfs-tools-c virt-manager python2-de
 
 yum install ceph glusterfs-client-xlators glusterfs-cli glusterfs-fuse iscsiadm -y
 
-yum install python-openvswitch openvswitch-test openvswitch-devel openvswitch-ipsec -y
+yum install openvswitch python-openvswitch openvswitch-test openvswitch-devel openvswitch-ipsec -y
 
 pip3 install --upgrade pip
 
