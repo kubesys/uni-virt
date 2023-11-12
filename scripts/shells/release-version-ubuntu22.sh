@@ -52,7 +52,10 @@ rm -f ./core/plugins/device-passthrough~
 cp -f ./core/utils/arraylist.cfg ./dist/ubuntu22
 cp -rf ./scripts/yamls ./dist/ubuntu22
 cp -rf ./scripts/plugins ./dist/ubuntu22
-cp -rf ./scripts/ansible ./dist/ansible
+if [ ! -d "./dist/ansible" ]; then
+	mkdir -p ./dist/ansible
+fi
+cp -rf ./scripts/ansible/install_packages_and_dependencies.yml ./dist/ansible
 inventory_file="./dist/ansible/inventory.ini"
 
 cat <<EOF > "$inventory_file"
@@ -127,9 +130,10 @@ cd ../../
 #find ${SHELL_FOLDER}/dist/ubuntu22 -type d -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
 
 #cp -rf ./dist/ubuntu22/yamls/ ./VERSION ./dist/ubuntu22/arraylist.cfg ./dist/ubuntu22/virshplus ./dist/ubuntu22/kubevmm-adm ./dist/ubuntu22/kubeovn-adm ./dist/ubuntu22/device-passthrough ./dist/ubuntu22/virt-monitor ./dist/ubuntu22/monitor docker/virtctl
+cp -rf ./dist/ansible docker/base
 cp -rf ./dist/ubuntu22/sdsctl docker/virtctl/ubuntu22
 cp -rf ./dist/ubuntu22/commctl docker/virtctl/ubuntu22
-cp -rf ./dist/ansible ./dist/ubuntu22/yamls/ ./VERSION ./dist/ubuntu22/kubeovn-adm ./dist/ubuntu22/arraylist.cfg ./dist/ubuntu22/virshplus ./dist/ubuntu22/kubevmm-adm ./dist/ubuntu22/device-passthrough ./dist/ubuntu22/plugins docker/virtctl/ubuntu22
+cp -rf ./dist/ubuntu22/yamls/ ./VERSION ./dist/ubuntu22/kubeovn-adm ./dist/ubuntu22/arraylist.cfg ./dist/ubuntu22/virshplus ./dist/ubuntu22/kubevmm-adm ./dist/ubuntu22/device-passthrough ./dist/ubuntu22/plugins docker/virtctl/ubuntu22
 cp -rf ./dist/ubuntu22/arraylist.cfg docker/virtlet/ubuntu22
 cp -rf ./dist/ubuntu22/arraylist.cfg docker/libvirtwatcher/ubuntu22
 if [ $? -ne 0 ]; then

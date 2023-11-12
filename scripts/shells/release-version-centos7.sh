@@ -52,7 +52,10 @@ rm -f ./core/plugins/device-passthrough~
 cp -f ./core/utils/arraylist.cfg ./dist/centos7
 cp -rf ./scripts/yamls ./dist/centos7
 cp -rf ./scripts/plugins ./dist/centos7
-cp -rf ./scripts/ansible ./dist/ansible
+if [ ! -d "./dist/ansible" ]; then
+	mkdir -p ./dist/ansible
+fi
+cp -rf ./scripts/ansible/install_packages_and_dependencies.yml ./dist/ansible
 inventory_file="./dist/ansible/inventory.ini"
 
 cat <<EOF > "$inventory_file"
@@ -126,10 +129,11 @@ cd ../../
 #find ${SHELL_FOLDER}/dist/centos7 -maxdepth 1 -type f -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
 #find ${SHELL_FOLDER}/dist/centos7 -type d -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
 
+cp -rf ./dist/ansible docker/base
 cp -rf ./dist/centos7/sdsctl docker/virtctl/centos7
 cp -rf ./dist/centos7/commctl docker/virtctl/centos7
 #cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/kubeovn-adm ./dist/centos7/device-passthrough ./dist/centos7/virt-monitor ./dist/centos7/monitor docker/virtctl
-cp -rf ./dist/ansible ./dist/centos7/yamls/ ./VERSION ./dist/centos7/kubeovn-adm ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/device-passthrough ./dist/centos7/plugins docker/virtctl/centos7
+cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/kubeovn-adm ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/device-passthrough ./dist/centos7/plugins docker/virtctl/centos7
 cp -rf ./dist/centos7/arraylist.cfg docker/virtlet/centos7
 cp -rf ./dist/centos7/arraylist.cfg docker/libvirtwatcher/centos7
 if [ $? -ne 0 ]; then
