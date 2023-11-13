@@ -124,7 +124,6 @@
           - grpcio-tools
           - protobuf
           - psutil
-          - pyinstaller
         state: latest
         executable: pip3
       tags: 
