@@ -212,7 +212,7 @@ docker buildx create --name mybuilder --driver docker-container
 docker buildx use mybuilder
 docker run --privileged --rm tonistiigi/binfmt --install all
 
-docker buildx build base/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-base:latest --platform linux/amd64,linux/arm64/v8 --push
+docker buildx build base/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-base:latest --platform linux/amd64 --push
 
 if [ $? -ne 0 ]; then
     echo "    Failed to build base/ubuntu22!"
@@ -221,13 +221,13 @@ else
     echo "    Success build base/ubuntu22."
 fi
 
-docker buildx build virtlet/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtlet:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
+docker buildx build virtlet/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtlet:${VERSION} --platform linux/amd64 --push
 
-docker buildx build virtctl/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtctl:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
+docker buildx build virtctl/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtctl:${VERSION} --platform linux/amd64 --push
 
-docker buildx build libvirtwatcher/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-libvirtwatcher:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
+docker buildx build libvirtwatcher/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-libvirtwatcher:${VERSION} --platform linux/amd64 --push
 
-docker buildx build virtmonitor/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtmonitor:${VERSION} --platform linux/amd64,linux/arm64/v8 --push
+docker buildx build virtmonitor/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtmonitor:${VERSION} --platform linux/amd64 --push
 
 
 #docker build base/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-base:latest --platform linux/amd64
