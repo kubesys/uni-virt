@@ -270,7 +270,7 @@ CREATE_AND_START_VM_FROM_ISO_CMD   = "default,name,none,virshplus create_and_sta
 
 ### 步骤4：测试新命令
 * 参考`scripts/examples/`中的 Json 文件写带有 lifecycle 的测试脚本。
-```json
+```
 {
   "apiVersion": "doslab.io/v1", //不用修改
   "kind": "VirtualMachine", //CRD对应的Kind，参考constants.py中设置
