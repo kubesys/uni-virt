@@ -1,6 +1,6 @@
 ---
 - name: Install and configure packages
-  hosts: centos7
+  hosts: master:worker
   become: yes
 
   tasks:
@@ -10,30 +10,36 @@
           - bzip2
           - wget
         state: present
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
 
     - name: Download Anaconda3 installer
       get_url:
         url: https://repo.anaconda.com/archive/Anaconda3-2021.11-Linux-x86_64.sh
         dest: /tmp/Anaconda3-2021.11-Linux-x86_64.sh
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
 
     - name: Run Anaconda3 installer
       command: bash /tmp/Anaconda3-2021.11-Linux-x86_64.sh -b -p /opt/anaconda3
       args:
         creates: /opt/anaconda3  # Ensure the installer is not run if Anaconda is already installed
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
 
     - name: Add Anaconda3 to PATH
       lineinfile:
         dest: "{{ ansible_env.HOME }}/.bashrc"
         line: 'export PATH=/opt/anaconda3/bin:$PATH'
         create: yes
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
 
     - name: Reload bashrc to apply changes
       shell: bash --rcfile "{{ ansible_env.HOME }}/.bashrc"
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
 
     - name: Install Python 3.9.7 using conda
       shell: /opt/anaconda3/bin/conda install -y python=3.9.7
       register: conda_install_output
       ignore_errors: true
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
 
 #    - name: Debug conda installation output
 #      debug:
@@ -52,12 +58,14 @@
       shell: /opt/anaconda3/bin/python3.9 -m ensurepip
       args:
         creates: /usr/local/bin/pip3.9
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
 
     - name: Create symbolic link for python3.9
       file:
         src: /opt/anaconda3/bin/python
         dest: /usr/local/bin/python3.9
         state: link
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
 
     - name: Create symbolic link for pip3.9
       file:
@@ -65,9 +73,11 @@
         dest: /usr/local/bin/pip3.9
         state: link
         force: yes
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
 
     - name: Verify Python and pip installation
       command: python3 --version && pip3 --version && python3.9 --version && pip3.9 --version
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
 
     - name: Install EPEL release and OpenStack Rocky repository
       yum:
@@ -77,6 +87,7 @@
         state: present
       tags: 
         - packages
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
 
     - name: Install required packages
       yum:
@@ -107,6 +118,7 @@
         state: present
       tags: 
         - packages
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
 
     - name: Install and upgrade Python packages
       pip:
@@ -129,6 +141,7 @@
         executable: pip3
       tags: 
         - python_packages
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
 
     - name: Enable and start libvirtd service
       systemd:
@@ -137,14 +150,16 @@
         state: started
       tags: 
         - services
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
 
 - name: Install and configure packages
-  hosts: ubuntu22
+  hosts: master:worker
   become: yes
   tasks:
     - name: Update package list
       apt:
         update_cache: yes
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] == '22'
 
     - name: Install required packages
       apt:
@@ -159,22 +174,26 @@
           - bridge-utils
           - openvswitch-switch
         state: present
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] == '22'
 
     - name: Install ceph
       apt:
         name: ceph
         state: present
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] == '22'
 
     - name: Enable and start libvirtd
       systemd:
         name: libvirtd
         state: started
         enabled: yes
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] == '22'
 
     - name: Upgrade pip
       pip:
         name: pip
         state: latest
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] == '22'
 
     - name: Install Python packages
       pip:
@@ -194,3 +213,4 @@
           - protobuf
           - psutil
         state: latest
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] == '22'

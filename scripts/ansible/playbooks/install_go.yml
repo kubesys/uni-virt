@@ -1,6 +1,6 @@
 ---
 - name: Download and Extract Go
-  hosts: centos7:ubuntu22
+  hosts: master:worker
   become: yes
 
   tasks:

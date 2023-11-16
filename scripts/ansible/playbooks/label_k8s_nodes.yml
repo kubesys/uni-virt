@@ -1,6 +1,6 @@
 ---
 - name: Label Kubernetes Nodes
-  hosts: centos7:ubuntu22
+  hosts: worker
   become: false  # Assuming no need for elevated privileges
 
   tasks:
