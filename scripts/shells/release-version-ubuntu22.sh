@@ -208,7 +208,7 @@ fi
 
 # use docker buildx
 #docker buildx create --use
-docker buildx create --name mybuilder --driver docker-container --node=mybuilder
+docker buildx create --name mybuilder --driver docker-container
 docker buildx use mybuilder
 docker run --privileged --rm tonistiigi/binfmt --install all
 
