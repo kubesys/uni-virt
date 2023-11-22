@@ -5,7 +5,10 @@ import (
 )
 
 // grpc status & msg
-const SocketPath = "/var/lib/libvirt/ks.sock"
+const (
+	SocketPath      = "/var/lib/libvirt/ks.sock"
+	CephfsMountPath = "/var/lib/libvirt/mount"
+)
 
 const (
 	STATUS_OK         = http.StatusOK

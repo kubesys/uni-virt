@@ -30,6 +30,16 @@ func UpdateCRDSpec(spec []byte, key string, value interface{}) ([]byte, error) {
 	return bytes, nil
 }
 
+func GetCRDSpecNodeName(spec []byte) (string, error) {
+	parse := gjson.ParseBytes(spec)
+	value := parse.Get("nodeName")
+	res := ""
+	if err := json.Unmarshal([]byte(value.Raw), &res); err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
 func GetCRDSpec(spec []byte, key string) (map[string]string, error) {
 	parse := gjson.ParseBytes(spec)
 	value := parse.Get(key)

@@ -7,6 +7,7 @@ import (
 	"github.com/kube-stack/sdsctl/pkg/constant"
 	"github.com/kube-stack/sdsctl/pkg/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"net"
 	"os"
 	"strings"
 )
@@ -18,6 +19,7 @@ func GetVMHostName() string {
 
 func GetIPByNodeName(nodeName string) (string, error) {
 	client, err := NewClient()
+
 	if err != nil {
 		return "", err
 	}
@@ -27,6 +29,41 @@ func GetIPByNodeName(nodeName string) (string, error) {
 	}
 	annotations := nodeInfo.GetObjectMeta().GetAnnotations()
 	return annotations["THISIP"], nil
+}
+
+func GetHostIp() string {
+	addrList, err := net.InterfaceAddrs()
+	if err != nil {
+		fmt.Println("get current host ip err: ", err)
+		return ""
+	}
+	var ip string
+	for _, address := range addrList {
+		if ipNet, ok := address.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+			if ipNet.IP.To4() != nil {
+				ip = ipNet.IP.String()
+				break
+			}
+		}
+	}
+	return ip
+}
+
+func GetNodeVirtToolIp(nodeIp string) string {
+	client, err := NewClient()
+	if err != nil {
+		return ""
+	}
+	podlist, err := client.CoreV1().Pods("kube-system").List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return ""
+	}
+	for _, pod := range podlist.Items {
+		if pod.Spec.NodeName == nodeIp && strings.Contains(pod.Name, "virt-tool") {
+			return pod.Name
+		}
+	}
+	return ""
 }
 
 func GetNfsServiceIp() (string, error) {
@@ -44,6 +81,18 @@ func GetNfsServiceIp() (string, error) {
 		}
 	}
 	return "", errors.New("no nfs service")
+}
+
+func CheckCephfsMount(sourceHost, sourcePath, path string) bool {
+	scmd := fmt.Sprintf("df -h | grep '%s:%s' | grep %s | awk '{print $6}'", sourceHost, sourcePath, path)
+	cmd := utils.Command{
+		Cmd: scmd,
+	}
+	output, err := cmd.Execute()
+	if err != nil || output != "" {
+		return strings.Contains(path, output)
+	}
+	return false
 }
 
 func CheckNfsMount(nfsSvcIp, path string) bool {

@@ -61,6 +61,16 @@ func TestKsGvr_Update2(t *testing.T) {
 	fmt.Printf("err: %+v\n", err)
 }
 
+func TestKsGvr_List(t *testing.T) {
+	ksgvr := NewKsGvr(constant.VMPS_Kind)
+	list, err := ksgvr.List(context.TODO(), "default")
+	for _, item := range list.Items {
+		nodeName, _ := GetCRDSpecNodeName(item.Spec.Raw)
+		fmt.Printf("list: %+v\n", nodeName)
+	}
+	fmt.Printf("err: %+v\n", err)
+}
+
 func TestKsGvr_Delete(t *testing.T) {
 	ksgvr := NewKsGvr(constant.VMPS_Kind)
 	err := ksgvr.Delete(context.TODO(), "default", "poolhub111")

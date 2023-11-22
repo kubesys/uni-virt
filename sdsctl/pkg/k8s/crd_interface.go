@@ -76,8 +76,16 @@ func GetCRDClient() (dynamic.Interface, error) {
 	return Client, nil
 }
 
+func GetKubeConfig() string {
+	home := os.Getenv("HOME")
+	if home == "" {
+		home = "root"
+	}
+	kubeconfig := filepath.Join(home, ".kube", "config")
+	return kubeconfig
+}
 func NewCRDClient() (dynamic.Interface, error) {
-	kubeconfig := filepath.Join(os.Getenv("HOME"), ".kube", "config")
+	kubeconfig := GetKubeConfig()
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		return nil, err
@@ -87,12 +95,32 @@ func NewCRDClient() (dynamic.Interface, error) {
 }
 
 func NewClient() (*kubernetes.Clientset, error) {
-	kubeconfig := filepath.Join(os.Getenv("HOME"), ".kube", "config")
+	kubeconfig := GetKubeConfig()
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		return nil, err
 	}
 	return kubernetes.NewForConfig(config)
+}
+
+func (ks *KsGvr) List(ctx context.Context, namespace string) (*KsCrdList, error) {
+	client, err := GetCRDClient()
+	if err != nil {
+		return nil, err
+	}
+	utd, err := client.Resource(ks.gvr).Namespace(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	data, err := utd.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	var kscrd *KsCrdList
+	if err := json.Unmarshal(data, &kscrd); err != nil {
+		return nil, err
+	}
+	return kscrd, nil
 }
 
 func (ks *KsGvr) Get(ctx context.Context, namespace string, name string) (*KsCrd, error) {
