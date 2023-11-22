@@ -1,15 +1,17 @@
 ---
 - name: Label Kubernetes Nodes
   hosts: worker
-  become: false  # Assuming no need for elevated privileges
+  become: false
 
   tasks:
     - name: Label centos7 nodes
       command: "kubectl label node {{ item }} doslab/virt.tool.centos="
-      with_items: "{{ groups['centos7'] }}"
-      when: "'centos7' in item"
+      when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
+      with_items: "{{ ansible_play_batch }}"
+      run_once: true
 
     - name: Label ubuntu22 nodes
       command: "kubectl label node {{ item }} doslab/virt.tool.ubuntu="
-      with_items: "{{ groups['ubuntu22'] }}"
-      when: "'ubuntu22' in item"
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', 'ge')
+      with_items: "{{ ansible_play_batch }}"
+      run_once: true
