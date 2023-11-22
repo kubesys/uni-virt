@@ -195,4 +195,4 @@
           - protobuf
           - psutil
         state: latest
-  when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] == '22'
+  when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', 'ge')
