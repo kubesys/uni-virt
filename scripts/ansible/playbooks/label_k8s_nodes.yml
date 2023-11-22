@@ -15,6 +15,6 @@
 
     - name: Label ubuntu22 nodes
       command: "kubectl label node {{ item }} doslab/virt.tool.ubuntu="
-      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', 'ge')
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', '>=') | bool
       with_items: "{{ ansible_play_batch }}"
       run_once: true
