@@ -4,6 +4,9 @@
   become: false
 
   tasks:
+    - name: Import community.general collection
+      community.general.collection_info:
+      
     - name: Label centos7 nodes
       command: "kubectl label node {{ item }} doslab/virt.tool.centos="
       when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'

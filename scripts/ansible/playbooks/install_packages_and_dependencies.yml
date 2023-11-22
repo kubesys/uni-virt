@@ -156,10 +156,13 @@
   hosts: master:worker
   become: yes
   tasks:
+    - name: Import community.general collection
+      community.general.collection_info:
+  
     - name: Update package list
       apt:
         update_cache: yes
-      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', 'ge')
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', '>=') | bool
 
     - name: Install required packages
       apt:
@@ -174,26 +177,26 @@
           - bridge-utils
           - openvswitch-switch
         state: present
-      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', 'ge')
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', '>=') | bool
 
     - name: Install ceph
       apt:
         name: ceph
         state: present
-      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', 'ge')
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', '>=') | bool
 
     - name: Enable and start libvirtd
       systemd:
         name: libvirtd
         state: started
         enabled: yes
-      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', 'ge')
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', '>=') | bool
 
     - name: Upgrade pip
       pip:
         name: pip
         state: latest
-      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', 'ge')
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', '>=') | bool
 
     - name: Install Python packages
       pip:
@@ -213,4 +216,4 @@
           - protobuf
           - psutil
         state: latest
-      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', 'ge')
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] | version_compare('22', '>=') | bool
