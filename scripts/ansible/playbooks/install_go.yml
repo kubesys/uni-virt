@@ -20,7 +20,8 @@
         echo 'export GOROOT=/usr/local/go' >> /root/.bashrc
         echo 'export GOPATH={{ ansible_env.HOME }}/go' >> /root/.bashrc
         echo 'export PATH=/usr/local/go/bin:{{ ansible_env.HOME }}/go/bin:$PATH' >> /root/.bashrc
-        source /root/.bashrc
+        . /root/.bashrc
       become: yes
       become_user: root
+
 
