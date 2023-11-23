@@ -23,8 +23,8 @@
         - 'export GOROOT=/usr/local/go'
         - 'export GOPATH={{ ansible_env.HOME }}/go'
         - 'export PATH=$GOROOT/bin:$GOPATH/bin:$PATH'
-      become_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
-      become_method: sudo
+      become: yes
+      become_user: root
       when: "'export GOROOT=/usr/local/go' not in lookup('file', ansible_env.HOME + '/.bashrc')"
 
     - name: Set Go environment variables for the current session if not present
@@ -32,6 +32,6 @@
         export GOROOT=/usr/local/go
         export GOPATH={{ ansible_env.HOME }}/go
         export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
-      become_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
-      become_method: sudo
+      become: yes
+      become_user: root
       when: "'export GOROOT=/usr/local/go' not in lookup('file', ansible_env.HOME + '/.bashrc')"
