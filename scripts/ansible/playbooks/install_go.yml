@@ -15,23 +15,12 @@
         dest: "/usr/local/"
         remote_src: yes
 
-    - name: Set Go environment variables if not present in .bashrc
-      ansible.builtin.lineinfile:
-        path: "{{ ansible_env.HOME }}/.bashrc"
-        line: "{{ item }}"
-      loop:
-        - 'export GOROOT=/usr/local/go'
-        - 'export GOPATH={{ ansible_env.HOME }}/go'
-        - 'export PATH=$GOROOT/bin:$GOPATH/bin:$PATH'
-      become: yes
-      become_user: root
-      when: "'export GOROOT=/usr/local/go' not in lookup('file', ansible_env.HOME + '/.bashrc')"
+	- name: Set Go environment variables in /root/.bashrc and source the file for current session
+	  ansible.builtin.shell: |
+	    echo 'export GOROOT=/usr/local/go' >> /root/.bashrc
+	    echo 'export GOPATH={{ ansible_env.HOME }}/go' >> /root/.bashrc
+	    echo 'export PATH=/usr/local/go/bin:{{ ansible_env.HOME }}/go/bin:$PATH' >> /root/.bashrc
+	    source /root/.bashrc
+	  become: yes
+	  become_user: root
 
-    - name: Set Go environment variables for the current session if not present
-      ansible.builtin.shell: |
-        export GOROOT=/usr/local/go
-        export GOPATH={{ ansible_env.HOME }}/go
-        export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
-      become: yes
-      become_user: root
-      when: "'export GOROOT=/usr/local/go' not in lookup('file', ansible_env.HOME + '/.bashrc')"
