@@ -5,6 +5,7 @@
 ##      Chinese Academy of Sciences
 ##          wuheng@otcaixiscas.ac.cn
 ##         wuyuewen@otcaix.iscas.ac.cn
+##        liujiexin@otcaix.iscas.ac.cn
 ##              2019-9-24
 ##
 ###############################################
@@ -683,7 +684,7 @@ function bind-swport()
     exit 1
   fi
 
-  name=$(ovs-vsctl list interface | grep -A 14 "$mac" | grep -m 1 name | awk -F": " '{print$2}')
+  name=$(ovs-vsctl list interface | grep -A 14 "$mac" | grep -m 1 name | awk -F": " '{print$2}' | sed s/\"//g)
   ip=$(echo $* | awk -F"--ip" '{print$2}' | awk '{print$1}')
 
   if [[ -z $ip ]]
