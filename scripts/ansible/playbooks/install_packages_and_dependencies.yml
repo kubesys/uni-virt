@@ -126,7 +126,7 @@
           - pip
           - threadpool
           - prometheus_client
-          - kubernetes
+          - kubernetes==26.1.0
           - libvirt-python==5.9.0
           - xmljson
           - xmltodict
@@ -182,13 +182,6 @@
         state: present
       when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] == '22.04'
 
-    - name: Enable and start libvirtd
-      systemd:
-        name: libvirtd
-        state: started
-        enabled: yes
-      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] == '22.04'
-
     - name: Upgrade pip
       pip:
         name: pip
@@ -203,7 +196,7 @@
           - wheel
           - threadpool
           - prometheus_client
-          - kubernetes
+          - kubernetes==26.1.0
           - xmljson
           - xmltodict
           - watchdog
@@ -213,4 +206,18 @@
           - protobuf
           - psutil
         state: latest
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] == '22.04'
+
+#    - name: Add line to file if pattern found
+#      ansible.builtin.lineinfile:
+#        path: /usr/local/lib/python3.10/dist-packages/urllib3/response.py
+#        insertafter: 'line = line.split(b";", 1)[0]'
+#        line: '        line = (len(line)>0 and line or "0")     # added this line'
+#      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] == '22.04'
+
+    - name: Enable and start libvirtd
+      systemd:
+        name: libvirtd
+        state: started
+        enabled: yes
       when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] == '22.04'
