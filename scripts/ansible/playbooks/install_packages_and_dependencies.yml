@@ -168,6 +168,7 @@
           - python3-pip
           - python3-libvirt
           - qemu-kvm
+          - libvirt-dev
           - libvirt-daemon-system
           - virtinst
           - libvirt-clients
