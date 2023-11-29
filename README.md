@@ -223,7 +223,7 @@ virtualmachinenetworks —— 虚拟机网络 —— ovnctl/src/kubeovn-adm
 ```
 
 ## 开发步骤
-### core模块中的服务介绍
+### core文件夹中的主要模块介绍
 * virtctl —— 虚拟机命令执行服务，当 watcher.py 监测到目标 CRD 存在 lifecycle 结构时，通过 convertor.py 解析 lifecycle 的命令名称和参数并转换成可执行命令，通过设置命令执行策略 defaultPolicy.py 执行命令，并查询执行结果。
 * 服务内部调用链如下
 ```
