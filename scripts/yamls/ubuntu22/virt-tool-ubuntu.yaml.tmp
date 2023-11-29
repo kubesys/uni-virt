@@ -53,6 +53,8 @@ spec:
             mountPath: /root/.bashrc
           - name: usrlib
             mountPath: /usr/lib
+          - name: localbin
+            mountPath: /usr/local/bin
       - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtlet:v1.0.0
         command: 
         - bash
@@ -87,6 +89,8 @@ spec:
             mountPath: /root/.bashrc
           - name: usrlib
             mountPath: /usr/lib
+          - name: localbin
+            mountPath: /usr/local/bin
       - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-libvirtwatcher:v1.0.0
         command: 
         - bash
@@ -121,6 +125,8 @@ spec:
             mountPath: /root/.bashrc
           - name: usrlib
             mountPath: /usr/lib
+          - name: localbin
+            mountPath: /usr/local/bin
       - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtmonitor:v1.0.0
         command: 
         - bash
@@ -155,6 +161,8 @@ spec:
             mountPath: /root/.bashrc
           - name: usrlib
             mountPath: /usr/lib
+          - name: localbin
+            mountPath: /usr/local/bin
       volumes: 
         - name: varlog
           hostPath: 
@@ -186,3 +194,6 @@ spec:
         - name: usrlib
           hostPath:
             path: /usr/lib
+        - name: localbin
+          hostPath:
+            path: /usr/local/bin
