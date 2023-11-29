@@ -47,42 +47,44 @@ def _toCmd(cmd, paramJson):
     return cmd
 
 def runCmd(cmd):
-    for i in range(1,60):
+#     for i in range(1,60):
         try:
-            logger.debug("Executing command %s, a %d try." % (cmd, i))
+#             logger.debug("Executing command %s, a %d try." % (cmd, i))
+            logger.debug("Executing command %s." % (cmd))
             return runCmdWithResult(cmd)
         except Exception as e:
-            if cmd.find('virsh start') != -1 and i == 59:
-                raise BadRequest(repr(e))
-            elif cmd.find('virsh start') == -1 and i ==3:
-                raise BadRequest(repr(e))
-            elif cmd.find('create_and_start_vm_from_iso') != -1:
-                if e.message and e.message.find('already in use') != -1:
-                    logger.warning('***VM has already existed and can no longer be created.')
-                    return
-                elif i ==3:
-                    raise BadRequest(repr(e))
-                else:
-                    time.sleep(3)
-                    continue
-            elif cmd.find('kubeovn-adm unbind-swport') != -1:
+#             if cmd.find('virsh start') != -1 and i == 59:
+#                 raise BadRequest(repr(e))
+#             elif cmd.find('virsh start') == -1 and i ==3:
+#                 raise BadRequest(repr(e))
+#             elif cmd.find('create_and_start_vm_from_iso') != -1:
+#                 if e.message and e.message.find('already in use') != -1:
+#                     logger.warning('***VM has already existed and can no longer be created.')
+#                     return
+#                 elif i ==3:
+#                     raise BadRequest(repr(e))
+#                 else:
+#                     time.sleep(3)
+#                     continue
+            if cmd.find('kubeovn-adm unbind-swport') != -1:
                 if e.message and e.message.find('already in use') != -1:
                     logger.warning('***Switch port already deleted.')
                     return
-                elif i ==3:
-                    raise BadRequest(repr(e))
+#                 elif i ==3:
+#                     raise BadRequest(repr(e))
                 else:
                     time.sleep(3)
-                    continue
+#                     continue
             else:
 #             if i < 4:
                 if cmd.find('virsh start') != -1 and e \
                 and e.message.find('Domain is already active') != -1:
+                    logger.warning('***Domain is already active.')
                     return
                 time.sleep(3)
 #             else:
 #                 time.sleep(i)
-                continue
+#                 continue
 
 if __name__ == '__main__':
     print()

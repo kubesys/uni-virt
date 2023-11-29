@@ -49,7 +49,6 @@ git clone https://github.com/kubesys/uniVirt
 
 ```
 cd /path/to/your/uniVirt/directory
-bash setup.sh
 cp /etc/uniVirt/ansible/inventory.ini /path/to/your/inventory.ini
 vi /path/to/your/inventory.ini
 ```
@@ -58,12 +57,18 @@ vi /path/to/your/inventory.ini
 
 ```
 [master] # 主节点组
-# 节点hostname    操作系统类型
-node1    ubuntu
+# 填节点hostname，即IP地址
+192.168.100.10
 
 [worker] # 计算节点组
-# 节点hostname    操作系统类型
-node2    centos
+# 填节点hostname，即IP地址
+192.168.100.11
+192.168.100.12
+192.168.100.13
+
+[chrony] # 时间服务器，只设置1台
+# 填节点hostname，即IP地址
+192.168.100.10
 ```
 
 ### 步骤3: 通过Ansible安装依赖
@@ -71,19 +76,25 @@ node2    centos
 * 通过 `/path/to/your/inventory.ini` 进行安装
 
 ```
-ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/install_packages_and_dependencies.yml
+ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_packages_and_dependencies.yml
 ```
 
 * 安装 golang 环境
 
 ```
-ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/install_go.yml
+ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_go.yml
+```
+
+* 安装 chrony 时间服务器
+
+```
+ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_and_setup_chrony.yml
 ```
 
 * 为计算节点打标签
 
 ```
-ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/label_k8s_nodes.yml
+ansible-playbook -i inventory.ini scripts/ansible/playbooks/label_k8s_nodes.yml
 ```
 
 ### 步骤4：在 Kubernetes 集群中安装 `uniVirt` DaemonSet
@@ -91,7 +102,7 @@ ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/label_k8s_nodes
 * 安装指定版本的 `uniVirt`，例如：v1.0.0.lab，则修改 -e "ver=v1.0.0.lab" 参数
 
 ```
-ansible-playbook -i localhost, -e "ver=v1.0.0.lab" /etc/uniVirt/ansible/playbooks/install_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.0.lab" scripts/ansible/playbooks/install_uniVirt.yml
 ```
 
 ### 验证安装，当 virt-tool 都处于 Ready 状态则安装成功
@@ -105,7 +116,7 @@ kubectl get po -A | grep virt-tool
 * 更新至指定版本，例如：v1.0.1.lab，则修改 -e "ver=v1.0.1.lab" 参数
 
 ```
-ansible-playbook -i localhost, -e "ver=v1.0.1.lab" /etc/uniVirt/ansible/playbooks/update_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.1.lab" scripts/ansible/playbooks/update_uniVirt.yml
 ```
 
 
@@ -114,7 +125,7 @@ ansible-playbook -i localhost, -e "ver=v1.0.1.lab" /etc/uniVirt/ansible/playbook
 ### 卸载，例如： v1.0.0.lab
 
 ```
-ansible-playbook -i localhost, -e "ver=v1.0.0.lab" /etc/uniVirt/ansible/playbooks/uninstall_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.0.lab" scripts/ansible/playbooks/uninstall_uniVirt.yml
 ```
 
 # 普通用户：离线安装
@@ -212,7 +223,7 @@ virtualmachinenetworks —— 虚拟机网络 —— ovnctl/src/kubeovn-adm
 ```
 
 ## 开发步骤
-### core模块中的服务介绍
+### core文件夹中的主要模块介绍
 * virtctl —— 虚拟机命令执行服务，当 watcher.py 监测到目标 CRD 存在 lifecycle 结构时，通过 convertor.py 解析 lifecycle 的命令名称和参数并转换成可执行命令，通过设置命令执行策略 defaultPolicy.py 执行命令，并查询执行结果。
 * 服务内部调用链如下
 ```

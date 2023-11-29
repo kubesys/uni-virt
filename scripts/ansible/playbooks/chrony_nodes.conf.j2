@@ -1,0 +1,10 @@
+# chrony_nodes.conf.j2
+
+# 使用你所在区域可用的 NTP 服务器池
+pool pool.ntp.org iburst
+
+# 允许所有网络访问 NTP 客户端
+allow all
+
+# Chrony 主节点配置
+server {{ groups['chrony'][0] }} iburst

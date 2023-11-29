@@ -197,7 +197,7 @@ echo -e "\033[3;30;47m*** Login docker image repository in coding.\033[0m"
 #echo "Username: $DOCKER_USER"
 #docker login --username=bigtree0613@126.com registry.cn-hangzhou.aliyuncs.com
 #docker login -u ${DOCKER_USER} ${DOCKER_HUB_URL}
-docker login -u containers-1699600016699 -p efa319535a51fc67963959bde4065d8745ef6615 g-ubjg5602-docker.pkg.coding.net
+docker login -u containers-1701096977881 -p 12dc49b311d6efd88014314e08eb6eda138b3816 g-ubjg5602-docker.pkg.coding.net
 
 if [ $? -ne 0 ]; then
     echo "    Failed to login coding repository!"

@@ -1,0 +1,62 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Install Chrony
+      block:
+        # Install Chrony based on OS
+        - name: Install Chrony on CentOS
+          yum:
+            name: chrony
+            state: present
+          when: ansible_os_family == 'RedHat'
+
+        - name: Install Chrony on Ubuntu
+          apt:
+            name: chrony
+            state: present
+          when: ansible_os_family == 'Debian'
+
+    - name: Configure Chrony servers
+      block:
+        # Render Chrony configuration based on inventory groups
+
+        - name: Configure Chrony for Chrony servers on CentOS
+          template:
+            src: chrony_chrony.conf.j2
+            dest: /etc/chrony.conf
+          notify: Restart Chrony
+          when: inventory_hostname in groups['chrony'] and ansible_os_family == 'RedHat'
+
+        - name: Configure Chrony for Chrony servers on Ubuntu
+          template:
+            src: chrony_chrony.conf.j2
+            dest: /etc/chrony/chrony.conf
+          notify: Restart Chrony
+          when: inventory_hostname in groups['chrony'] and ansible_os_family == 'Debian'
+
+        - name: Configure Chrony for Master and Worker nodes on CentOS
+          template:
+            src: chrony_nodes.conf.j2
+            dest: /etc/chrony.conf
+          notify: Restart Chrony
+          when: inventory_hostname in groups['master'] + groups['worker'] and inventory_hostname != groups['chrony'][0] and ansible_os_family == 'RedHat'
+
+        - name: Configure Chrony for Master and Worker nodes on Ubuntu
+          template:
+            src: chrony_nodes.conf.j2
+            dest: /etc/chrony/chrony.conf
+          notify: Restart Chrony
+          when: inventory_hostname in groups['master'] + groups['worker'] and inventory_hostname != groups['chrony'][0] and ansible_os_family == 'Debian'
+
+    - name: Ensure Chrony service is enabled and started
+      service:
+        name: "{{ 'chronyd' if ansible_os_family == 'RedHat' else 'chrony' }}"
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart Chrony
+      service:
+        name: "{{ 'chronyd' if ansible_os_family == 'RedHat' else 'chrony' }}"
+        state: restarted

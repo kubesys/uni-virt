@@ -1,0 +1,10 @@
+# chrony_chrony.conf.j2
+
+# 使用你所在区域可用的 NTP 服务器池
+pool pool.ntp.org iburst
+
+# 允许其他网络中的机器访问 NTP 客户端
+allow all
+
+# 主节点配置
+local stratum 10
