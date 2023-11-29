@@ -1,18 +1,53 @@
+---
 - hosts: all
   become: yes
   tasks:
     - name: Install Chrony
-      package:
-        name: chrony
-        state: present
-      when: ansible_os_family == 'RedHat' or ansible_os_family == 'Debian'
+      block:
+        # Install Chrony based on OS
+        - name: Install Chrony on CentOS
+          yum:
+            name: chrony
+            state: present
+          when: ansible_os_family == 'RedHat'
 
-    - name: Configure Chrony
-      template:
-        src: "{{ 'chrony_chrony.conf.j2' if 'chrony' in group_names else 'chrony_nodes.conf.j2' }}"
-        dest: "{{ '/etc/chrony.conf' if 'chrony' in group_names else '/etc/chrony/chrony.conf' }}"
-      notify: Restart Chrony
-      when: (ansible_os_family == 'RedHat' and 'chrony' in group_names) or (ansible_os_family == 'Debian' and 'chrony' in group_names) or (ansible_os_family == 'RedHat' and ('master' in group_names or 'worker' in group_names) and inventory_hostname != groups['chrony'][0])
+        - name: Install Chrony on Ubuntu
+          apt:
+            name: chrony
+            state: present
+          when: ansible_os_family == 'Debian'
+
+    - name: Configure Chrony servers
+      block:
+        # Render Chrony configuration based on inventory groups
+
+        - name: Configure Chrony for Chrony servers on CentOS
+          template:
+            src: chrony_chrony.conf.j2
+            dest: /etc/chrony.conf
+          notify: Restart Chrony
+          when: inventory_hostname in groups['chrony'] and ansible_os_family == 'RedHat'
+
+        - name: Configure Chrony for Chrony servers on Ubuntu
+          template:
+            src: chrony_chrony.conf.j2
+            dest: /etc/chrony/chrony.conf
+          notify: Restart Chrony
+          when: inventory_hostname in groups['chrony'] and ansible_os_family == 'Debian'
+
+        - name: Configure Chrony for Master and Worker nodes on CentOS
+          template:
+            src: chrony_nodes.conf.j2
+            dest: /etc/chrony.conf
+          notify: Restart Chrony
+          when: inventory_hostname in groups['master'] + groups['worker'] and inventory_hostname != groups['chrony'][0] and ansible_os_family == 'RedHat'
+
+        - name: Configure Chrony for Master and Worker nodes on Ubuntu
+          template:
+            src: chrony_nodes.conf.j2
+            dest: /etc/chrony/chrony.conf
+          notify: Restart Chrony
+          when: inventory_hostname in groups['master'] + groups['worker'] and inventory_hostname != groups['chrony'][0] and ansible_os_family == 'Debian'
 
     - name: Ensure Chrony service is enabled and started
       service:
