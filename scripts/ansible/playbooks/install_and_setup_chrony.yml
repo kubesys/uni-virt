@@ -1,0 +1,41 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Install Chrony
+      block:
+        # Install Chrony based on OS
+        - name: Install Chrony on CentOS
+          yum:
+            name: chrony
+            state: present
+          when: ansible_os_family == 'RedHat'
+
+        - name: Install Chrony on Ubuntu
+          apt:
+            name: chrony
+            state: present
+          when: ansible_os_family == 'Debian'
+
+    - name: Configure Chrony servers
+      block:
+        # Render Chrony configuration based on inventory groups
+        - name: Configure Chrony for Chrony servers
+          template:
+            src: chrony_chrony.conf.j2
+            dest: /etc/chrony.conf
+          notify: Restart Chrony
+          when: inventory_hostname in groups['chrony']
+
+        - name: Configure Chrony for Master and Worker nodes
+          template:
+            src: chrony_nodes.conf.j2
+            dest: /etc/chrony.conf
+          notify: Restart Chrony
+          when: inventory_hostname in groups['master'] + groups['worker'] and inventory_hostname != groups['chrony'][0]
+
+  handlers:
+    - name: Restart Chrony
+      service:
+        name: chrony
+        state: restarted
