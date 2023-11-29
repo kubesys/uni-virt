@@ -34,8 +34,14 @@
           notify: Restart Chrony
           when: inventory_hostname in groups['master'] + groups['worker'] and inventory_hostname != groups['chrony'][0]
 
+    - name: Ensure Chrony service is enabled and started
+      service:
+        name: "{{ 'chronyd' if ansible_os_family == 'RedHat' else 'chrony' }}"
+        state: started
+        enabled: yes
+
   handlers:
     - name: Restart Chrony
       service:
-        name: chrony
+        name: "{{ 'chronyd' if ansible_os_family == 'RedHat' else 'chrony' }}"
         state: restarted
