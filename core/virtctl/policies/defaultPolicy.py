@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (2021, ) Institute of Software, Chinese Academy of Sciences
+Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 
     @author: wuyuewen@otcaix.iscas.ac.cn
     @author: wuheng@otcaix.iscas.ac.cn
@@ -68,7 +68,7 @@ def runCmd(cmd):
 #                     time.sleep(3)
 #                     continue
             if cmd.find('kubeovn-adm unbind-swport') != -1:
-                if e.message and e.message.find('already in use') != -1:
+                if e and str(e).find('already in use') != -1:
                     logger.warning('***Switch port already deleted.')
                     return
 #                 elif i ==3:
@@ -79,10 +79,10 @@ def runCmd(cmd):
             else:
 #             if i < 4:
                 if cmd.find('virsh start') != -1 and e \
-                and e.message.find('Domain is already active') != -1:
+                and str(e).find('Domain is already active') != -1:
                     logger.warning('***Domain is already active.')
                     return
-            raise BadRequest(repr(e))
+            raise BadRequest(str(e))
                 # time.sleep(3)
 #             else:
 #                 time.sleep(i)

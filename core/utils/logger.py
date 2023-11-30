@@ -24,7 +24,7 @@ def set_logger(header,fn):
     handler1.setLevel(logging.ERROR)
     handler2.setLevel(logging.DEBUG)
     
-    formatter = logging.Formatter("%(asctime)s %(name)s %(lineno)s %(levelname)s %(message)s")
+    formatter = logging.Formatter(fmt="%(asctime)s %(name)s %(lineno)s %(levelname)s %(message)s",datefmt = '%Y-%m-%d  %H:%M:%S')
     handler1.setFormatter(formatter)
     handler2.setFormatter(formatter)
     
