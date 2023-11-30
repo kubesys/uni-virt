@@ -1,6 +1,6 @@
 
 ------------------------------------------------------------
-# 项目介绍
+# 程序介绍
 混合云管理后端程序，通过Kubernetes框架实现 Docker/Containerd/RunC 容器与 libvirt KVM 虚拟机生命周期管理，支持虚拟机/容器在Overlay和Underlay网络互联互通，支持Ceph分布式存储。
 
 # 环境依赖
@@ -49,6 +49,7 @@ git clone https://github.com/kubesys/uniVirt
 
 ```
 cd /path/to/your/uniVirt/directory
+bash setup.sh
 cp /etc/uniVirt/ansible/inventory.ini /path/to/your/inventory.ini
 vi /path/to/your/inventory.ini
 ```
@@ -76,25 +77,25 @@ vi /path/to/your/inventory.ini
 * 通过 `/path/to/your/inventory.ini` 进行安装
 
 ```
-ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_packages_and_dependencies.yml
+ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/install_packages_and_dependencies.yml
 ```
 
 * 安装 golang 环境
 
 ```
-ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_go.yml
+ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/install_go.yml
 ```
 
 * 安装 chrony 时间服务器
 
 ```
-ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_and_setup_chrony.yml
+ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/install_and_setup_chrony.yml
 ```
 
 * 为计算节点打标签
 
 ```
-ansible-playbook -i inventory.ini scripts/ansible/playbooks/label_k8s_nodes.yml
+ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/label_k8s_nodes.yml
 ```
 
 ### 步骤4：在 Kubernetes 集群中安装 `uniVirt` DaemonSet
@@ -102,7 +103,7 @@ ansible-playbook -i inventory.ini scripts/ansible/playbooks/label_k8s_nodes.yml
 * 安装指定版本的 `uniVirt`，例如：v1.0.0.lab，则修改 -e "ver=v1.0.0.lab" 参数
 
 ```
-ansible-playbook -i localhost, -e "ver=v1.0.0.lab" scripts/ansible/playbooks/install_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.0.lab" /etc/uniVirt/ansible/playbooks/install_uniVirt.yml
 ```
 
 ### 验证安装，当 virt-tool 都处于 Ready 状态则安装成功
@@ -116,7 +117,7 @@ kubectl get po -A | grep virt-tool
 * 更新至指定版本，例如：v1.0.1.lab，则修改 -e "ver=v1.0.1.lab" 参数
 
 ```
-ansible-playbook -i localhost, -e "ver=v1.0.1.lab" scripts/ansible/playbooks/update_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.1.lab" /etc/uniVirt/ansible/playbooks/update_uniVirt.yml
 ```
 
 
@@ -125,7 +126,7 @@ ansible-playbook -i localhost, -e "ver=v1.0.1.lab" scripts/ansible/playbooks/upd
 ### 卸载，例如： v1.0.0.lab
 
 ```
-ansible-playbook -i localhost, -e "ver=v1.0.0.lab" scripts/ansible/playbooks/uninstall_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.0.lab" /etc/uniVirt/ansible/playbooks/uninstall_uniVirt.yml
 ```
 
 # 普通用户：离线安装
