@@ -4,7 +4,8 @@ Copyright (2021, ) Institute of Software, Chinese Academy of Sciences
 
     @author: wuyuewen@otcaix.iscas.ac.cn
     @author: wuheng@otcaix.iscas.ac.cn
-    
+    @author: liujiexin@otcaix.iscas.ac.cn
+
     @since:  2019/09/28  
 
 '''
@@ -72,8 +73,8 @@ def runCmd(cmd):
                     return
 #                 elif i ==3:
 #                     raise BadRequest(repr(e))
-                else:
-                    time.sleep(3)
+#                 else:
+#                     time.sleep(3)
 #                     continue
             else:
 #             if i < 4:
@@ -81,7 +82,8 @@ def runCmd(cmd):
                 and e.message.find('Domain is already active') != -1:
                     logger.warning('***Domain is already active.')
                     return
-                time.sleep(3)
+            raise BadRequest(repr(e))
+                # time.sleep(3)
 #             else:
 #                 time.sleep(i)
 #                 continue
