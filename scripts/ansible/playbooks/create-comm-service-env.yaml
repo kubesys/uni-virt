@@ -1,0 +1,32 @@
+---
+- name: Create comm service env
+  hosts: master:worker
+  become: yes
+
+  tasks:
+    - name: Ensure target directory exists
+      ansible.builtin.file:
+        path: "/etc/uniVirt"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Copy necessary files to target hosts
+      ansible.builtin.synchronize:
+        src: "/root/uniVirt/sdsctl/"
+        dest: "/etc/uniVirt/sdsctl/"
+        recursive: yes
+        delete: yes
+      become_user: root
+
+    - name: Execute create-comm-service.sh script
+      ansible.builtin.command:
+        cmd: "bash create-comm-service.sh"
+      args:
+        chdir: "/etc/uniVirt/sdsctl/grpcservice"
+
+    - name: Restart kubestack-commctl service
+      ansible.builtin.systemd:
+        name: kubestack-commctl
+        state: restarted
