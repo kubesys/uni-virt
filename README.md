@@ -7,7 +7,7 @@
 
 * 支持的操作系统
 
-- ubuntu22.04 (kernel 版本: 6.2.0-35-generic or 6.2.0-36-generic)
+- ubuntu22.04 (kernel 版本: >= 6.2.0-35-generic)
 - centos7.9 (kernel 版本: 3.10.0-1160.102.1.el7.x86_64)
 
 * 软件依赖
@@ -54,7 +54,9 @@ cp /etc/uniVirt/ansible/inventory.ini /path/to/your/inventory.ini
 vi /path/to/your/inventory.ini
 ```
 
-修改 `inventory.ini` 中的 `master` 和 `worker` 两个组将 Kuberentes 集群的所有服务器包含进来，请参考如下示例：
+修改 `inventory.ini` 中的 `[master]` 和 `[worker]` 两个组将 Kuberentes 集群的所有服务器包含进来。
+修改 `[chrony]` 组设置 chrony 时间服务器节点。
+请参考如下示例：
 
 ```
 [master] # 主节点组
