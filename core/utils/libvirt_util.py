@@ -8,10 +8,10 @@ Copyright (2021, ) Institute of Software, Chinese Academy of Sciences
 from json import loads, dumps, load
 import traceback
 from venv import logger
-from core.utils.exception import ExecuteException
-from core.utils.k8s import K8sHelper, list_node
+from utils.exception import ExecuteException
+from utils.k8s import K8sHelper, list_node
 
-from core.utils.misc import addExceptionMessage, runCmd
+from utils.misc import addExceptionMessage, runCmd
 
 '''
 Import python libs
