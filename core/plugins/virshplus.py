@@ -2037,6 +2037,8 @@ def main():
         create_and_start_vm_from_iso(params)
     elif sys.argv[1] == 'delete_vm':
         delete_vm(params)
+    elif sys.argv[1] == 'migrate_vm':
+        migrate_vm(params)
     elif sys.argv[1] == 'plug_nic':
         plug_nic(params)
     elif sys.argv[1] == 'unplug_nic':
