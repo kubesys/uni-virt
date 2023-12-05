@@ -31,6 +31,8 @@ from io import StringIO as _StringIO
 import logging
 import logging.handlers
 
+from core.utils.netutils import get_host_ip
+
 '''
 Import third party libs
 '''
@@ -58,12 +60,11 @@ from xml.etree.ElementTree import fromstring
 
 from xmljson import badgerfish as bf
 
-from kubernetes.client.rest import ApiException
 
 from utils import constants
-from utils.exception import InternalServerError, NotFound, Forbidden, BadRequest
-from utils.libvirt_util import create, destroy, check_pool_content_type, refresh_pool, get_vol_info_by_qemu, get_volume_xml, get_pool_path, is_volume_in_use, is_volume_exists, get_volume_current_path, vm_state, is_vm_exists, is_vm_active, get_boot_disk_path, get_xml, undefine_with_snapshot, undefine, define_xml_str
-from utils.misc import set_field_in_kubernetes_by_index, get_l2_network_info, get_address_set_info, get_l3_network_info, updateDomain, randomMAC, runCmd, get_rebase_backing_file_cmds, add_spec_in_volume, get_hostname_in_lower_case, DiskImageHelper, updateDescription, get_volume_snapshots, updateJsonRemoveLifecycle, addSnapshots, report_failure, addPowerStatusMessage, RotatingOperation, string_switch, deleteLifecycleInJson, get_field_in_kubernetes_by_index, write_config
+from utils.exception import ExecuteException, InternalServerError, NotFound, Forbidden, BadRequest
+from utils.libvirt_util import create, destroy, check_pool_content_type, get_disk_config, get_disks_spec, get_node_name_by_node_ip, get_pool_info_from_k8s, get_pools_by_path, is_vm_disk_driver_cache_none, refresh_pool, get_vol_info_by_qemu, get_volume_xml, get_pool_path, is_volume_in_use, is_volume_exists, get_volume_current_path, remote_start_pool, remoteRunCmd, remoteRunCmdWithOutput, runCmdAndTransferXmlToJson, vm_state, is_vm_exists, is_vm_active, get_boot_disk_path, get_xml, undefine_with_snapshot, undefine, define_xml_str
+from utils.misc import runCmdWithResult, set_field_in_kubernetes_by_index, get_l2_network_info, get_address_set_info, get_l3_network_info, updateDomain, randomMAC, runCmd, get_rebase_backing_file_cmds, add_spec_in_volume, get_hostname_in_lower_case, DiskImageHelper, updateDescription, get_volume_snapshots, updateJsonRemoveLifecycle, addSnapshots, report_failure, addPowerStatusMessage, RotatingOperation, string_switch, deleteLifecycleInJson, get_field_in_kubernetes_by_index, write_config
 from utils import logger
 from utils.k8s import K8sHelper
 
@@ -981,7 +982,123 @@ def delete_vm(params):
     helper = K8sHelper(VM_KIND)
     helper.delete(metadata_name)
     return
+
+def migrate_vm(params): 
+    vmHelper = K8sHelper(VM_KIND)
+    if not is_vm_exists(params.domain) and vmHelper.exist(params.domain):
+        print("vm disk not exist in this node, migrate vm disk %s successful." % params.domain, {})
+
+    if not is_vm_disk_driver_cache_none(params.domain):
+        raise BadRequest('error: disk driver cache is not none')
+
+    if params.ip in get_host_ip():
+        raise BadRequest('error: not valid ip address.')
+
+    if params.offline:
+        op = Operation('virsh migrate --offline --undefinesource --persistent %s qemu+ssh://%s/system tcp://%s' % (
+            params.domain, params.ip, params.ip), {})
+        op.execute()
+    else:
+        op = Operation('virsh migrate --live --undefinesource --persistent %s qemu+ssh://%s/system tcp://%s' % (
+            params.domain, params.ip, params.ip), {})
+        op.execute()
+
+    '''
+    specs = get_disks_spec(params.domain)
+    # get disk node label in ip
+    node_name = get_node_name_by_node_ip(params.ip)
+    logger.debug("node_name: %s" % node_name)
     
+    if node_name:
+        all_jsondicts = []
+        logger.debug(specs)
+        for disk_path in specs.keys():
+            prepare_info = get_disk_prepare_info_by_path(disk_path)
+            pool_info = get_pool_info_from_k8s(prepare_info['pool'])
+            # check_pool_active(pool_info)
+
+            pools = get_pools_by_path(pool_info['path'])
+
+            # change disk node label in k8s.
+            targetPool = None
+            for pool in pools:
+                if pool['host'] == node_name:
+                    targetPool = pool['pool']
+            remote_start_pool(params.ip, targetPool)
+
+            if targetPool:
+                logger.debug("targetPool is %s." % targetPool)
+                if pool_info['pooltype'] in ['localfs', 'nfs', 'glusterfs']:
+                    config = get_disk_config(pool_info['poolname'], prepare_info['disk'])
+                    write_config(config['name'], config['dir'], config['current'], targetPool, config['poolname'])
+                    jsondicts = get_disk_jsondict(targetPool, prepare_info['disk'])
+                    all_jsondicts.extend(jsondicts)
+                else:
+                    cstor_release_disk(prepare_info['poolname'], prepare_info['disk'], prepare_info['uni'])
+                    jsondicts = get_disk_jsondict(targetPool, prepare_info['disk'])
+                    all_jsondicts.extend(jsondicts)
+        apply_all_jsondict(all_jsondicts)
+    '''
+    print("migrate vm %s successful." % params.domain, {})
+
+
+def remote_cstor_disk_prepare(ip, pool, vol, uni):
+    op = Operation('cstor-cli vdisk-prepare ', {'poolname': pool, 'name': vol,
+                                                'uni': uni}, remote=True, ip=ip, with_result=True)
+    cstor = op.execute()
+    if cstor['result']['code'] != 0:
+        raise ExecuteException('',
+                               'remote prepare disk fail. cstor raise exception: cstor error code: %d, msg: %s, obj: %s' % (
+                                   cstor['result']['code'], cstor['result']['msg'], cstor['obj']))
+    return cstor
+
+class Operation(object):
+    def __init__(self, cmd, params, with_result=False, xml_to_json=False, kv_to_json=False, remote=False, ip=None):
+        if cmd is None or cmd == "":
+            raise Exception("plz give me right cmd.")
+        if not isinstance(params, dict):
+            raise Exception("plz give me right parameters.")
+
+        self.params = params
+        self.cmd = cmd
+        self.params = params
+        self.with_result = with_result
+        self.xml_to_json = xml_to_json
+        self.kv_to_json = kv_to_json
+        self.remote = remote
+        self.ip = ip
+
+    def get_cmd(self):
+        cmd = self.cmd
+        for key in self.params.keys():
+            cmd = "%s --%s %s " % (cmd, key, self.params[key])
+        return cmd
+
+    def execute(self):
+        cmd = self.get_cmd()
+        logger.debug(cmd)
+        if self.remote:
+            if self.with_result:
+                logger.debug(self.remote)
+                logger.debug(self.ip)
+                return remoteRunCmdWithOutput(self.ip, cmd)
+            else:
+                logger.debug(self.remote)
+                logger.debug(self.ip)
+                return remoteRunCmd(self.ip, cmd)
+        else:
+            if self.with_result:
+                return runCmdWithResult(cmd)
+            elif self.xml_to_json:
+                return runCmdAndTransferXmlToJson(cmd)
+            elif self.kv_to_json:
+                return runCmdAndSplitKvToJson(cmd)
+            else:
+                return runCmd(cmd)
+
+
+
+
 def plug_nic(params):
     the_cmd_key = 'plugNIC'
     metadata_name = _get_param('--domain', params)
