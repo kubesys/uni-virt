@@ -160,9 +160,10 @@ class MyDomainEventHandler(threading.Thread):
                     try:
                         logger.debug('Callback domain changes to virtlet')
                         if getCmdKey(jsondict) == 'migrateVM' or str(DOM_EVENTS[self.kwargs['event']][self.kwargs['detail']]) == 'Migrated' or jsondict['metadata']['labels']['host'] != HOSTNAME:
-                            logger.debug('VM %s is migrating, just delete lifecycle.' % vm_name)
-                            jsondict = updateDomainStructureAndDeleteLifecycleInJson(jsondict, None)
-                            body = jsondict
+                            logger.debug('VM %s is migrating, ignore changes.' % vm_name)
+                            continue
+#                             jsondict = updateDomainStructureAndDeleteLifecycleInJson(jsondict, None)
+#                             body = jsondict
 #                             try:
 #                                 vm_xml = get_xml(vm_name)
 #                                 vm_power_state = vm_state(vm_name).get(vm_name)

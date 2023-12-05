@@ -1203,15 +1203,15 @@ class ImageLibvirtXmlEventHandler(FileSystemEventHandler):
 
 def updateDomainStructureAndDeleteLifecycleInJson(jsondict, body):
     if jsondict:
-        '''
-        Get target VM name from Json.
-        '''
-        spec = jsondict['spec']
-        if spec:
-            lifecycle = spec.get('lifecycle')
-            if lifecycle:
-                del spec['lifecycle']
+        spec = jsondict.get('spec', {})
+        lifecycle = spec.get('lifecycle')
+
+        if lifecycle:
+            del spec['lifecycle']
+
+        if body:
             spec.update(body)
+
     return jsondict
 
 
