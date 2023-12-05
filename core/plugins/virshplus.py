@@ -63,7 +63,7 @@ from xmljson import badgerfish as bf
 
 from utils import constants
 from utils.exception import ExecuteException, InternalServerError, NotFound, Forbidden, BadRequest
-from utils.libvirt_util import create, destroy, check_pool_content_type, get_disk_config, get_disks_spec, get_node_name_by_node_ip, get_pool_info_from_k8s, get_pools_by_path, is_vm_disk_driver_cache_none, refresh_pool, get_vol_info_by_qemu, get_volume_xml, get_pool_path, is_volume_in_use, is_volume_exists, get_volume_current_path, remote_start_pool, remoteRunCmd, remoteRunCmdWithOutput, runCmdAndTransferXmlToJson, vm_state, is_vm_exists, is_vm_active, get_boot_disk_path, get_xml, undefine_with_snapshot, undefine, define_xml_str
+from utils.libvirt_util import create, destroy, check_pool_content_type, is_vm_disk_driver_cache_none, refresh_pool, get_vol_info_by_qemu, get_volume_xml, get_pool_path, is_volume_in_use, is_volume_exists, get_volume_current_path, remote_start_pool, remoteRunCmd, remoteRunCmdWithOutput, runCmdAndTransferXmlToJson, vm_state, is_vm_exists, is_vm_active, get_boot_disk_path, get_xml
 from utils.misc import runCmdWithResult, set_field_in_kubernetes_by_index, get_l2_network_info, get_address_set_info, get_l3_network_info, updateDomain, randomMAC, runCmd, get_rebase_backing_file_cmds, add_spec_in_volume, get_hostname_in_lower_case, DiskImageHelper, updateDescription, get_volume_snapshots, updateJsonRemoveLifecycle, addSnapshots, report_failure, addPowerStatusMessage, RotatingOperation, string_switch, deleteLifecycleInJson, get_field_in_kubernetes_by_index, write_config
 from utils import logger
 from utils.k8s import K8sHelper

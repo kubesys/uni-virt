@@ -11,8 +11,6 @@ from venv import logger
 from utils.exception import ExecuteException
 from utils.k8s import K8sHelper, list_node
 
-from utils.misc import addExceptionMessage, runCmd
-
 '''
 Import python libs
 '''
@@ -1049,6 +1047,29 @@ def runCmdRaiseException(cmd):
         p.stdout.close()
         p.stderr.close()
 
+def runCmd(cmd, raise_it=True):
+    std_err = None
+    if not cmd:
+        return
+    if not isinstance(cmd, str):
+        cmd = cmd.decode('utf-8')
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        std_out = p.stdout.read().decode('utf-8')
+        std_err = p.stderr.read().decode('utf-8')
+        if std_err:
+            if raise_it:
+                if std_err.find("InsecureRequestWarning") != -1 or std_err.find("Unable to register authentication agent") != -1:
+                    pass
+                else:
+                    raise BadRequest(std_err)
+        if std_out:
+            return str(std_out).strip()
+        else:
+            return None
+    finally:
+        p.stdout.close()
+        p.stderr.close()
 
 def is_vm_disk_driver_cache_none(vm):
     if not vm:
@@ -1070,48 +1091,6 @@ def is_vm_disk_driver_cache_none(vm):
                 else:
                     return False
     return True
-
-def get_node_name_by_node_ip(ip):
-    all_node_ip = get_all_node_ip()
-    nic_ips = get_remote_node_all_nic_ip(ip)
-    if all_node_ip:
-        for node in all_node_ip:
-            if node['ip'] in nic_ips and node['nodeName'].find("vm.") >= 0:
-                return node['nodeName']
-    return None
-
-def get_all_node_ip():
-    all_node_ip = []
-    try:
-        jsondict = list_node()
-        nodes = jsondict['items']
-        for node in nodes:
-            try:
-                node_ip = {}
-                if 'THISIP' in node['metadata']['annotations'].keys():
-                    node_ip['ip'] = node['metadata']['annotations']['THISIP']
-                    node_ip['nodeName'] = node['metadata']['name']
-                    all_node_ip.append(node_ip)
-            except:
-                pass
-    except addExceptionMessage as e:
-        logger.debug("Exception when calling CoreV1Api->list_node: %s\n" % e)
-    except Exception as e:
-        logger.debug("Exception when calling get_all_node_ip: %s\n" % e)
-
-    return all_node_ip
-
-def get_remote_node_all_nic_ip(remote):
-    ips = []
-    try:
-        output = remoteRunCmdWithOutput(remote, 'ip address | grep inet')
-        for line in output.splitlines():
-            if len(line.split()) > 1:
-                ip = line.split()[1].split('/')[0]
-                ips.append(ip)
-    except:
-        logger.debug(traceback.format_exc())
-    return ips
 
 def remoteRunCmdWithOutput(ip, cmd):
     if not cmd:
@@ -1229,102 +1208,6 @@ def remoteRunCmd(ip, cmd):
     finally:
         p.stdout.close()
         p.stderr.close()
-
-def get_disk_config(pool, vol):
-    if not pool or not vol:
-        raise ExecuteException('', 'missing parameter: no pool or disk name.')
-    poolInfo = get_pool_info(pool)
-    pool_path = poolInfo['path']
-    if not os.path.isdir(pool_path):
-        raise ExecuteException('', "can not get pool %s path." % pool)
-    config_path = '%s/%s/config.json' % (pool_path, vol)
-    with open(config_path, "r") as f:
-        config = load(f)
-        return config
-
-def get_disk_jsondict(pool, disk):
-    jsondicts = []
-    pool_helper = K8sHelper('VirtualMachinePool')
-    pool_jsondict = pool_helper.get(pool)
-    pool_node_name = pool_jsondict['metadata']['labels']['host']
-    pool_info = get_pool_info_from_k8s(pool)
-    check_pool_active(pool_info)
-
-    # get disk jsondict
-    disk_helper = K8sHelper('VirtualMachineDisk')
-    # if pool_info['pooltype'] not in ['localfs', 'nfs', 'glusterfs', "vdiskfs"]:
-    #     raise ExecuteException("RunCmdError", "not support pool type %s" % pool_info['pooltype'])
-
-    if disk_helper.exist(disk):  # migrate disk or migrate vm
-        if pool_info['pooltype'] in ['localfs', 'nfs', 'glusterfs', 'vdiskfs']:
-            disk_jsondict = disk_helper.get(disk)
-            # update disk jsondict
-            logger.debug(disk_jsondict)
-            disk_jsondict['metadata']['labels']['host'] = pool_node_name
-
-            spec = get_spec(disk_jsondict)
-            logger.debug(disk_jsondict)
-            if spec:
-                nodeName = spec.get('nodeName')
-                if nodeName:
-                    spec['nodeName'] = pool_node_name
-                disk_info = get_disk_info_to_k8s(pool_info['poolname'], disk)
-                spec['volume'] = disk_info
-                logger.debug(disk_jsondict)
-                jsondicts.append(disk_jsondict)
-            # update snapshot jsondict
-            ss_helper = K8sHelper('VirtualMachineDiskSnapshot')
-            ss_dir = '%s/%s/snapshots' % (pool_info['path'], disk)
-            if os.path.exists(ss_dir):
-                for ss in os.listdir(ss_dir):
-                    try:
-                        ss_jsondict = ss_helper.get(ss)
-
-                        if ss_jsondict and ss_helper.get_data(ss, 'volume')['disk'] == disk:
-                            ss_jsondict['metadata']['labels']['host'] = pool_node_name
-                            spec = get_spec(ss_jsondict)
-                            if spec:
-                                nodeName = spec.get('nodeName')
-                                if nodeName:
-                                    spec['nodeName'] = pool_node_name
-                                ss_info = get_snapshot_info_to_k8s(pool_info['poolname'], disk, ss)
-                                spec['volume'] = ss_info
-                                jsondicts.append(ss_jsondict)
-                    except ExecuteException:
-                        pass
-        else:
-            disk_jsondict = disk_helper.get(disk)
-            # update disk jsondict
-            logger.debug(disk_jsondict)
-            disk_jsondict['metadata']['labels']['host'] = pool_node_name
-
-            spec = get_spec(disk_jsondict)
-            logger.debug(disk_jsondict)
-            if spec:
-                nodeName = spec.get('nodeName')
-                if nodeName:
-                    spec['nodeName'] = pool_node_name
-                disk_info = get_cstor_disk_info_to_k8s(pool, pool_info['poolname'], disk)
-                spec['volume'] = disk_info
-                logger.debug(disk_jsondict)
-                jsondicts.append(disk_jsondict)
-    else:  # clone disk
-        disk_info = get_disk_info_to_k8s(pool_info['poolname'], disk)
-        disk_jsondict = disk_helper.get_create_jsondict(disk, 'volume', disk_info)
-        jsondicts.append(disk_jsondict)
-
-        # ss_helper = K8sHelper('VirtualMachineDiskSnapshot')
-        # ss_dir = '%s/%s/snapshots' % (pool_info['path'], disk)
-        # for ss in os.listdir(ss_dir):
-        #     try:
-        #         ss_info = get_snapshot_info_to_k8s(pool_info['poolname'], disk, ss)
-        #         ss_jsondict = ss_helper.get_create_jsondict(ss)
-        #
-        #         jsondicts.append(ss_jsondict)
-        #     except ExecuteException:
-        #         pass
-
-    return jsondicts    
 
 
 def runCmdAndTransferXmlToJson(cmd):
