@@ -52,7 +52,12 @@ try:
 except:
     import xml.etree.ElementTree as ET
     
-import xmltodict
+try:
+    import xmltodict
+except ModuleNotFoundError:
+    print("Missing required module 'xmltodict'. Installing...")
+    subprocess.run(["pip", "install", "xmltodict"])
+    import xmltodict
 
 
 
