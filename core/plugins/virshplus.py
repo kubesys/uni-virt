@@ -982,27 +982,30 @@ def delete_vm(params):
 
 def migrate_vm(params): 
     vmHelper = K8sHelper(VM_KIND)
-    if not is_vm_exists(params.domain) and vmHelper.exist(params.domain):
-        print("vm disk not exist in this node, migrate vm disk %s successful." % params.domain, {})
+    metadata_name = _get_param('--domain', params)
+    offline = _get_param('--offline', params)
+    ip = _get_param('--ip', params)
+    if not is_vm_exists(metadata_name) and vmHelper.exist(metadata_name):
+        print("vm disk not exist in this node, migrate vm disk %s successful." % metadata_name, {})
 
-    if not is_vm_disk_driver_cache_none(params.domain):
+    if not is_vm_disk_driver_cache_none(metadata_name):
         raise BadRequest('error: disk driver cache is not none')
 
     #if params.ip in get_IP():
         #raise BadRequest('error: not valid ip address.')
     
-    if params.offline:
+    if offline:
         try:
             runCmd('virsh migrate --offline --undefinesource --persistent %s qemu+ssh://%s/system tcp://%s' % (
-            params.domain, params.ip, params.ip))
+            metadata_name, ip, ip))
         except Exception as e:
-            logger.debug("offline migrateVM %s fail! Error: %s" %(params.domain,e))
+            logger.debug("offline migrateVM %s fail! Error: %s" %(metadata_name, e))
     else:
         try: 
             runCmd('virsh migrate --live --undefinesource --persistent %s qemu+ssh://%s/system tcp://%s' % (
-            params.domain, params.ip, params.ip))
+            metadata_name, ip, ip))
         except Exception as e:
-            logger.debug("live migrateVM %s fail! Error: %s" %(params.domain,e))
+            logger.debug("live migrateVM %s fail! Error: %s" %(metadata_name,e))
 
     '''
     specs = get_disks_spec(params.domain)
@@ -1040,7 +1043,7 @@ def migrate_vm(params):
                     all_jsondicts.extend(jsondicts)
         apply_all_jsondict(all_jsondicts)
     '''
-    print("migrate vm %s successful." % params.domain, {})
+    print("migrate vm %s successful." % metadata_name, {})
 
 
 
