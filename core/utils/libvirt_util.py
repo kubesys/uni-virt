@@ -7,7 +7,7 @@ Copyright (2021, ) Institute of Software, Chinese Academy of Sciences
 '''
 from json import loads, dumps, load
 import traceback
-from venv import logger
+from utils import logger
 from utils.exception import ExecuteException
 from utils.k8s import K8sHelper, list_node
 
@@ -23,6 +23,14 @@ import os
 from pprint import pprint
 from xml.dom import minidom
 from io import StringIO as _StringIO
+
+try:
+    from utils import constants
+except:
+    import constants
+
+LOG = constants.KUBEVMM_VIRTCTL_LOG
+logger = logger.set_logger(os.path.basename(__file__), LOG)
 
 '''
 Import third party libs
