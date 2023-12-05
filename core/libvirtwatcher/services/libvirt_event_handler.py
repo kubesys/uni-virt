@@ -371,15 +371,15 @@ def toKubeJson(json):
                     
 def updateDomainStructureAndDeleteLifecycleInJson(jsondict, body):
     if jsondict:
-        '''
-        Get target VM name from Json.
-        '''
-        spec = jsondict['spec']
-        if spec:
-            lifecycle = spec.get('lifecycle')
-            if lifecycle:
-                del spec['lifecycle']
+        spec = jsondict.get('spec', {})
+        lifecycle = spec.get('lifecycle')
+
+        if lifecycle:
+            del spec['lifecycle']
+
+        if body:
             spec.update(body)
+
     return jsondict
 
 # This example can use three different event loop impls. It defaults
