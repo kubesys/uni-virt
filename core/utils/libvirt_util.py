@@ -1092,6 +1092,40 @@ def is_vm_disk_driver_cache_none(vm):
                     return False
     return True
 
+def runCmdAndSplitKvToJson(cmd):
+    logger.debug(cmd)
+    if not cmd:
+        #         logger.debug('No CMD to execute.')
+        return
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        std_out = p.stdout.readlines()
+        std_err = p.stderr.readlines()
+        if std_out:
+            result = {}
+            for index, line in enumerate(std_out):
+                if not str.strip(line):
+                    continue
+                line = str.strip(line)
+                kv = line.replace(':', '').split()
+                if len(kv) == 2:
+                    result[kv[0].lower()] = kv[1]
+            return result
+        if std_err:
+            error_msg = ''
+            for index, line in enumerate(std_err):
+                if not str.strip(line):
+                    continue
+                else:
+                    error_msg = error_msg + str.strip(line)
+            error_msg = str.strip(error_msg)
+            logger.debug(error_msg)
+            if error_msg.strip() != '':
+                raise ExecuteException('RunCmdError', error_msg)
+    finally:
+        p.stdout.close()
+        p.stderr.close()
+
 def remoteRunCmdWithOutput(ip, cmd):
     if not cmd:
         return
