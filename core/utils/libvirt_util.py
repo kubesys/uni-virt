@@ -11,7 +11,6 @@ import traceback
 from utils import logger
 from utils.exception import ExecuteException
 from utils.k8s import K8sHelper, list_node
-from utils.misc import runCmd
 
 '''
 Import python libs
@@ -1059,7 +1058,7 @@ def runCmdRaiseException(cmd):
 def is_vm_disk_driver_cache_none(vm):
     if not vm:
         raise ExecuteException('', 'missing parameter: no vm name.')
-    runCmd('virsh dumpxml %s > /tmp/%s.xml' % (vm, vm))
+    runCmdAndParse('virsh dumpxml %s > /tmp/%s.xml' % (vm, vm))
     tree = ET.parse('/tmp/%s.xml' % vm)
 
     root = tree.getroot()
