@@ -983,7 +983,11 @@ def delete_vm(params):
 def migrate_vm(params): 
     vmHelper = K8sHelper(VM_KIND)
     metadata_name = _get_param('--domain', params)
-    offline = _get_param('--offline', params)
+    try:
+        offline = _get_param('--offline', params)
+    except Exception as e:
+        offline = False
+        logger.debug("live migrate")
     ip = _get_param('--ip', params)
     if not is_vm_exists(metadata_name) and vmHelper.exist(metadata_name):
         print("vm disk not exist in this node, migrate vm disk %s successful." % metadata_name, {})
@@ -1043,9 +1047,6 @@ def migrate_vm(params):
                     all_jsondicts.extend(jsondicts)
         apply_all_jsondict(all_jsondicts)
     '''
-    print("migrate vm %s successful." % metadata_name, {})
-
-
 
 def plug_nic(params):
     the_cmd_key = 'plugNIC'
