@@ -161,7 +161,7 @@ class MyDomainEventHandler(threading.Thread):
                         logger.debug('Callback domain changes to virtlet')
                         if getCmdKey(jsondict) == 'migrateVM' or str(DOM_EVENTS[self.kwargs['event']][self.kwargs['detail']]) == 'Migrated' or jsondict['metadata']['labels']['host'] != HOSTNAME:
                             logger.debug('VM %s is migrating, ignore changes.' % vm_name)
-                            continue
+                            body = {}
 #                             jsondict = updateDomainStructureAndDeleteLifecycleInJson(jsondict, None)
 #                             body = jsondict
 #                             try:
@@ -185,17 +185,18 @@ class MyDomainEventHandler(threading.Thread):
 #                         if jsondict_old == body:
 #                             logger.debug('No changes in k8s, ignore pushing.')
 #                             return
-                        try:
-                            update_custom_object(GROUP, VERSION, PLURAL, vm_name, body)
-                        except ApiException as e:
-                            if e.reason == 'Not Found':
-                                logger.debug('**VM %s already deleted, ignore this 404 error.' % vm_name)
-                            if e.reason == 'Conflict':
-                                logger.debug('**Other process updated %s, ignore this 409 error.' % vm_name)
-                            else:
+                        if body:
+                            try:
+                                update_custom_object(GROUP, VERSION, PLURAL, vm_name, body)
+                            except ApiException as e:
+                                if e.reason == 'Not Found':
+                                    logger.debug('**VM %s already deleted, ignore this 404 error.' % vm_name)
+                                if e.reason == 'Conflict':
+                                    logger.debug('**Other process updated %s, ignore this 409 error.' % vm_name)
+                                else:
+                                    logger.error('Oops! ', exc_info=1)
+                            except Exception as e:
                                 logger.error('Oops! ', exc_info=1)
-                        except Exception as e:
-                            logger.error('Oops! ', exc_info=1)
                         step1_done = True
                     except:
                         step1_done = False
