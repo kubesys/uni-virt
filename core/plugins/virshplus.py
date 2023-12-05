@@ -60,8 +60,8 @@ from xmljson import badgerfish as bf
 
 from utils import constants
 from utils.exception import ExecuteException, InternalServerError, NotFound, Forbidden, BadRequest
-from utils.libvirt_util import create, destroy, check_pool_content_type, is_vm_disk_driver_cache_none, refresh_pool, get_vol_info_by_qemu, get_volume_xml, get_pool_path, is_volume_in_use, is_volume_exists, get_volume_current_path, remote_start_pool, remoteRunCmd, remoteRunCmdWithOutput, runCmdAndSplitKvToJson, runCmdAndTransferXmlToJson, vm_state, is_vm_exists, is_vm_active, get_boot_disk_path, get_xml
-from utils.misc import runCmdWithResult, set_field_in_kubernetes_by_index, get_l2_network_info, get_address_set_info, get_l3_network_info, updateDomain, randomMAC, runCmd, get_rebase_backing_file_cmds, add_spec_in_volume, get_hostname_in_lower_case, DiskImageHelper, updateDescription, get_volume_snapshots, updateJsonRemoveLifecycle, addSnapshots, report_failure, addPowerStatusMessage, RotatingOperation, string_switch, deleteLifecycleInJson, get_field_in_kubernetes_by_index, write_config
+from utils.libvirt_util import create, destroy, check_pool_content_type, is_vm_disk_driver_cache_none, vm_state, is_vm_exists, is_vm_active, get_boot_disk_path, get_xml
+from utils.misc import set_field_in_kubernetes_by_index, get_l2_network_info, get_address_set_info, get_l3_network_info, updateDomain, randomMAC, runCmd, get_rebase_backing_file_cmds, add_spec_in_volume, get_hostname_in_lower_case, DiskImageHelper, updateDescription, get_volume_snapshots, updateJsonRemoveLifecycle, addSnapshots, report_failure, addPowerStatusMessage, RotatingOperation, string_switch, deleteLifecycleInJson, get_field_in_kubernetes_by_index, write_config
 from utils import logger
 from utils.k8s import K8sHelper
 from utils.netutils import get_host_ip
@@ -991,15 +991,19 @@ def migrate_vm(params):
 
     if params.ip in get_host_ip():
         raise BadRequest('error: not valid ip address.')
-
+    
     if params.offline:
-        op = Operation('virsh migrate --offline --undefinesource --persistent %s qemu+ssh://%s/system tcp://%s' % (
-            params.domain, params.ip, params.ip), {})
-        op.execute()
+        try:
+            runCmd('virsh migrate --offline --undefinesource --persistent %s qemu+ssh://%s/system tcp://%s' % (
+            params.domain, params.ip, params.ip))
+        except Exception as e:
+            logger.debug("offline migrateVM %s fail! Error: %s" %(params.domain,e))
     else:
-        op = Operation('virsh migrate --live --undefinesource --persistent %s qemu+ssh://%s/system tcp://%s' % (
-            params.domain, params.ip, params.ip), {})
-        op.execute()
+        try: 
+            runCmd('virsh migrate --live --undefinesource --persistent %s qemu+ssh://%s/system tcp://%s' % (
+            params.domain, params.ip, params.ip))
+        except Exception as e:
+            logger.debug("live migrateVM %s fail! Error: %s" %(params.domain,e))
 
     '''
     specs = get_disks_spec(params.domain)
@@ -1038,62 +1042,6 @@ def migrate_vm(params):
         apply_all_jsondict(all_jsondicts)
     '''
     print("migrate vm %s successful." % params.domain, {})
-
-
-def remote_cstor_disk_prepare(ip, pool, vol, uni):
-    op = Operation('cstor-cli vdisk-prepare ', {'poolname': pool, 'name': vol,
-                                                'uni': uni}, remote=True, ip=ip, with_result=True)
-    cstor = op.execute()
-    if cstor['result']['code'] != 0:
-        raise ExecuteException('',
-                               'remote prepare disk fail. cstor raise exception: cstor error code: %d, msg: %s, obj: %s' % (
-                                   cstor['result']['code'], cstor['result']['msg'], cstor['obj']))
-    return cstor
-
-class Operation(object):
-    def __init__(self, cmd, params, with_result=False, xml_to_json=False, kv_to_json=False, remote=False, ip=None):
-        if cmd is None or cmd == "":
-            raise Exception("plz give me right cmd.")
-        if not isinstance(params, dict):
-            raise Exception("plz give me right parameters.")
-
-        self.params = params
-        self.cmd = cmd
-        self.params = params
-        self.with_result = with_result
-        self.xml_to_json = xml_to_json
-        self.kv_to_json = kv_to_json
-        self.remote = remote
-        self.ip = ip
-
-    def get_cmd(self):
-        cmd = self.cmd
-        for key in self.params.keys():
-            cmd = "%s --%s %s " % (cmd, key, self.params[key])
-        return cmd
-
-    def execute(self):
-        cmd = self.get_cmd()
-        logger.debug(cmd)
-        if self.remote:
-            if self.with_result:
-                logger.debug(self.remote)
-                logger.debug(self.ip)
-                return remoteRunCmdWithOutput(self.ip, cmd)
-            else:
-                logger.debug(self.remote)
-                logger.debug(self.ip)
-                return remoteRunCmd(self.ip, cmd)
-        else:
-            if self.with_result:
-                return runCmdWithResult(cmd)
-            elif self.xml_to_json:
-                return runCmdAndTransferXmlToJson(cmd)
-            elif self.kv_to_json:
-                return runCmdAndSplitKvToJson(cmd)
-            else:
-                return runCmd(cmd)
-
 
 
 

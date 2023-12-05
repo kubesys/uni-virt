@@ -7,9 +7,11 @@ Copyright (2021, ) Institute of Software, Chinese Academy of Sciences
 '''
 from json import loads, dumps, load
 import traceback
+
 from utils import logger
 from utils.exception import ExecuteException
 from utils.k8s import K8sHelper, list_node
+from utils.misc import runCmd
 
 '''
 Import python libs
@@ -52,13 +54,6 @@ try:
 except:
     import xml.etree.ElementTree as ET
     
-try:
-    import xmltodict
-except ModuleNotFoundError:
-    print("Missing required module 'xmltodict'. Installing...")
-    subprocess.run(["pip", "install", "xmltodict"])
-    import xmltodict
-
 
 
 VIRT_STATE_NAME_MAP = {0: 'Running',
@@ -1060,29 +1055,6 @@ def runCmdRaiseException(cmd):
         p.stdout.close()
         p.stderr.close()
 
-def runCmd(cmd, raise_it=True):
-    std_err = None
-    if not cmd:
-        return
-    if not isinstance(cmd, str):
-        cmd = cmd.decode('utf-8')
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    try:
-        std_out = p.stdout.read().decode('utf-8')
-        std_err = p.stderr.read().decode('utf-8')
-        if std_err:
-            if raise_it:
-                if std_err.find("InsecureRequestWarning") != -1 or std_err.find("Unable to register authentication agent") != -1:
-                    pass
-                else:
-                    raise BadRequest(std_err)
-        if std_out:
-            return str(std_out).strip()
-        else:
-            return None
-    finally:
-        p.stdout.close()
-        p.stderr.close()
 
 def is_vm_disk_driver_cache_none(vm):
     if not vm:
@@ -1105,70 +1077,6 @@ def is_vm_disk_driver_cache_none(vm):
                     return False
     return True
 
-def runCmdAndSplitKvToJson(cmd):
-    logger.debug(cmd)
-    if not cmd:
-        #         logger.debug('No CMD to execute.')
-        return
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    try:
-        std_out = p.stdout.readlines()
-        std_err = p.stderr.readlines()
-        if std_out:
-            result = {}
-            for index, line in enumerate(std_out):
-                if not str.strip(line):
-                    continue
-                line = str.strip(line)
-                kv = line.replace(':', '').split()
-                if len(kv) == 2:
-                    result[kv[0].lower()] = kv[1]
-            return result
-        if std_err:
-            error_msg = ''
-            for index, line in enumerate(std_err):
-                if not str.strip(line):
-                    continue
-                else:
-                    error_msg = error_msg + str.strip(line)
-            error_msg = str.strip(error_msg)
-            logger.debug(error_msg)
-            if error_msg.strip() != '':
-                raise ExecuteException('RunCmdError', error_msg)
-    finally:
-        p.stdout.close()
-        p.stderr.close()
-
-def remoteRunCmdWithOutput(ip, cmd):
-    if not cmd:
-        return
-    cmd = 'ssh root@%s "%s"' % (ip, cmd)
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    try:
-        std_out = p.stdout.readlines()
-        std_err = p.stderr.readlines()
-        if std_out:
-            msg = ''
-            for line in std_out:
-                msg = msg + line
-            return msg
-        if std_err:
-            msg = ''
-            for index, line in enumerate(std_err):
-                if not str.strip(line):
-                    continue
-                if index == len(std_err) - 1:
-                    msg = msg + str.strip(line) + '. ' + '***More details in %s***' % LOG
-                else:
-                    msg = msg + str.strip(line) + ', '
-            logger.debug(cmd)
-            logger.debug(msg)
-            logger.debug(traceback.format_exc())
-            if msg.strip() != '':
-                raise ExecuteException('RunCmdError', msg)
-    finally:
-        p.stdout.close()
-        p.stderr.close()
 
 def get_pool_info_from_k8s(pool):
     if not pool:
@@ -1229,40 +1137,6 @@ def runCmdAndGetOutput(cmd):
         p.stdout.close()
         p.stderr.close()
 
-def remote_start_pool(ip, pool):
-    pool_info = get_pool_info_from_k8s(pool)
-    remoteRunCmd(ip, 'kubesds-adm startPool --type %s --pool %s' % (pool_info['pooltype'], pool))
-
-def remoteRunCmd(ip, cmd):
-    logger.debug(cmd)
-    if not cmd:
-        logger.debug('No CMD to execute.')
-        return
-    cmd = 'ssh root@%s "%s"' % (ip, cmd)
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    try:
-        std_out = p.stdout.readlines()
-        std_err = p.stderr.readlines()
-        if std_out:
-            logger.debug(std_out)
-        if std_err:
-            msg = ''
-            for index, line in enumerate(std_err):
-                msg = msg + line
-            if msg.strip() != '':
-                raise ExecuteException('RunCmdError', msg)
-        return
-    finally:
-        p.stdout.close()
-        p.stderr.close()
-
-
-def runCmdAndTransferXmlToJson(cmd):
-    xml_str = runCmdAndGetOutput(cmd)
-    dic = xmltodict.parse(xml_str, encoding='utf-8')
-    dic = dumps(dic)
-    dic = dic.replace('@', '').replace('#', '')
-    return loads(dic)
 
 
 
