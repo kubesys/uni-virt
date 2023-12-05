@@ -61,10 +61,9 @@ from xmljson import badgerfish as bf
 from utils import constants
 from utils.exception import ExecuteException, InternalServerError, NotFound, Forbidden, BadRequest
 from utils.libvirt_util import create, destroy, check_pool_content_type, is_vm_disk_driver_cache_none, vm_state, is_vm_exists, is_vm_active, get_boot_disk_path, get_xml
-from utils.misc import set_field_in_kubernetes_by_index, get_l2_network_info, get_address_set_info, get_l3_network_info, updateDomain, randomMAC, runCmd, get_rebase_backing_file_cmds, add_spec_in_volume, get_hostname_in_lower_case, DiskImageHelper, updateDescription, get_volume_snapshots, updateJsonRemoveLifecycle, addSnapshots, report_failure, addPowerStatusMessage, RotatingOperation, string_switch, deleteLifecycleInJson, get_field_in_kubernetes_by_index, write_config
+from utils.misc import get_IP, set_field_in_kubernetes_by_index, get_l2_network_info, get_address_set_info, get_l3_network_info, updateDomain, randomMAC, runCmd, get_rebase_backing_file_cmds, add_spec_in_volume, get_hostname_in_lower_case, DiskImageHelper, updateDescription, get_volume_snapshots, updateJsonRemoveLifecycle, addSnapshots, report_failure, addPowerStatusMessage, RotatingOperation, string_switch, deleteLifecycleInJson, get_field_in_kubernetes_by_index, write_config
 from utils import logger
 from utils.k8s import K8sHelper
-from utils.netutils import get_host_ip
 
 VM_PLURAL = constants.KUBERNETES_PLURAL_VM
 VMP_PLURAL = constants.KUBERNETES_PLURAL_VMP
@@ -989,8 +988,8 @@ def migrate_vm(params):
     if not is_vm_disk_driver_cache_none(params.domain):
         raise BadRequest('error: disk driver cache is not none')
 
-    if params.ip in get_host_ip():
-        raise BadRequest('error: not valid ip address.')
+    #if params.ip in get_IP():
+        #raise BadRequest('error: not valid ip address.')
     
     if params.offline:
         try:
