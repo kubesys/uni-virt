@@ -31,7 +31,7 @@ from io import StringIO as _StringIO
 import logging
 import logging.handlers
 
-from core.utils.netutils import get_host_ip
+from utils.netutils import get_host_ip
 
 '''
 Import third party libs
