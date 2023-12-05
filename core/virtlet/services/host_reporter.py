@@ -66,7 +66,7 @@ def main():
                     _check_ha_and_autostart_vm(GROUP, VERSION, PLURAL, vm)
                     _check_vm_power_state(GROUP, VERSION, PLURAL, vm)
                 ha_check = False
-#             _replace_node_status()
+            _replace_node_status()
             if ha_enable:
                 _check_and_enable_HA()
                 ha_enable = False
@@ -106,6 +106,7 @@ def _replace_node_status():
     for i in range(3):
         try:
             host = client.CoreV1Api().read_node_status(name=HOSTNAME)
+            logger.debug(f"Node status is {host}")
             node_watcher = HostCycler()
             host.status = node_watcher.get_node_status()
             client.CoreV1Api().replace_node_status(name=HOSTNAME, body=host)
@@ -300,14 +301,14 @@ class HostCycler:
         except:
             cpu_allocatable = 0
         try:
-            mem_allocatable = '%sMi' % str(self._format_mem_to_Mi(freemem()))
+            mem_allocatable = '%s' % str(self._format_mem_to_Mi(freemem()))
         except:
-            mem_allocatable = '0Mi'
+            mem_allocatable = '0'
         try:
             active_vms = list_active_vms()
         except:
             active_vms = []
-        return {'cpu': str(cpu_allocatable), 'memory': mem_allocatable, 'pods': str(40 - len(active_vms)) if 40 - len(active_vms) >= 0 else 0}
+        return {'doslab.io/cpu': str(cpu_allocatable), 'doslab.io/memory': mem_allocatable, 'doslab.io/vms': str(40 - len(active_vms)) if 40 - len(active_vms) >= 0 else 0}
     
     def get_status_capacity(self):
         try:
@@ -317,9 +318,9 @@ class HostCycler:
         if node_info_dict:
             cpu_capacity = node_info_dict.get('cpus')
             mem_capacity = self._format_mem_to_Mi(node_info_dict.get('phymemory'))
-            return {'cpu': str(cpu_capacity), 'memory': str(mem_capacity)+'Mi', 'pods': '40'}
+            return {'doslab.io/cpu': str(cpu_capacity), 'doslab.io/memory': str(mem_capacity), 'doslab.io/vms': '40'}
         else:
-            return {'cpu': 0, 'memory': '0Mi', 'pods': '40'}
+            return {'doslab.io/cpu': 0, 'doslab.io/memory': '0', 'doslab.io/vms': '40'}
     
     def get_status_daemon_endpoints(self):
         return V1NodeDaemonEndpoints(kubelet_endpoint={'port':0})
