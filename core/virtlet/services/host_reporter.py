@@ -106,10 +106,9 @@ def _replace_node_status():
     for i in range(3):
         try:
             host = client.CoreV1Api().read_node_status(name=HOSTNAME)
-            logger.debug(f"Node status is {host}")
             node_watcher = HostCycler()
             host.status = node_watcher.get_node_status()
-            client.CoreV1Api().replace_node_status(name=HOSTNAME, body=host)
+            client.CoreV1Api().patch_node_status(name=HOSTNAME, body=host)
             return
         except Exception as e:
             logger.warning(e)
