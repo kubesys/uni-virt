@@ -938,6 +938,7 @@ def create_and_start_vm_from_iso(params):
         config_dict = _network_config_parser(network_config)
         operation_queue.extend( _get_network_operations_queue("createAndStartVMFromISO", config_dict, metadata_name))
         _set_param('--network', 'none', params)
+        _set_param('--disk', 'cache=none', params)
         cmd = _unpackCmd('virt-install', params)
         runCmd(cmd)
         if is_vm_exists(metadata_name) and not is_vm_active(metadata_name):
