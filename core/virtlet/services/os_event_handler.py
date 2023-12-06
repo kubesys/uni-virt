@@ -698,6 +698,7 @@ class VmSnapshotEventHandler(FileSystemEventHandler):
 def _solve_conflict_in_VM(name, group, version, plural):
     for i in range(1, 6):
         try:
+            logger.debug('Solve conflict in vm CRD: the %i try.' % i)
             jsondict = get_custom_object(group, version, plural, name)
             jsondict['metadata']['labels']['host'] = HOSTNAME
             vm_xml = get_xml(name)
@@ -1203,15 +1204,15 @@ class ImageLibvirtXmlEventHandler(FileSystemEventHandler):
 
 def updateDomainStructureAndDeleteLifecycleInJson(jsondict, body):
     if jsondict:
-        '''
-        Get target VM name from Json.
-        '''
-        spec = jsondict['spec']
-        if spec:
-            lifecycle = spec.get('lifecycle')
-            if lifecycle:
-                del spec['lifecycle']
+        spec = jsondict.get('spec', {})
+        lifecycle = spec.get('lifecycle')
+
+        if lifecycle:
+            del spec['lifecycle']
+
+        if body:
             spec.update(body)
+
     return jsondict
 
 
