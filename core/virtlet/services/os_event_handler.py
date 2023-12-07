@@ -709,6 +709,7 @@ def _solve_conflict_in_VM(name, group, version, plural):
             update_custom_object(group, version, plural, name, body)
             return
         except Exception as e:
+            logger.error(e)
             if i == 5:
                 raise e
 
