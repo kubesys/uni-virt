@@ -989,8 +989,8 @@ def migrate_vm(params):
         offline = False
         logger.debug("live migrate")
     ip = _get_param('--ip', params)
-    if not is_vm_exists(metadata_name) and vmHelper.exist(metadata_name):
-        print("vm disk not exist in this node, migrate vm disk %s successful." % metadata_name, {})
+    if not is_vm_exists(metadata_name):
+        raise BadRequest("VM %s not exist in this node." % metadata_name)
 
     if not is_vm_disk_driver_cache_none(metadata_name):
         raise BadRequest('error: disk driver cache is not none')
