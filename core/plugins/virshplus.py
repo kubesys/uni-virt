@@ -1000,16 +1000,14 @@ def migrate_vm(params):
     
     if offline:
         try:
-            runCmd('virsh migrate --offline --undefinesource --persistent %s qemu+ssh://%s/system tcp://%s' % (
-            metadata_name, ip, ip))
+            runCmd('virsh migrate --offline --undefinesource --persistent %s qemu+ssh://%s/system tcp://%s' % (metadata_name, ip, ip))
         except Exception as e:
-            logger.debug("offline migrateVM %s fail! Error: %s" %(metadata_name, e))
+            logger.debug("offline migrateVM %s fail! Error: %s" % (metadata_name, e))
     else:
         try: 
-            runCmd('virsh migrate --live --undefinesource --persistent %s qemu+ssh://%s/system tcp://%s' % (
-            metadata_name, ip, ip))
+            runCmd('virsh migrate --live --undefinesource --persistent %s qemu+ssh://%s/system tcp://%s' % (metadata_name, ip, ip))
         except Exception as e:
-            logger.debug("live migrateVM %s fail! Error: %s" %(metadata_name,e))
+            logger.debug("live migrateVM %s fail! Error: %s" % (metadata_name, e))
 
     '''
     specs = get_disks_spec(params.domain)

@@ -127,8 +127,8 @@ def doWatch(plural, k8s_object_kind):
             for jsondict in watcher.stream(client.CustomObjectsApi().list_cluster_custom_object,
                                            group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION,
                                            plural=plural, **kwargs):
-                logger.debug("watch here:")
-                logger.debug(jsondict)
+                logger.debug("watch here")
+                # logger.debug(jsondict)
 #                 global current_event_id
 #                 if is_not_valid_uuid(_getEventId(jsondict)):
 #                     raise BadRequest('Event ID: %s is not valid uuid!' % _getEventId(jsondict))
@@ -217,12 +217,14 @@ def doExecutor(plural, k8s_object_kind, jsondict):
             event = KubernetesEvent(metadata_name, the_cmd_key, k8s_object_kind, event_id)
             event.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DOING, constants.KUBEVMM_EVENT_TYPE_NORMAL)
             try:
+                data = {}
                 if invoke_cmd:
                     '''executor'''
                     executor = Executor(policy, prepare_cmd, invoke_cmd, query_cmd)
                     _, data = executor.execute()
-                '''write result'''
-                write_result_to_kubernetes(plural, metadata_name, data)
+                '''write result, except vm_migrate'''
+                if the_cmd_key != 'migrateVM':
+                    write_result_to_kubernetes(plural, metadata_name, data)
                 '''update Kubernetes event'''
                 event.update_evet(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_NORMAL)
             except libvirtError:
