@@ -222,7 +222,7 @@ def doExecutor(plural, k8s_object_kind, jsondict):
                     '''executor'''
                     executor = Executor(policy, prepare_cmd, invoke_cmd, query_cmd)
                     _, data = executor.execute()
-                '''write result, except vm_migrate'''
+                '''write result, except migrateVM'''
                 if the_cmd_key != 'migrateVM':
                     write_result_to_kubernetes(plural, metadata_name, data)
                 '''update Kubernetes event'''
@@ -336,6 +336,7 @@ def write_result_to_kubernetes(plural, name, data):
     '''将executor的处理结果写回到Kubernetes里，处理结果必须是json格式，\
     并且符合{'spec':{...}}规范，如果传{'spec':{}}则代表从Kubernetes中删除该对象。
     '''
+    logger.debug('write back to kubernetes')
     jsonDict = None
     try:
         # involved_object_name actually is nodeerror occurred during processing json data from apiserver

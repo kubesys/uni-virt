@@ -187,6 +187,7 @@ class MyDomainEventHandler(threading.Thread):
 #                             return
                         if body:
                             try:
+                                logger.debug('update %s in kubernetes' % vm_name)
                                 update_custom_object(GROUP, VERSION, PLURAL, vm_name, body)
                             except ApiException as e:
                                 if e.reason == 'Not Found':
