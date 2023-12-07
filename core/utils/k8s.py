@@ -40,7 +40,7 @@ GROUP = constants.KUBERNETES_GROUP
 
 LOG = '/var/log/virtctl.log'
 
-RETRY_TIMES = 15
+RETRY_TIMES = 5
 
 
 def set_logger(header, fn):
@@ -232,14 +232,14 @@ def list_node():
             if e.reason == 'Not Found':
                 return False
             else:
-                time.sleep(3)
+                time.sleep(1)
         except Exception as e:
             if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
                     'ApiException') != -1:
                 config.load_kube_config(TOKEN)
             k8s_logger.debug(traceback.format_exc())
             k8s_logger.debug("sleep 3 sec")
-            time.sleep(3)
+            time.sleep(1)
     raise BadRequest('can not get node info from k8s.')
 
 
@@ -262,14 +262,14 @@ class K8sHelper(object):
                 if e.reason == 'Not Found':
                     return False
                 else:
-                    time.sleep(3)
+                    time.sleep(1)
             except Exception as e:
                 if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
                         'ApiException') != -1:
                     config.load_kube_config(TOKEN)
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
-                time.sleep(3)
+                time.sleep(1)
         raise BadRequest('can not get %s %s response from k8s.' % (self.kind, name))
 
     def get(self, name):
@@ -289,7 +289,7 @@ class K8sHelper(object):
                     config.load_kube_config(TOKEN)
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
-                time.sleep(3)
+                time.sleep(1)
 
         raise BadRequest('can not get %s %s on k8s.' % (self.kind, name))
 
@@ -310,7 +310,7 @@ class K8sHelper(object):
                 if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
                         'ApiException') != -1:
                     config.load_kube_config(TOKEN)
-                time.sleep(3)
+                time.sleep(1)
         raise BadRequest('can not get %s %s on k8s.' % (self.kind, name))
 
     def get_create_jsondict(self, name, key, data):
@@ -329,7 +329,7 @@ class K8sHelper(object):
                 if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
                         'ApiException') != -1:
                     config.load_kube_config(TOKEN)
-                time.sleep(3)
+                time.sleep(1)
         raise BadRequest('can not get %s %s data on k8s.' % (self.kind, name))
 
     def create(self, name, key, data):
@@ -355,7 +355,7 @@ class K8sHelper(object):
                     config.load_kube_config(TOKEN)
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
-                time.sleep(3)
+                time.sleep(1)
         error_print(500, 'can not create %s %s on k8s.' % (self.kind, name))
 
     def add_label(self, name, domain):
@@ -377,7 +377,7 @@ class K8sHelper(object):
                     config.load_kube_config(TOKEN)
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
-                time.sleep(3)
+                time.sleep(1)
         raise BadRequest('can not modify %s %s on k8s.' % (self.kind, name))
 
     def update(self, name, key, data):
@@ -401,7 +401,7 @@ class K8sHelper(object):
                     config.load_kube_config(TOKEN)
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
-                time.sleep(3)
+                time.sleep(1)
         raise BadRequest('can not modify %s %s on k8s.' % (self.kind, name))
 
     def updateAll(self, name, jsondict):
@@ -421,7 +421,7 @@ class K8sHelper(object):
                     config.load_kube_config(TOKEN)
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
-                time.sleep(3)
+                time.sleep(1)
         raise BadRequest('can not modify %s %s on k8s.' % (self.kind, name))
 
     def createAll(self, name, jsondict):
@@ -441,7 +441,7 @@ class K8sHelper(object):
                     config.load_kube_config(TOKEN)
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
-                time.sleep(3)
+                time.sleep(1)
         raise BadRequest('can not modify %s %s on k8s.' % (self.kind, name))
 
     def delete(self, name):
@@ -455,7 +455,7 @@ class K8sHelper(object):
                 if e.reason == 'Not Found':
                     return
                 else:
-                    time.sleep(3)
+                    time.sleep(1)
             except Exception as e:
                 if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
                         'ApiException') != -1:
@@ -463,7 +463,7 @@ class K8sHelper(object):
 
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
-                time.sleep(3)
+                time.sleep(1)
         raise BadRequest('can not delete %s %s on k8s.' % (self.kind, name))
 
     def delete_lifecycle(self, name):
@@ -488,7 +488,7 @@ class K8sHelper(object):
                     config.load_kube_config(TOKEN)
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
-                time.sleep(3)
+                time.sleep(1)
         raise BadRequest('can not delete lifecycle %s %s on k8s.' % (self.kind, name))
 
     def change_node(self, name, newNodeName):

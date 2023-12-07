@@ -696,23 +696,25 @@ class VmSnapshotEventHandler(FileSystemEventHandler):
 #             pass
 
 def _solve_conflict_in_VM(name, group, version, plural):
-    for i in range(1, 6):
-        time.sleep(1)
+    for i in range(1, 4):
         try:
             logger.debug('Solve conflict in vm CRD: the %i try.' % i)
             jsondict = get_custom_object(group, version, plural, name)
             jsondict['metadata']['labels']['host'] = HOSTNAME
             vm_xml = get_xml(name)
+            vm_power_state = vm_state(name).get(name)
             vm_json = toKubeJson(xmlToJson(vm_xml))
             vm_json = updateDomain(loads(vm_json))
-            body = updateDomainStructureAndDeleteLifecycleInJson(jsondict, vm_json)
+            jsondict = addPowerStatusMessage(jsondict, vm_power_state, 'The VM is %s' % vm_power_state)
             body = addNodeName(jsondict)
             update_custom_object(group, version, plural, name, body)
             return
         except Exception as e:
             logger.error('Oops! ', exc_info=1)
-            if i == 5:
+            if i == 3:
                 raise e
+            else:
+                time.sleep(1)
 
 def myVmLibvirtXmlEventHandler(event, name, xml_path, group, version, plural):
     #     print(jsondict)
