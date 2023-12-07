@@ -53,7 +53,7 @@ OVN_CONFIG_FILE = constants.KUBEVMM_OVN_FILE
 
 
 def create_custom_object(group, version, plural, body):
-    for i in range(1, 5):
+    for i in range(1, 4):
         try:
             config.load_kube_config(config_file=TOKEN)
             retv = client.CustomObjectsApi().create_namespaced_custom_object(group=group,
@@ -61,17 +61,17 @@ def create_custom_object(group, version, plural, body):
                                                                              plural=plural, body=body)
             return retv
         except ApiException as e:
-            if i == 5:
+            if i == 3:
                 raise e
             else:
-                time.sleep(3)
+                time.sleep(1)
                 continue
         except Exception as e:
             raise e
 
 
 def get_custom_object(group, version, plural, metadata_name):
-    for i in range(1, 5):
+    for i in range(1, 4):
         try:
             config.load_kube_config(config_file=TOKEN)
             jsonStr = client.CustomObjectsApi().get_namespaced_custom_object(
@@ -80,17 +80,17 @@ def get_custom_object(group, version, plural, metadata_name):
         except ApiException as e:
             if e.reason == 'Not Found':
                 raise e
-            elif i == 5:
+            elif i == 3:
                 raise e
             else:
-                time.sleep(3)
+                time.sleep(1)
                 continue
         except Exception as e:
             raise e
 
 
 def list_custom_object(group, version, plural):
-    for i in range(1, 5):
+    for i in range(1, 4):
         try:
             config.load_kube_config(config_file=TOKEN)
             jsonStr = client.CustomObjectsApi().list_cluster_custom_object(
@@ -99,17 +99,17 @@ def list_custom_object(group, version, plural):
         except ApiException as e:
             if e.reason == 'Not Found':
                 raise e
-            elif i == 5:
+            elif i == 3:
                 raise e
             else:
-                time.sleep(3)
+                time.sleep(1)
                 continue
         except Exception as e:
             raise e
 
 
 def update_custom_object(group, version, plural, metadata_name, body):
-    for i in range(1, 5):
+    for i in range(1, 4):
         try:
             config.load_kube_config(config_file=TOKEN)
             body = updateDescription(body)
@@ -119,17 +119,17 @@ def update_custom_object(group, version, plural, metadata_name, body):
         except ApiException as e:
             if e.reason == 'Not Found':
                 raise e
-            elif i == 5:
+            elif i == 3:
                 raise e
             else:
-                time.sleep(3)
+                time.sleep(1)
                 continue
         except Exception as e:
             raise e
 
 
 def delete_custom_object(group, version, plural, metadata_name):
-    for i in range(1, 5):
+    for i in range(1, 4):
         try:
             config.load_kube_config(config_file=TOKEN)
             retv = client.CustomObjectsApi().delete_namespaced_custom_object(
@@ -139,10 +139,10 @@ def delete_custom_object(group, version, plural, metadata_name):
         except ApiException as e:
             if e.reason == 'Not Found':
                 return
-            elif i == 5:
+            elif i == 3:
                 raise e
             else:
-                time.sleep(3)
+                time.sleep(1)
                 continue
         except Exception as e:
             raise e
