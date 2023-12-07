@@ -853,6 +853,8 @@ def runCmdWithResult(cmd, raise_it=True):
                 pass
             else:
                 raise BadRequest(std_err)
+        elif code != 0:
+            raise BadRequest(std_out)
         return code, retv
     finally:
         p.stdout.close()
