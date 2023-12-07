@@ -705,6 +705,7 @@ def _solve_conflict_in_VM(name, group, version, plural):
             vm_power_state = vm_state(name).get(name)
             vm_json = toKubeJson(xmlToJson(vm_xml))
             vm_json = updateDomain(loads(vm_json))
+            jsondict = updateDomainStructureAndDeleteLifecycleInJson(jsondict, vm_json)
             jsondict = addPowerStatusMessage(jsondict, vm_power_state, 'The VM is %s' % vm_power_state)
             body = addNodeName(jsondict)
             update_custom_object(group, version, plural, name, body)
