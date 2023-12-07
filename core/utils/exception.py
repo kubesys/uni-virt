@@ -20,3 +20,12 @@ class InternalServerError(Exception):
         self.reason = 500
         self.message = message
         
+class ConditionException(Exception):
+    def __init__(self, code, msg):
+        self.code = code
+        self.msg = msg
+
+class ExecuteException(Exception):
+    def __init__(self, reason, message):
+        self.reason = reason
+        self.message = message

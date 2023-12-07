@@ -6,6 +6,11 @@ Copyright (2021, ) Institute of Software, Chinese Academy of Sciences
 
 '''
 from json import loads, dumps, load
+import traceback
+
+from utils import logger
+from utils.exception import ExecuteException
+from utils.k8s import K8sHelper, list_node
 
 '''
 Import python libs
@@ -19,6 +24,14 @@ import os
 from pprint import pprint
 from xml.dom import minidom
 from io import StringIO as _StringIO
+
+try:
+    from utils import constants
+except:
+    import constants
+
+LOG = constants.KUBEVMM_VIRTCTL_LOG
+logger = logger.set_logger(os.path.basename(__file__), LOG)
 
 '''
 Import third party libs
@@ -34,6 +47,12 @@ try:
     from utils.exception import InternalServerError, NotFound, Forbidden, BadRequest
 except:
     from exception import InternalServerError, NotFound, Forbidden, BadRequest
+
+try:
+    import xml.etree.CElementTree as ET
+except:
+    import xml.etree.ElementTree as ET
+    
 
 
 VIRT_STATE_NAME_MAP = {0: 'Running',
@@ -1034,6 +1053,92 @@ def runCmdRaiseException(cmd):
     finally:
         p.stdout.close()
         p.stderr.close()
+
+
+def is_vm_disk_driver_cache_none(vm):
+    if not vm:
+        raise ExecuteException('', 'missing parameter: no vm name.')
+    runCmdAndParse('virsh dumpxml %s > /tmp/%s.xml' % (vm, vm))
+    tree = ET.parse('/tmp/%s.xml' % vm)
+
+    root = tree.getroot()
+    # for child in root:
+    #     print(child.tag, "----", child.attrib)
+    captionList = root.findall("devices")
+    for caption in captionList:
+        disks = caption.findall("disk")
+        for disk in disks:
+            if 'disk' == disk.attrib['device']:
+                source_element = disk.find("driver")
+                if "cache" in source_element.keys() and source_element.get("cache") == "none":
+                    continue
+                else:
+                    return False
+    return True
+
+
+def get_pool_info_from_k8s(pool):
+    if not pool:
+        raise ExecuteException('', 'missing parameter: no pool name.')
+    poolHelper = K8sHelper('VirtualMachinePool')
+    return poolHelper.get_data(pool, 'pool')
+
+def get_pools_by_path(path):
+    output = None
+    for i in range(30):
+        try:
+            output = runCmdAndGetOutput(
+                'kubectl get vmp  --kubeconfig=/root/.kube/config -o=jsonpath="{range .items[?(@.spec.pool.path==\\"%s\\")]}{.metadata.name}{\\"\\t\\"}{.metadata.labels.host}{\\"\\t\\"}{.spec.pool.path}{\\"\\n\\"}{end}"' % path)
+            break
+        except Exception:
+            logger.debug(traceback.format_exc())
+    pools = []
+    if output:
+        for line in output.splitlines():
+            pool = {}
+            if len(line.split()) < 3:
+                continue
+            pool['pool'] = line.split()[0]
+            pool['host'] = line.split()[1]
+            pools.append(pool)
+    return pools
+
+def runCmdAndGetOutput(cmd):
+    logger.debug(cmd)
+    if not cmd:
+        return
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        std_out = p.stdout.readlines()
+        std_err = p.stderr.readlines()
+        if std_out:
+            msg = ''
+            for line in std_out:
+                msg = msg + line
+            return msg
+        if std_err:
+            msg = ''
+            for index, line in enumerate(std_err):
+                if not str.strip(line):
+                    continue
+                if index == len(std_err) - 1:
+                    msg = msg + str.strip(line) + '. ' + '***More details in %s***' % LOG
+                else:
+                    msg = msg + str.strip(line) + ', '
+            logger.debug(cmd)
+            logger.debug(msg)
+            logger.debug(traceback.format_exc())
+            if msg.strip() != '':
+                raise ExecuteException('RunCmdError', msg)
+    except Exception:
+        logger.debug(traceback.format_exc())
+    finally:
+        p.stdout.close()
+        p.stderr.close()
+
+
+
+
 
 '''
 Run back-end command in subprocess.

@@ -36,7 +36,7 @@ VMDSN_KIND = constants.KUBERNETES_KIND_VMDSN
 VERSION = constants.KUBERNETES_API_VERSION
 GROUP = constants.KUBERNETES_GROUP
 
-config.load_kube_config(config_file=TOKEN)
+
 
 LOG = '/var/log/virtctl.log'
 
@@ -520,6 +520,7 @@ if __name__ == '__main__':
     #     'domain': 'cloudinit',
     #     'pool': 'migratepoolnodepool22'
     # }
+    config.load_kube_config(config_file=TOKEN)
     helper = K8sHelper(VMP_KIND)
     # backup_helper.create('backup1', 'backup', data)
 #     print(backup_helper.add_label('vmbackup2', 'cloudinit'))

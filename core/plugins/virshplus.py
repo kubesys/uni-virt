@@ -58,12 +58,10 @@ from xml.etree.ElementTree import fromstring
 
 from xmljson import badgerfish as bf
 
-from kubernetes.client.rest import ApiException
-
 from utils import constants
-from utils.exception import InternalServerError, NotFound, Forbidden, BadRequest
-from utils.libvirt_util import create, destroy, check_pool_content_type, refresh_pool, get_vol_info_by_qemu, get_volume_xml, get_pool_path, is_volume_in_use, is_volume_exists, get_volume_current_path, vm_state, is_vm_exists, is_vm_active, get_boot_disk_path, get_xml, undefine_with_snapshot, undefine, define_xml_str
-from utils.misc import set_field_in_kubernetes_by_index, get_l2_network_info, get_address_set_info, get_l3_network_info, updateDomain, randomMAC, runCmd, get_rebase_backing_file_cmds, add_spec_in_volume, get_hostname_in_lower_case, DiskImageHelper, updateDescription, get_volume_snapshots, updateJsonRemoveLifecycle, addSnapshots, report_failure, addPowerStatusMessage, RotatingOperation, string_switch, deleteLifecycleInJson, get_field_in_kubernetes_by_index, write_config
+from utils.exception import ExecuteException, InternalServerError, NotFound, Forbidden, BadRequest
+from utils.libvirt_util import create, destroy, check_pool_content_type, is_vm_disk_driver_cache_none, vm_state, is_vm_exists, is_vm_active, get_boot_disk_path, get_xml
+from utils.misc import get_IP, set_field_in_kubernetes_by_index, get_l2_network_info, get_address_set_info, get_l3_network_info, updateDomain, randomMAC, runCmd, get_rebase_backing_file_cmds, add_spec_in_volume, get_hostname_in_lower_case, DiskImageHelper, updateDescription, get_volume_snapshots, updateJsonRemoveLifecycle, addSnapshots, report_failure, addPowerStatusMessage, RotatingOperation, string_switch, deleteLifecycleInJson, get_field_in_kubernetes_by_index, write_config
 from utils import logger
 from utils.k8s import K8sHelper
 
@@ -981,7 +979,75 @@ def delete_vm(params):
     helper = K8sHelper(VM_KIND)
     helper.delete(metadata_name)
     return
+
+def migrate_vm(params): 
+    vmHelper = K8sHelper(VM_KIND)
+    metadata_name = _get_param('--domain', params)
+    try:
+        offline = _get_param('--offline', params)
+    except Exception as e:
+        offline = False
+        logger.debug("live migrate")
+    ip = _get_param('--ip', params)
+    if not is_vm_exists(metadata_name) and vmHelper.exist(metadata_name):
+        print("vm disk not exist in this node, migrate vm disk %s successful." % metadata_name, {})
+
+    if not is_vm_disk_driver_cache_none(metadata_name):
+        raise BadRequest('error: disk driver cache is not none')
+
+    #if params.ip in get_IP():
+        #raise BadRequest('error: not valid ip address.')
     
+    if offline:
+        try:
+            runCmd('virsh migrate --offline --undefinesource --persistent %s qemu+ssh://%s/system tcp://%s' % (
+            metadata_name, ip, ip))
+        except Exception as e:
+            logger.debug("offline migrateVM %s fail! Error: %s" %(metadata_name, e))
+    else:
+        try: 
+            runCmd('virsh migrate --live --undefinesource --persistent %s qemu+ssh://%s/system tcp://%s' % (
+            metadata_name, ip, ip))
+        except Exception as e:
+            logger.debug("live migrateVM %s fail! Error: %s" %(metadata_name,e))
+
+    '''
+    specs = get_disks_spec(params.domain)
+    # get disk node label in ip
+    node_name = get_node_name_by_node_ip(params.ip)
+    logger.debug("node_name: %s" % node_name)
+    
+    if node_name:
+        all_jsondicts = []
+        logger.debug(specs)
+        for disk_path in specs.keys():
+            prepare_info = get_disk_prepare_info_by_path(disk_path)
+            pool_info = get_pool_info_from_k8s(prepare_info['pool'])
+            # check_pool_active(pool_info)
+
+            pools = get_pools_by_path(pool_info['path'])
+
+            # change disk node label in k8s.
+            targetPool = None
+            for pool in pools:
+                if pool['host'] == node_name:
+                    targetPool = pool['pool']
+            remote_start_pool(params.ip, targetPool)
+
+            if targetPool:
+                logger.debug("targetPool is %s." % targetPool)
+                if pool_info['pooltype'] in ['localfs', 'nfs', 'glusterfs']:
+                    config = get_disk_config(pool_info['poolname'], prepare_info['disk'])
+                    write_config(config['name'], config['dir'], config['current'], targetPool, config['poolname'])
+                    jsondicts = get_disk_jsondict(targetPool, prepare_info['disk'])
+                    all_jsondicts.extend(jsondicts)
+                else:
+                    cstor_release_disk(prepare_info['poolname'], prepare_info['disk'], prepare_info['uni'])
+                    jsondicts = get_disk_jsondict(targetPool, prepare_info['disk'])
+                    all_jsondicts.extend(jsondicts)
+        apply_all_jsondict(all_jsondicts)
+    '''
+
 def plug_nic(params):
     the_cmd_key = 'plugNIC'
     metadata_name = _get_param('--domain', params)
@@ -1920,6 +1986,8 @@ def main():
         create_and_start_vm_from_iso(params)
     elif sys.argv[1] == 'delete_vm':
         delete_vm(params)
+    elif sys.argv[1] == 'migrate_vm':
+        migrate_vm(params)
     elif sys.argv[1] == 'plug_nic':
         plug_nic(params)
     elif sys.argv[1] == 'unplug_nic':

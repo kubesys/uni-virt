@@ -55,6 +55,8 @@ spec:
             mountPath: /usr/lib
           - name: localbin
             mountPath: /usr/local/bin
+          - name: ssh
+            mountPath: /root/.ssh
       - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:v1.0.0
         command: 
         - bash
@@ -91,6 +93,8 @@ spec:
             mountPath: /usr/lib
           - name: localbin
             mountPath: /usr/local/bin
+          - name: ssh
+            mountPath: /root/.ssh
       - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:v1.0.0
         command: 
         - bash
@@ -127,6 +131,8 @@ spec:
             mountPath: /usr/lib
           - name: localbin
             mountPath: /usr/local/bin
+          - name: ssh
+            mountPath: /root/.ssh
       - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:v1.0.0
         command: 
         - bash
@@ -163,6 +169,8 @@ spec:
             mountPath: /usr/lib
           - name: localbin
             mountPath: /usr/local/bin
+          - name: ssh
+            mountPath: /root/.ssh
       volumes: 
         - name: varlog
           hostPath: 
@@ -197,3 +205,6 @@ spec:
         - name: localbin
           hostPath:
             path: /usr/local/bin
+        - name: ssh
+          hostPath:
+            path: /root/.ssh
