@@ -709,7 +709,7 @@ def _solve_conflict_in_VM(name, group, version, plural):
             update_custom_object(group, version, plural, name, body)
             return
         except Exception as e:
-            logger.error(e)
+            logger.error('Oops! ', exc_info=1)
             if i == 5:
                 raise e
 
@@ -729,6 +729,7 @@ def myVmLibvirtXmlEventHandler(event, name, xml_path, group, version, plural):
             jsondict = addPowerStatusMessage(jsondict, vm_power_state, 'The VM is %s' % vm_power_state)
             body = addNodeName(jsondict)
             try:
+                logger.debug("Create VM %s from back-end: %s" %(name, body))
                 create_custom_object(group, version, plural, body)
             except ApiException as e:
                 if e.reason == 'Conflict':
