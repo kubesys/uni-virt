@@ -36,7 +36,7 @@ Import local libs
 '''
 # sys.path.append('%s/utils' % (os.path.dirname(os.path.realpath(__file__))))
 from utils.libvirt_util import get_target_devices, get_xml, vm_state, get_macs, get_nics, start
-from utils.misc import get_hostname_in_lower_case, delete_custom_object, get_custom_object, update_custom_object, UserDefinedEvent, randomUUID, now_to_datetime, get_switch_and_ip_info, getCmdKey, updateDescription, singleton, CDaemon, addExceptionMessage, addPowerStatusMessage, updateDomain, report_failure, \
+from utils.misc import get_hostname_in_lower_case, delete_custom_object, get_custom_object, update_custom_object, UserDefinedEvent, randomUUID, now_to_datetime, get_switch_and_ip_info_from_cfg_file, getCmdKey, updateDescription, singleton, CDaemon, addExceptionMessage, addPowerStatusMessage, updateDomain, report_failure, \
     runCmdRaiseException, runCmd, modify_token, get_ha_from_kubernetes
 from utils import logger
 from utils import constants
@@ -212,8 +212,7 @@ class MyDomainEventHandler(threading.Thread):
                         logger.debug('Callback domain shutdown to virtlet')
                         if str(DOM_EVENTS[self.kwargs['event']][self.kwargs['detail']]) == 'Migrated':
                             logger.debug('VM %s has been migrated, ignore its stop signal.' % vm_name)
-                        else:
-                            if get_ha_from_kubernetes(GROUP, VERSION, 'default', PLURAL, vm_name) and \
+                        elif get_ha_from_kubernetes(GROUP, VERSION, 'default', PLURAL, vm_name) and \
                             jsondict['metadata']['labels']['host'] == HOSTNAME:
         #                     autostart_vms = list_autostart_vms()
         #                     if vm_name in autostart_vms:
@@ -256,16 +255,18 @@ class MyDomainEventHandler(threading.Thread):
                                     event.updateKubernetesEvent()
                                 except:
                                     logger.warning('Oops! ', exc_info=1)
-    #                     else:
-    #                         macs = get_macs(vm_name)
-    #                         for mac in macs:
-    #                             net_cfg_file_path = '%s/%s-nic-%s.cfg' % \
-    #                                     (DEFAULT_DEVICE_DIR, vm_name, mac.replace(':', ''))
-    #                             if os.path.exists(net_cfg_file_path):
-    #                                 unbindSwPortCmd = 'kubeovn-adm unbind-swport --mac %s' % (mac)
-    #                                 logger.debug(unbindSwPortCmd)
-    #                                 retv = runCmdRaiseException(unbindSwPortCmd, 'kubeovn error')
-    #                                 logger.debug(retv)
+                        else:
+                            macs = get_macs(vm_name)
+                            for mac in macs:
+                                net_cfg_file_path = '%s/%s-nic-%s.cfg' % \
+                                        (DEFAULT_DEVICE_DIR, vm_name, mac.replace(':', ''))
+                                if os.path.exists(net_cfg_file_path):
+                                    unbindSwPortCmd = 'kubeovn-adm unbind-swport --mac %s' % (mac)
+                                    logger.debug(unbindSwPortCmd)
+                                    try:
+                                        runCmdRaiseException(unbindSwPortCmd, 'kubeovn error')
+                                    except:
+                                        logger.warning('Oops! ', exc_info=1)
                     except:
                         logger.error('Oops! ', exc_info=1)
                         info=sys.exc_info()
@@ -278,8 +279,9 @@ class MyDomainEventHandler(threading.Thread):
                         logger.debug('Callback domain start to virtlet')
                         macs = get_macs(vm_name)
                         for mac in macs:
-                            device = 'fe%s' % (mac.replace(':', '')[2:])
-                            (switch, ip) = get_switch_and_ip_info(vm_name, device)
+                            device = mac.replace(':', '')
+                            (switch, ip) = get_switch_and_ip_info_from_cfg_file(vm_name, device)
+                            logger.debug('switch %s and ip %s' % (switch, ip))
 #                         macs = get_macs(vm_name)
 #                         for mac in macs:
 #                             net_cfg_file_path = '%s/%s-nic-%s.cfg' % \
@@ -302,7 +304,7 @@ class MyDomainEventHandler(threading.Thread):
 #     #                                     (_, vxlan) = line.split('=')
 #     #                         if switch and ip and vxlan:
                             if switch and ip:
-                                bindSwPortCmd = 'kubeovn-adm bind-swport --mac %s --switch %s --ip %s' % (mac, switch.strip(), ip.strip())
+                                bindSwPortCmd = 'kubeovn-adm bind-swport --mac %s --switch %s --ip %s' % (mac, switch, ip)
                                 logger.debug(bindSwPortCmd)
                                 runCmd(bindSwPortCmd)
     #                             retv = runCmdRaiseException(bindSwPortCmd, 'Kubeovn error')

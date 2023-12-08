@@ -1512,6 +1512,26 @@ def get_del_description_command(vm, device, args):
     except:
         return ''
 
+def get_switch_and_ip_info_from_cfg_file(vm, device):
+    try:
+        net_cfg_file_path = '%s/%s-nic-%s.cfg' % \
+                            (constants.KUBEVMM_VM_DEVICES_DIR, vm, device)
+        if os.path.exits(net_cfg_file_path):
+            switch = None
+            ip = None
+            with open(net_cfg_file_path, 'r') as file:
+                lines = file.readlines()
+                for line in lines:
+                    line = line.strip()
+                    if line.startswith('switch='):
+                        switch = line.split('=')[1]
+                    elif line.startswith('ip='):
+                        ip = line.split('=')[1]
+            return switch, ip
+        else:
+            return None, None
+    except:
+        return None, None
 
 def get_switch_and_ip_info(vm, device):
     try:
