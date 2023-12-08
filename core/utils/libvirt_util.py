@@ -8,10 +8,6 @@ Copyright (2021, ) Institute of Software, Chinese Academy of Sciences
 from json import loads, dumps, load
 import traceback
 
-from utils import logger
-from utils.exception import ExecuteException
-from utils.k8s import K8sHelper, list_node
-
 '''
 Import python libs
 '''
@@ -27,8 +23,10 @@ from io import StringIO as _StringIO
 
 try:
     from utils import constants
+    from utils import logger
 except:
     import constants
+    import logger
 
 LOG = constants.KUBEVMM_VIRTCTL_LOG
 logger = logger.set_logger(os.path.basename(__file__), LOG)
@@ -1002,9 +1000,10 @@ def get_pool_info(pool_):
     return result
 
 def get_vol_info_by_qemu(vol_path):
-    result = runCmdAndGetResult('qemu-img info -U --output json ' + vol_path)
-    result['disk'] = os.path.basename(os.path.dirname(vol_path))
-    result['uni'] = vol_path
+    result = runCmdRaiseException('qemu-img info -U --output json ' + vol_path)
+    if result:
+        result['disk'] = os.path.basename(os.path.dirname(vol_path))
+        result['uni'] = vol_path
     json_str = dumps(result)
     return loads(json_str.replace('-', '_'))
 
@@ -1057,7 +1056,7 @@ def runCmdRaiseException(cmd):
 
 def is_vm_disk_driver_cache_none(vm):
     if not vm:
-        raise ExecuteException('', 'missing parameter: no vm name.')
+        raise BadRequest('missing parameter: no vm name.')
     runCmdAndParse('virsh dumpxml %s > /tmp/%s.xml' % (vm, vm))
     tree = ET.parse('/tmp/%s.xml' % vm)
 
@@ -1077,32 +1076,32 @@ def is_vm_disk_driver_cache_none(vm):
     return True
 
 
-def get_pool_info_from_k8s(pool):
-    if not pool:
-        raise ExecuteException('', 'missing parameter: no pool name.')
-    poolHelper = K8sHelper('VirtualMachinePool')
-    return poolHelper.get_data(pool, 'pool')
-
-def get_pools_by_path(path):
-    output = None
-    for i in range(30):
-        try:
-            output = runCmdAndGetOutput(
-                'kubectl get vmp  --kubeconfig=/root/.kube/config -o=jsonpath="{range .items[?(@.spec.pool.path==\\"%s\\")]}{.metadata.name}{\\"\\t\\"}{.metadata.labels.host}{\\"\\t\\"}{.spec.pool.path}{\\"\\n\\"}{end}"' % path)
-            break
-        except Exception:
-            logger.debug(traceback.format_exc())
-    pools = []
-    if output:
-        for line in output.splitlines():
-            pool = {}
-            if len(line.split()) < 3:
-                continue
-            pool['pool'] = line.split()[0]
-            pool['host'] = line.split()[1]
-            pools.append(pool)
-    return pools
-
+# def get_pool_info_from_k8s(pool):
+#     if not pool:
+#         raise BadRequest('', 'missing parameter: no pool name.')
+#     poolHelper = K8sHelper('VirtualMachinePool')
+#     return poolHelper.get_data(pool, 'pool')
+#
+# def get_pools_by_path(path):
+#     output = None
+#     for i in range(30):
+#         try:
+#             output = runCmdAndGetOutput(
+#                 'kubectl get vmp  --kubeconfig=/root/.kube/config -o=jsonpath="{range .items[?(@.spec.pool.path==\\"%s\\")]}{.metadata.name}{\\"\\t\\"}{.metadata.labels.host}{\\"\\t\\"}{.spec.pool.path}{\\"\\n\\"}{end}"' % path)
+#             break
+#         except Exception:
+#             logger.debug(traceback.format_exc())
+#     pools = []
+#     if output:
+#         for line in output.splitlines():
+#             pool = {}
+#             if len(line.split()) < 3:
+#                 continue
+#             pool['pool'] = line.split()[0]
+#             pool['host'] = line.split()[1]
+#             pools.append(pool)
+#     return pools
+#
 def runCmdAndGetOutput(cmd):
     logger.debug(cmd)
     if not cmd:
@@ -1127,55 +1126,54 @@ def runCmdAndGetOutput(cmd):
                     msg = msg + str.strip(line) + ', '
             logger.debug(cmd)
             logger.debug(msg)
-            logger.debug(traceback.format_exc())
             if msg.strip() != '':
-                raise ExecuteException('RunCmdError', msg)
+                raise BadRequest('RunCmdError', msg)
     except Exception:
-        logger.debug(traceback.format_exc())
+        logger.warning('Oops! ', exc_info=1)
     finally:
         p.stdout.close()
         p.stderr.close()
-
-
-
-
-
-'''
-Run back-end command in subprocess.
-'''
-def runCmdAndGetResult(cmd, raise_it=True):
-    std_err = None
-    if not cmd:
-        #         logger.debug('No CMD to execute.')
-        return
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    try:
-        std_out = p.stdout.readlines()
-        std_err = p.stderr.readlines()
-        if std_out:
-            msg = ''
-            for index, line in enumerate(std_out):
-                if not str.strip(line):
-                    continue
-                msg = msg + str.strip(line)
-            msg = str.strip(msg)
-            msg = msg.replace("'", '"')
-            try:
-                result = loads(msg)
-                return result
-            except Exception:
-                error_msg = ''
-                for index, line in enumerate(std_err):
-                    if not str.strip(line):
-                        continue
-                    error_msg = error_msg + str.strip(line)
-                error_msg = str.strip(error_msg)
-                raise Exception
-        if std_err:
-            raise Exception
-    finally:
-        p.stdout.close()
-        p.stderr.close()
+#
+#
+#
+#
+#
+# '''
+# Run back-end command in subprocess.
+# '''
+# def runCmdAndGetResult(cmd, raise_it=True):
+#     std_err = None
+#     if not cmd:
+#         #         logger.debug('No CMD to execute.')
+#         return
+#     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#     try:
+#         std_out = p.stdout.readlines()
+#         std_err = p.stderr.readlines()
+#         if std_out:
+#             msg = ''
+#             for index, line in enumerate(std_out):
+#                 if not str.strip(line):
+#                     continue
+#                 msg = msg + str.strip(line)
+#             msg = str.strip(msg)
+#             msg = msg.replace("'", '"')
+#             try:
+#                 result = loads(msg)
+#                 return result
+#             except Exception:
+#                 error_msg = ''
+#                 for index, line in enumerate(std_err):
+#                     if not str.strip(line):
+#                         continue
+#                     error_msg = error_msg + str.strip(line)
+#                 error_msg = str.strip(error_msg)
+#                 raise Exception
+#         if std_err:
+#             raise Exception
+#     finally:
+#         p.stdout.close()
+#         p.stderr.close()
         
 if __name__ == '__main__':
     # print(freecpu())
