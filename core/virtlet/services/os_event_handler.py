@@ -1294,7 +1294,8 @@ def main():
         while True:
             try:
                 paths = _get_all_pool_path()
-                for pool_name, pool_path in paths.items():
+                paths_copy = paths.copy()
+                for pool_name, pool_path in paths_copy.items():
                     content_file = '%s/content' % pool_path
                     if os.path.exists(content_file):
                         with open(content_file, 'r') as fr:
