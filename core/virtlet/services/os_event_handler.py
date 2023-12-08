@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (2021, ) Institute of Software, Chinese Academy of Sciences
+Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 
 @author: wuyuewen@otcaix.iscas.ac.cn
 @author: wuheng@otcaix.iscas.ac.cn

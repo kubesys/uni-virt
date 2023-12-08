@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Copyright (2021, ) Institute of Software, Chinese Academy of Sciences
+Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 
 @author: wuyuewen@otcaix.iscas.ac.cn
 @author: wuheng@otcaix.iscas.ac.cn
@@ -36,11 +36,11 @@ logger = logger.set_logger(os.path.basename(__file__), constants.KUBEVMM_VIRTLET
 
 @singleton('/var/run/libvirt_watcher_in_docker.pid')
 def main():
-    logger.debug("---------------------------------------------------------------------------------")
-    logger.debug("--------------------Welcome to Libvirt Watcher Daemon.---------------------------")
-    logger.debug("------Copyright (2021, ) Institute of Software, Chinese Academy of Sciences------")
-    logger.debug("---------author: wuyuewen@otcaix.iscas.ac.cn, wuheng@otcaix.iscas.ac.cn----------")
-    logger.debug("---------------------------------------------------------------------------------")
+    # logger.debug("---------------------------------------------------------------------------------")
+    # logger.debug("--------------------Welcome to Libvirt Watcher Daemon.---------------------------")
+    # logger.debug("------Copyright (2024, ) Institute of Software, Chinese Academy of Sciences------")
+    # logger.debug("---------author: wuyuewen@otcaix.iscas.ac.cn, wuheng@otcaix.iscas.ac.cn----------")
+    # logger.debug("---------------------------------------------------------------------------------")
     
     if os.path.exists(TOKEN):
         config.load_kube_config(config_file=TOKEN)

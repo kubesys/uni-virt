@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ##############################################################
 ##
-##      Copyright (2021, ) Institute of Software
+##      Copyright (2024, ) Institute of Software
 ##          Chinese Academy of Sciences
 ##             Author: wuyuewen@otcaix.iscas.ac.cn
 ##
