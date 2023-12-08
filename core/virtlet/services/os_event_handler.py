@@ -1319,7 +1319,7 @@ def main():
                         watcher = observer.schedule(event_handler, paths[pool], True)
                         OLD_PATH_WATCHERS[paths[pool]] = watcher
             except Exception as e:
-                logger.debug(traceback.print_exc())
+                logger.warning('Oops! ', exc_info=1)
                 logger.debug("error occur when watch all storage pool")
                 time.sleep(3)
 

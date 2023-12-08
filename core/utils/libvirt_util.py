@@ -1187,7 +1187,7 @@ if __name__ == '__main__':
 #     print list_volumes('vmdi')
 #     print(list_volumes('volumes'))
 #     print(_get_pool_info('default'))
-    print(get_disks("wyw123"))
+    print(_get_all_pool_path())
 #     print(get_volume_current_path('pooltest22', 'disktest22'))
 #     print(is_volume_in_use('disktest22', 'pooltest22'))
 #     vol_xml = get_vol_info_by_qemu('/var/lib/libvirt/pooltest/disktest/disktest')
