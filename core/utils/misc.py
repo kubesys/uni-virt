@@ -1516,7 +1516,7 @@ def get_switch_and_ip_info_from_cfg_file(vm, device):
     try:
         net_cfg_file_path = '%s/%s-nic-%s.cfg' % \
                             (constants.KUBEVMM_VM_DEVICES_DIR, vm, device)
-        if os.path.exits(net_cfg_file_path):
+        if os.path.exists(net_cfg_file_path):
             switch = None
             ip = None
             with open(net_cfg_file_path, 'r') as file:
