@@ -114,6 +114,7 @@ def _patch_node_status():
             logger.warning(e)
             time.sleep(2)
             continue
+    logger.error("Node status not updated")
         
 def _check_vm_by_hosting_node(group, version, plural, metadata_name):
     try:
