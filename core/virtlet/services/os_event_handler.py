@@ -1311,19 +1311,16 @@ def main():
                         watchers[path] = OLD_PATH_WATCHERS[path]
                 OLD_PATH_WATCHERS = watchers
 
-                for pool in paths.keys():
-                    # schedule new pool path
-                    if paths.get(pool) and paths.get(pool) not in OLD_PATH_WATCHERS.keys() and os.path.isdir(paths[pool]):
-                        logger.debug(paths.get(pool))
-                        event_handler = VmVolEventHandler(pool, paths[pool], GROUP, VERSION,
-                                                          PLURAL_VM_DISK)
-                        watcher = observer.schedule(event_handler, paths[pool], True)
-                        OLD_PATH_WATCHERS[paths.get(pool)] = watcher
+                for pool, pool_path in paths.items():
+                    if pool_path and pool_path not in OLD_PATH_WATCHERS.keys() and os.path.isdir(pool_path):
+                        logger.debug(pool_path)
+                        event_handler = VmVolEventHandler(pool, pool_path, GROUP, VERSION, PLURAL_VM_DISK)
+                        watcher = observer.schedule(event_handler, pool_path, True)
+                        OLD_PATH_WATCHERS[pool_path] = watcher
             except Exception as e:
                 logger.warning('Oops! ', exc_info=1)
-                logger.debug("error occur when watch all storage pool")
-                time.sleep(3)
-            time.sleep(1)
+            finally:
+                time.sleep(1)
     except KeyboardInterrupt:
         observer.stop()
     except:
