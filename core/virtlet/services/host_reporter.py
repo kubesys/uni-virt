@@ -66,7 +66,7 @@ def main():
                     _check_ha_and_autostart_vm(GROUP, VERSION, PLURAL, vm)
                     _check_vm_power_state(GROUP, VERSION, PLURAL, vm)
                 ha_check = False
-            _replace_node_status()
+            _patch_node_status()
             if ha_enable:
                 _check_and_enable_HA()
                 ha_enable = False
@@ -102,7 +102,7 @@ def main():
 #             restart_service = True
             continue
                 
-def _replace_node_status():
+def _patch_node_status():
     for i in range(3):
         try:
             host = client.CoreV1Api().read_node_status(name=HOSTNAME)
@@ -265,9 +265,8 @@ class HostCycler:
         return V1Node(api_version='v1', kind='Node', metadata=self.get_object_metadata(), spec=self.get_node_spec(), status=self.node_status)
 
     def get_node_status(self):
-        return V1NodeStatus(addresses=self.get_status_address(), allocatable=self.get_status_allocatable(), 
-                            capacity=self.get_status_capacity(), conditions=self.get_status_condition(),
-                            daemon_endpoints=self.get_status_daemon_endpoints(), node_info=self.get_status_node_info())
+        return V1NodeStatus(allocatable=self.get_status_allocatable(),
+                            capacity=self.get_status_capacity())
 
     def _format_mem_to_Mi(self, mem):
         return int(round(int(mem))) if int(round(int(mem))) > 0 else 0
