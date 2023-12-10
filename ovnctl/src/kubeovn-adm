@@ -12,7 +12,7 @@
 
 ## OVN plugin version
 
-VERSION="2.0.0"
+VERSION="1.0.0"
 IFCFG="/etc/sysconfig/network-scripts/"
 
 ## OVN Tables
@@ -708,8 +708,8 @@ function bind-swport()
 
   iface=$(ovs-vsctl get interface $name external_ids:iface-id | sed s/\"//g)
   ifmac=$(ovs-vsctl get interface $name external_ids:attached-mac | sed s/\"//g)
-  dpcpid="ovn-cluster-ovn-default"
-#dhcpid=$($NB_CMD show | grep "dhcpv4id-$switch-" | awk -F"dhcpv4id-$switch-" '{print$2}')
+  #dpcpid='e7cce50b-0c05-45a2-9b06-30ad6f1d9e23'
+  #dhcpid=$($NB_CMD show | grep "$switch-" | awk -F"$switch-" '{print$2}')
   $NB_CMD --if-exists lsp-del $iface
   $NB_CMD lsp-add $switch $iface
   $NB_CMD lsp-set-addresses $iface "$ifmac $ip"
@@ -1300,7 +1300,7 @@ function help()
 #  echo -e "  create-fip     :\t(L2  ): Create L2's floating IP"
 #  echo -e "  delete-fip     :\t(L2  ): Delete L2's floating IP"
   echo -e "  create-switch  :\t(L3  ): Create L3 switch and gateway"
-  echo -e "  update-switch  :\t(L3  ): update L3 switch's config"
+#  echo -e "  update-switch  :\t(L3  ): update L3 switch's config"
   echo -e "  delete-switch  :\t(L3  ): Remove L3 switch and gateway, see remove-switch"
   echo -e "  create-address :\t(L3  ): create Address for ACL"
   echo -e "  modify-address :\t(L3  ): modify Address for ACL"
@@ -1340,9 +1340,9 @@ case $1 in
   "create-switch")
     create-switch $*
     ;;
-  "update-switch")
-    update-switch $*
-    ;;
+#  "update-switch")
+#    update-switch $*
+#    ;;
   "delete-switch")
     delete-switch $*
     ;;

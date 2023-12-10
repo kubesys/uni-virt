@@ -1,4 +1,5 @@
 # kubeOVN
+
 SDN for Kubernetes network
 
 ## authors:
@@ -7,7 +8,7 @@ SDN for Kubernetes network
 - wuyuewen@otcaix.iscas.ac.cn
 - zhujianxing21@otcaix.iscas.ac.cn
 
-# 1. Features
+# Features
 
 - **IPv4**/IPv6
 - **vlan**, **geneve**, vxlan, 
@@ -17,19 +18,51 @@ SDN for Kubernetes network
 - **QoS**
 - CNI
 
-# 2. Roadmap
+# Books
 
-- Support geneve/IPv4 [1.x]
-  - ~~support vlan [1.1.0]~~
-  - ~~support floating ip [1.2.0]~~
-  - ~~upport ACL [1.3.0]~~
-  - ~~support QoS [1.4.0]~~
-  - production ready [1.5.0]
-- Support vxlan [2.x]
-- Support CNI [3.x]
-- Support IPv6 [4.x]
+- https://feisky.gitbooks.io/sdn/ovs/ovn-internal.html
 
-# 3. Info
+- L3
+  - http://dani.foroselectronica.es/simple-ovn-setup-in-5-minutes-491/
+  - https://developers.redhat.com/blog/2018/09/03/ovn-dynamic-ip-address-management/
+
+- OVN
+  - https://blog.oddbit.com/post/2019-12-19-ovn-and-dhcp/
+
+- Basic:
+  - https://hechao.li/2018/05/15/VXLAN-Hands-on-Lab/
+  - https://github.com/cao19881125/ovn_lab
+
+- Floating IP:
+  - https://segmentfault.com/a/1190000020311817
+  - https://www.sdnlab.com/19802.html
+  - https://www.cnblogs.com/silvermagic/p/7666124.html
+
+- QoS：
+  - https://macauleycheng.gitbooks.io/ovn/qos-dscp-configuration.html
+
+- ACLS:
+  - http://blog.spinhirne.com/2016/10/ovn-and-acls.html
+  - https://blog.csdn.net/zhengmx100/article/details/75431393
+
+- VxLan
+  - https://macauleycheng.gitbooks.io/ovn/examplewith-vtep.html
+  - http://docs.openvswitch.org/en/latest/howto/vtep/
+  - https://hechao.li/2018/05/15/VXLAN-Hands-on-Lab/
+  - https://docs.pica8.com/display/picos2102cg/OVSDB+VTEP+with+vtep-ctl+Configuration+Examples
+  
+- Debug
+  - https://www.twblogs.net/a/5b8118292b71772165aaf9a5
+  - https://access.redhat.com/solutions/4270652 
+ 
+- Bug
+  - https://bugzilla.redhat.com/show_bug.cgi?id=1580542
+  - https://access.redhat.com/errata/RHBA-2019:3718
+
+- VM
+  - https://blog.scottlowe.org/2016/12/09/using-ovn-with-kvm-libvirt/
+
+# Dprecated
 
 ```
 Notes to self: Clustering seems to be doable in OVS > 2.9 (>2.10 preferred). A working example can be seen here:
@@ -82,44 +115,3 @@ The trick is verifying when this needs to be implemented and how it behaves with
 
 See full activity log
 ```
-
-# Books
-
-- https://feisky.gitbooks.io/sdn/ovs/ovn-internal.html
-
-# 4. References
-
-- Basic:
-  - https://developers.redhat.com/blog/2018/09/03/ovn-dynamic-ip-address-management/
-  - https://blog.scottlowe.org/2016/12/09/using-ovn-with-kvm-libvirt/
-  - http://dani.foroselectronica.es/simple-ovn-setup-in-5-minutes-491/
-  - https://www.li-rui.top/2018/12/16/network/ovn%E5%AD%90%E7%BD%91%E4%BB%A5%E5%8F%8A%E4%B8%89%E5%B1%82%E7%BD%91%E5%85%B3/
-  - https://hechao.li/2018/05/15/VXLAN-Hands-on-Lab/
-  - https://github.com/cao19881125/ovn_lab
-  - https://blog.oddbit.com/post/2019-12-19-ovn-and-dhcp/
-
-- Floating IP:
-  - https://segmentfault.com/a/1190000020311817
-  - https://www.sdnlab.com/19802.html
-  - https://www.cnblogs.com/silvermagic/p/7666124.html
-
-- QoS：
-  - https://macauleycheng.gitbooks.io/ovn/qos-dscp-configuration.html
-
-- ACLS:
-  - http://blog.spinhirne.com/2016/10/ovn-and-acls.html
-  - https://blog.csdn.net/zhengmx100/article/details/75431393
-
-- VxLan
-  - https://macauleycheng.gitbooks.io/ovn/examplewith-vtep.html
-  - http://docs.openvswitch.org/en/latest/howto/vtep/
-  - https://hechao.li/2018/05/15/VXLAN-Hands-on-Lab/
-  - https://docs.pica8.com/display/picos2102cg/OVSDB+VTEP+with+vtep-ctl+Configuration+Examples
-  
-- Debug
-  - https://www.twblogs.net/a/5b8118292b71772165aaf9a5
-  - https://access.redhat.com/solutions/4270652 
- 
- - Bug
-   - https://bugzilla.redhat.com/show_bug.cgi?id=1580542
-   - https://access.redhat.com/errata/RHBA-2019:3718
