@@ -100,7 +100,7 @@ if [[ "$1" == "update" ]] ;then
 
 	cd ${SHELL_FOLDER}/../../
 	cd core/virtmonitor
-	python3 virtmonitor.py restart
+	python3 virt_monitor.py restart
 
 	cd ${SHELL_FOLDER}/../../
 	cd core/libvirtwatcher
@@ -115,7 +115,7 @@ else
 
 	cd ${SHELL_FOLDER}/../../
 	cd core/virtmonitor
-	python3 virtmonitor.py $1
+	python3 virt_monitor.py $1
 
 	cd ${SHELL_FOLDER}/../../
 	cd core/libvirtwatcher
