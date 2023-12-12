@@ -716,7 +716,7 @@ class ClientDaemon(CDaemon):
 #         logger.debug("---------------------------------------------------------------------------------")
         try:
             if os.path.exists(TOKEN):
-                start_http_server(19998)
+                start_http_server(19999)
             #         registry = CollectorRegistry(auto_describe=False)
                 config.load_kube_config(config_file=TOKEN)
                 zone = get_field_in_kubernetes_node(HOSTNAME, ['metadata', 'labels', 'zone'])
