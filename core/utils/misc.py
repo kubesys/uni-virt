@@ -1054,7 +1054,11 @@ def iterate_dict(area, i=0):
 
 
 def updateDomain(jsondict):
-    with open('/home/kubevmm/core/utils/arraylist.cfg') as fr:
+    if os.path.exists('/home/kubevmm/core/utils/arraylist.cfg'):
+        arraylist = '/home/kubevmm/core/utils/arraylist.cfg'
+    else:
+        arraylist = '/etc/uniVirt/arraylist.cfg'
+    with arraylist as fr:
         for line in fr:
             l = str.strip(line)
             alist = l.split('-')
@@ -1063,7 +1067,11 @@ def updateDomain(jsondict):
 
 
 def updateDomainSnapshot(jsondict):
-    with open('/home/kubevmm/core/utils/arraylist.cfg') as fr:
+    if os.path.exists('/home/kubevmm/core/utils/arraylist.cfg'):
+        arraylist = '/home/kubevmm/core/utils/arraylist.cfg'
+    else:
+        arraylist = '/etc/uniVirt/arraylist.cfg'
+    with arraylist as fr:
         for line in fr:
             l = str.strip(line)
             alist = l.split('-')
