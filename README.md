@@ -50,7 +50,7 @@ git clone https://github.com/kubesys/uniVirt
 ```
 cd uniVirt
 bash setup.sh
-cp /etc/uniVirt/ansible/inventory.ini ./inventory.ini
+cp scripts/ansible/inventory.ini ./
 vi inventory.ini
 ```
 
@@ -76,28 +76,34 @@ vi inventory.ini
 
 ### 步骤3: 通过Ansible安装依赖
 
-* 通过 `/path/to/your/inventory.ini` 进行安装
+* 通过 `inventory.ini` 进行安装
 
 ```
-ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/install_packages_and_dependencies.yml
+ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_packages_and_dependencies.yml
 ```
 
 * 安装 golang 环境
 
 ```
-ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/install_go.yml
+ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_go.yml
 ```
 
 * 安装 chrony 时间服务器
 
 ```
-ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/install_and_setup_chrony.yml
+ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_and_setup_chrony.yml
+```
+
+* 配置集群免秘钥登录
+
+```
+ansible-playbook -i inventory.ini scripts/ansible/playbooks/config_root_ssh.yml
 ```
 
 * 为计算节点打标签
 
 ```
-ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/label_k8s_nodes.yml
+ansible-playbook -i inventory.ini scripts/ansible/playbooks/label_k8s_nodes.yml
 ```
 
 ### 步骤4：在 Kubernetes 集群中安装 `uniVirt` DaemonSet
@@ -105,7 +111,13 @@ ansible-playbook -i inventory.ini /etc/uniVirt/ansible/playbooks/label_k8s_nodes
 * 安装指定版本的 `uniVirt`，例如：v1.0.0.lab，则修改 -e "ver=v1.0.0.lab" 参数
 
 ```
-ansible-playbook -i localhost, -e "ver=v1.0.0.lab" /etc/uniVirt/ansible/playbooks/install_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.0.lab" scripts/ansible/playbooks/install_uniVirt.yml
+```
+
+* 配置、启动外部服务
+
+```
+ansible-playbook -i inventory.ini scripts/ansible/playbooks/create_comm_service_env.yml
 ```
 
 ### 验证安装，当 virt-tool 都处于 Ready 状态则安装成功
@@ -119,7 +131,7 @@ kubectl get po -A | grep virt-tool
 * 更新至指定版本，例如：v1.0.1.lab，则修改 -e "ver=v1.0.1.lab" 参数
 
 ```
-ansible-playbook -i localhost, -e "ver=v1.0.1.lab" /etc/uniVirt/ansible/playbooks/update_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.1.lab" scripts/ansible/playbooks/update_uniVirt.yml
 ```
 
 
@@ -128,7 +140,37 @@ ansible-playbook -i localhost, -e "ver=v1.0.1.lab" /etc/uniVirt/ansible/playbook
 ### 卸载，例如： v1.0.0.lab
 
 ```
-ansible-playbook -i localhost, -e "ver=v1.0.0.lab" /etc/uniVirt/ansible/playbooks/uninstall_uniVirt.yml
+ansible-playbook -i localhost, -e "ver=v1.0.0.lab" scripts/ansible/playbooks/uninstall_uniVirt.yml
+```
+
+### 步骤5：当集群部署了 rook ceph 后，配置安装 ceph 客户端
+
+* 配置`inventory-ceph.ini`文件，
+
+```
+cp scripts/ansible/inventory-ceph.ini ./
+vi inventory-ceph.ini
+```
+
+* 设置 rook ceph cluster 对应的 namespace，以及属于这个 ceph 集群的节点
+```
+[rook-ceph]  #namespace名称
+#填节点hostname，即IP地址
+133.133.135.134
+133.133.135.139
+133.133.135.192
+133.133.135.138
+133.133.135.73
+```
+
+* 配置集群中节点的 ceph 客户端
+```
+ansible-playbook -i inventory-ceph.ini scripts/ansible/playbooks/copy_ceph_config.yml
+```
+
+* 验证 ceph 客户端，在 ceph 集群中任意节点执行
+```
+ceph fs status
 ```
 
 # 普通用户：离线安装

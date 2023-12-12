@@ -39,8 +39,8 @@ if [[ "$1" == "update" ]] ;then
 	rm -f ./kubeovn-adm~
 	cd ../../
 	#cp -f ./core/plugins/ovn-ovsdb.service /usr/lib/systemd/system/
-	cp -f ./core/utils/arraylist.cfg /etc/kubevmm/
-	cp -rf ./yamls /etc/kubevmm/
+	cp -f ./core/utils/arraylist.cfg /etc/uniVirt/
+	cp -rf ./scripts/yamls /etc/uniVirt/
 
 	cd ./sdsctl/cmd/sdsctl
   go build -o sdsctl main.go
