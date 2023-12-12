@@ -12,7 +12,7 @@ RUN apt-get install -y openvswitch-switch
 
 RUN pip3 install --upgrade pip
 
-RUN pip3 install --ignore-installed google setuptools wheel threadpool prometheus_client kubernetes==26.1.0 xmljson xmltodict watchdog pyyaml grpcio grpcio-tools protobuf psutil
+RUN pip3 install --ignore-installed google setuptools wheel threadpool prometheus_client kubernetes==26.1.0 xmljson xmltodict watchdog pyyaml grpcio grpcio-tools protobuf psutil tenacity
 
 # RUN export PYCURL_SSL_LIBRARY=openssl
 

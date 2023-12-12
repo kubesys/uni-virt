@@ -137,6 +137,7 @@
           - protobuf
           - psutil
           - pyinstaller
+          - tenacity
         state: latest
         executable: pip3
       tags: 
@@ -206,6 +207,7 @@
           - grpcio-tools
           - protobuf
           - psutil
+          - tenacity
         state: latest
       when: ansible_os_family == 'Debian'
 
