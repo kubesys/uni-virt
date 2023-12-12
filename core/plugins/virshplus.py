@@ -1217,7 +1217,13 @@ def _createNICXml(metadata_name, data):
             bandwidth[k] = v
         elif k == 'outbound':
             bandwidth[k] = v
-    
+        elif k== 'vlan':
+            node=doc.createElement(k)
+            root.appendChild(node)
+            tag=doc.createElement('tag')
+            tag.setAttribute('id',v)
+            node.appendChild(tag)
+
     if bandwidth:        
         node_bandwidth = doc.createElement('bandwidth')
         for k,v in bandwidth.items():
