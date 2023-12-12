@@ -15,7 +15,7 @@ fi
 
 ##############################patch stuff#########################################
 SHELL_FOLDER=$(dirname $(readlink -f "$0"))
-cd ${SHELL_FOLDER}../../
+cd ${SHELL_FOLDER}/../../
 
 if [[ "$1" == "update" ]] ;then
 	echo -e "\033[3;30;47m*** Pull latest version from Github.\033[0m"
@@ -94,14 +94,30 @@ if [[ "$1" == "update" ]] ;then
 	cd core/virtlet
 	python3 virtlet.py restart
 	
-	cd ${SHELL_FOLDER}
+	cd ${SHELL_FOLDER}/../../
 	cd core/virtctl
 	python3 virtctl.py restart
+
+	cd ${SHELL_FOLDER}/../../
+	cd core/virtmonitor
+	python3 virt_monitor.py restart
+
+	cd ${SHELL_FOLDER}/../../
+	cd core/libvirtwatcher
+	python3 libvirt_watcher.py restart
 else
 	cd core/virtlet
 	python3 virtlet.py $1
 	
-	cd ${SHELL_FOLDER}
+	cd ${SHELL_FOLDER}/../../
 	cd core/virtctl
 	python3 virtctl.py $1
+
+	cd ${SHELL_FOLDER}/../../
+	cd core/virtmonitor
+	python3 virt_monitor.py $1
+
+	cd ${SHELL_FOLDER}/../../
+	cd core/libvirtwatcher
+	python3 libvirt_watcher.py $1
 fi
