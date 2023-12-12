@@ -41,17 +41,17 @@ https://github.com/pixiu-io/kubez-ansible
 ### 步骤1: clone 这个工程
 
 ```
-cd $HOME
+cd /root
 git clone https://github.com/kubesys/uniVirt
 ```
 
 ### 步骤2: 准备Ansible安装
 
 ```
-cd /path/to/your/uniVirt/directory
+cd uniVirt
 bash setup.sh
-cp /etc/uniVirt/ansible/inventory.ini /path/to/your/inventory.ini
-vi /path/to/your/inventory.ini
+cp /etc/uniVirt/ansible/inventory.ini ./inventory.ini
+vi inventory.ini
 ```
 
 修改 `inventory.ini` 中的 `[master]` 和 `[worker]` 两个组将 Kuberentes 集群的所有服务器包含进来。
@@ -326,15 +326,72 @@ kubectl get vm -n kube-system -o wide
 ### 发布一个 CentOS7 的 v1.0.1.lab 版本
 
 ```
-cd /path/to/your/uniVirt/directory
+cd /root/uniVirt
 bash scripts/shells/release-version-centos7.sh v1.0.1.lab
 ```
 
 ### 发布一个 Ubuntu22 的 v1.0.1.lab 版本
 
 ```
-cd /path/to/your/uniVirt/directory
+cd /root/uniVirt
 bash scripts/shells/release-version-ubuntu22.sh v1.0.1.lab
+```
+
+## 开发者调试模式
+开发者调试模式允许uniVirt服务通过本地源码方式运行，要求：1）下载了本工程源码，2）按照前序ansible步骤安装过环境依赖，包括libvirt、python3等，并且启动了libvirt服务。
+
+### 启用调试模式
+* 禁用当前节点的virt-tool服务
+* CentOS 7执行
+```commandline
+kubectl label node <hostname> doslab/virt.tool.centos-
+```
+* Ubuntu 22执行
+```commandline
+kubectl label node <hostname> doslab/virt.tool.ubuntu-
+```
+* 从本地启动uniVirt
+```commandline
+cd /root/uniVirt
+bash scripts/shells/service-adm.sh restart
+```
+
+### 更新二进制可执行程序并启用调试模式
+* 禁用当前节点的virt-tool服务
+* CentOS 7执行
+```commandline
+kubectl label node <hostname> doslab/virt.tool.centos-
+```
+* Ubuntu 22执行
+```commandline
+kubectl label node <hostname> doslab/virt.tool.ubuntu-
+```
+* 从本地启动uniVirt
+```commandline
+cd /root/uniVirt
+bash scripts/shells/service-adm.sh update
+```
+
+### 退出调试模式
+* 停止本地服务
+```commandline
+cd /root/uniVirt
+bash scripts/shells/service-adm.sh stop
+```
+* 重新启用当前节点的virt-tool服务
+* CentOS 7执行
+```commandline
+kubectl label node <hostname> doslab/virt.tool.centos=
+```
+* Ubuntu 22执行
+```commandline
+kubectl label node <hostname> doslab/virt.tool.ubuntu=
+```
+
+### 其他支持的操作
+* 查询支持的操作
+```commandline
+bash scripts/shells/service-adm.sh
 ```
 
 ------------------------------------------------------------
