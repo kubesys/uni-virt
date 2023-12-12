@@ -15,7 +15,7 @@ fi
 
 ##############################patch stuff#########################################
 SHELL_FOLDER=$(dirname $(readlink -f "$0"))
-cd ${SHELL_FOLDER}
+cd ${SHELL_FOLDER}../../
 
 if [[ "$1" == "update" ]] ;then
 	echo -e "\033[3;30;47m*** Pull latest version from Github.\033[0m"
@@ -30,25 +30,33 @@ if [[ "$1" == "update" ]] ;then
 	if [ ! -d "./dist" ]; then
 		mkdir ./dist
 	fi
-	wget -c https://raw.githubusercontent.com/kubesys/kubeext-SDN/master/src/kubeovn-adm
+	#wget -c https://raw.githubusercontent.com/kubesys/kubeext-SDN/master/src/kubeovn-adm
+	cd ovnctl/src/
 	chmod +x kubeovn-adm
 	gzexe ./kubeovn-adm
 	cp -f kubeovn-adm /usr/bin/
 	gzexe -d ./kubeovn-adm
 	rm -f ./kubeovn-adm~
-	cp -f ./core/plugins/ovn-ovsdb.service /usr/lib/systemd/system/
+	cd ../../
+	#cp -f ./core/plugins/ovn-ovsdb.service /usr/lib/systemd/system/
 	cp -f ./core/utils/arraylist.cfg /etc/kubevmm/
 	cp -rf ./yamls /etc/kubevmm/
+
+	cd ./sdsctl/cmd/sdsctl
+  go build -o sdsctl main.go
+  cp -f sdsctl /usr/bin/
+  cd ../../../
+
+	#pyinstaller -F kubevmm_adm.py -n kubevmm-adm
+	#if [ $? -ne 0 ]; then
+	#    echo "    Failed to compile <kubevmm-adm>!"
+	#    exit 1
+	#else
+	#    echo "    Success compile <kubevmm-adm>."
+	#fi
+	#cp -f ./dist/kubevmm-adm /usr/bin/
+	#rm -rf ./dist
 	cd ./core/plugins
-	pyinstaller -F kubevmm_adm.py -n kubevmm-adm
-	if [ $? -ne 0 ]; then
-	    echo "    Failed to compile <kubevmm-adm>!"
-	    exit 1
-	else
-	    echo "    Success compile <kubevmm-adm>."
-	fi
-	cp -f ./dist/kubevmm-adm /usr/bin/
-	rm -rf ./dist
 	cp -f virshplus.py ../
 	cd ..
 	pyinstaller -F virshplus.py
@@ -61,27 +69,27 @@ if [[ "$1" == "update" ]] ;then
 	cp -f ./dist/virshplus /usr/bin/
 	rm -rf ./dist
 	cd ..
-	git clone -b uit https://github.com/uit-plus/kubeext-SDS.git
-	cd ./kubeext-SDS
+	#git clone -b uit https://github.com/uit-plus/kubeext-SDS.git
+	#cd ./kubeext-SDS
 	
-	pyinstaller2.7 -F kubesds-adm.py
-	if [ $? -ne 0 ]; then
-	    echo "    Failed to compile <kubesds-adm>!"
-	    exit 1
-	else
-	    echo "    Success compile <kubesds-adm>."
-	fi
-	pyinstaller2.7 -F kubesds-rpc.py
-	if [ $? -ne 0 ]; then
-	    echo "    Failed to compile <kubesds-rpc>!"
-	    exit 1
-	else
-	    echo "    Success compile <kubesds-rpc>."
-	fi
-	cp -f ./dist/kubesds-adm /usr/bin/
-	cp -f ./dist/kubesds-rpc /usr/bin/
-	cd ..
-	rm -rf ./kubeext-SDS
+	#pyinstaller2.7 -F kubesds-adm.py
+	#if [ $? -ne 0 ]; then
+	#    echo "    Failed to compile <kubesds-adm>!"
+	#    exit 1
+	#else
+	#    echo "    Success compile <kubesds-adm>."
+	#fi
+	#pyinstaller2.7 -F kubesds-rpc.py
+	#if [ $? -ne 0 ]; then
+	#    echo "    Failed to compile <kubesds-rpc>!"
+	#    exit 1
+	#else
+	#    echo "    Success compile <kubesds-rpc>."
+	#fi
+	#cp -f ./dist/kubesds-adm /usr/bin/
+	#cp -f ./dist/kubesds-rpc /usr/bin/
+	#cd ..
+	#rm -rf ./kubeext-SDS
 	echo "restart services..."
 	cd core/virtlet
 	python3 virtlet.py restart

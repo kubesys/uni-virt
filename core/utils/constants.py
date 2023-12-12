@@ -9,14 +9,18 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 '''KubeVMM configurations'''
 KUBEVMM_CONFIG_FILE_PATH           = "/etc/kubevmm/config"
 KUBEVMM_CONFIG_FILE_IN_DOCKER_PATH = "/home/kubevmm/bin/config"
-KUBEVMM_VIRTCTL_SEVICE_NAME        = "Virtctl"
-KUBEVMM_VIRTLET_SEVICE_NAME        = "Virtlet"
+KUBEVMM_VIRTCTL_SERVICE_NAME        = "Virtctl"
+KUBEVMM_VIRTLET_SERVICE_NAME        = "Virtlet"
+KUBEVMM_LIBVIRTWATCHER_SERVICE_NAME = "LibvirtWatcher"
+KUBEVMM_VIRMONITOR_SERVICE_NAME     = "VirtMonitor"
 KUBEVMM_VIRTCTL_LOG                = "/var/log/virtctl.log"
 KUBEVMM_VIRTLET_LOG                = "/var/log/virtlet.log"
 KUBEVMM_LOG_FILE_RESERVED          = 10
 KUBEVMM_LOG_FILE_SIZE_BYTES        = 10000000
 KUBEVMM_VIRTCTL_SERVICE_LOCK       = "/var/run/virtctl_daemon.pid"
 KUBEVMM_VIRTLET_SERVICE_LOCK       = "/var/run/virtlet_daemon.pid"
+KUBEVMM_LIBVIRTWATCHER_SERVICE_LOCK= "/var/run/libvirtwatcher_daemon.pid"
+KUBEVMM_VIRMONITOR_SERVICE_LOCK    = "/var/run/virtmonitor_daemon.pid"
 KUBEVMM_VIRTCTL_DOCKER_LOCK        = "/var/run/virtctl_in_docker.pid"
 KUBEVMM_VIRTLET_DOCKER_LOCK        = "/var/run/virtlet_in_docker.pid"
 

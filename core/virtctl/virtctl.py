@@ -50,7 +50,7 @@ def daemonize():
     if len(sys.argv) != 2:
         print(help_msg)
         sys.exit(1)
-    p_name = constants.KUBEVMM_VIRTCTL_SEVICE_NAME
+    p_name = constants.KUBEVMM_VIRTCTL_SERVICE_NAME
     pid_fn = constants.KUBEVMM_VIRTCTL_SERVICE_LOCK
     log_fn = constants.KUBEVMM_VIRTCTL_LOG
     err_fn = constants.KUBEVMM_VIRTCTL_LOG

@@ -27,7 +27,7 @@ class KubernetesEvent:
         self.involved_object_kind = k8s_object_kind
         self.involved_cmd_key = the_cmd_key
         self.event_metadata_name = randomUUID()
-        self.reporter = constants.KUBEVMM_VIRTCTL_SEVICE_NAME
+        self.reporter = constants.KUBEVMM_VIRTCTL_SERVICE_NAME
         self.event_id = event_id
         self.time_start = now_to_datetime()
 
