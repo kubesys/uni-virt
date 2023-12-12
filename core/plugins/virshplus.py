@@ -820,7 +820,7 @@ def _get_param(key, params, disk=False):
     except ValueError as e:
         raise BadRequest('Wrong parameter %s' % key)
     except Exception as e:
-        raise BadRequest(repr(e))
+        raise BadRequest(str(e))
 
 def _get_params(params):
     try:
@@ -840,7 +840,7 @@ def _get_params(params):
                 continue
         return jsondict
     except Exception as e:
-        raise BadRequest(repr(e))        
+        raise BadRequest(str(e))
     
 def _set_param(key, value, params):
     try:
@@ -849,7 +849,7 @@ def _set_param(key, value, params):
     except ValueError as e:
         raise BadRequest('Wrong parameter %s' % key)
     except Exception as e:
-        raise BadRequest(repr(e))
+        raise BadRequest(str(e))
 
 def _get_current(src_path):
     with open(src_path, "r") as f:
@@ -1440,7 +1440,7 @@ def _get_disk_from_config_dict(config_dict):
     try:
         return config_dict.get('source').split('/')[-1]
     except Exception as e:
-        raise BadRequest(repr(e))
+        raise BadRequest(str(e))
 
 def _get_disk_from_xml(file_path):
     try:
@@ -1450,7 +1450,7 @@ def _get_disk_from_xml(file_path):
         file_path = source[0].getAttribute("file")
         return file_path.split('/')[-1]
     except Exception as e:
-        raise BadRequest(repr(e))
+        raise BadRequest(str(e))
     
 def _get_network_operations_queue(the_cmd_key, config_dict, metadata_name):
     if _isInstallVMFromISO(the_cmd_key) or _isInstallVMFromImage(the_cmd_key) or _isPlugNIC(the_cmd_key):

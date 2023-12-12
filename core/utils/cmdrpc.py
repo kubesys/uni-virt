@@ -53,7 +53,7 @@ def rpcCallWithResult(cmd, raise_it=True):
                 raise BadRequest('RunCmdError: %s' % result['result']['msg'])
             return result['result'], result['data']
         except grpc.RpcError as e:
-            logger.debug(repr(e))
+            logger.error('Oops! ', exc_info=1)
             # ouch!
             # lets print the gRPC error message
             # which is "Length of `Name` cannot be more than 10 characters"
@@ -76,7 +76,7 @@ def rpcCallWithResult(cmd, raise_it=True):
             continue
 #             raise ExecuteException('RpcError', status_code.name)
         except Exception as e:
-            logger.debug(repr(e))
+            logger.error('Oops! ', exc_info=1)
             if i == 3:
                 raise BadRequest('RunCmdError: %s' % e.message)
             time.sleep(3)
@@ -99,7 +99,7 @@ def rpcCall(cmd, raise_it=True):
                 raise BadRequest('RunCmdError: %s' % result['result']['msg'])
             return
         except grpc.RpcError as e:
-            logger.debug(repr(e))
+            logger.error('Oops! ', exc_info=1)
             # ouch!
             # lets print the gRPC error message
             # which is "Length of `Name` cannot be more than 10 characters"
@@ -120,7 +120,7 @@ def rpcCall(cmd, raise_it=True):
             time.sleep(3)
             continue
         except Exception as e:
-            logger.debug(repr(e))
+            logger.error('Oops! ', exc_info=1)
             if i == 3:
                 raise BadRequest('RunCmdError: %s' % e.message)
             time.sleep(3)

@@ -81,7 +81,7 @@ def main():
             fail_times = 0
             time.sleep(8)
         except Exception as e:
-            logger.debug(repr(e))
+            logger.error('Oops! ', exc_info=1)
             if repr(e).find('Network is unreachable') != -1 or repr(e).find('Connection timed out') != -1 or repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find('ApiException') != -1:
 #                 master_ip = change_master_and_reload_config(fail_times)
                 fail_times += 1
@@ -96,13 +96,12 @@ def main():
                     logger.debug('libvirt error occurred, restart container %s' % libvirt_watcher_id)
                     runCmd('docker stop %s' % libvirt_watcher_id)
             config.load_kube_config(config_file=TOKEN)
-            logger.error('Oops! ', exc_info=1)
             time.sleep(3)
 #             restart_service = True
             continue
                 
 def _patch_node_status():
-    for i in range(3):
+    for i in range(1,4):
         try:
             host = client.CoreV1Api().read_node_status(name=HOSTNAME)
             node_watcher = HostCycler()
@@ -110,10 +109,11 @@ def _patch_node_status():
             client.CoreV1Api().patch_node_status(name=HOSTNAME, body=host)
             return
         except Exception as e:
-            logger.warning(e)
-            time.sleep(2)
-            continue
-    logger.error("Node status not updated")
+            if i == 3:
+                raise e
+            else:
+                time.sleep(1)
+                continue
         
 def _check_vm_by_hosting_node(group, version, plural, metadata_name):
     try:
@@ -141,15 +141,15 @@ def _check_vm_by_hosting_node(group, version, plural, metadata_name):
         logger.error('Oops! ', exc_info=1)
         
 def _destroy_vm_retries(metadata_name):
-    for i in range(1,6):
+    for i in range(1,4):
         try:
             destroy(metadata_name)
             return
         except Exception as e:
-            if i == 5:
+            if i == 3:
                 raise e
             else:
-                time.sleep(3)
+                time.sleep(1)
                 continue
         
 def _check_ha_and_autostart_vm(group, version, plural, metadata_name):
