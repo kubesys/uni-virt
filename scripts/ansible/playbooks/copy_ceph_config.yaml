@@ -1,0 +1,21 @@
+---
+- name: Example Playbook
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Set Group Information
+      set_fact:
+        namespace: "{{ group_names[0] }}"
+    - name: get rook-ceph-tool-pod
+      command: kubectl get pods -n {{ namespace }} -l app=rook-ceph-tools
+      register: pod
+    - name: Set pod name
+      set_fact:
+        podname: "{{ pod['stdout_lines'][1].split(' ')[0] }}"
+    - name: Display pod name
+      debug:
+        var: podname
+    - name: Copy /etc/ceph/ files from pod to each node
+      ansible.builtin.shell: |
+        kubectl cp {{ namespace }}/{{ podname }}:/etc/ceph /etc/ceph
+      delegate_to: localhost
