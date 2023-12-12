@@ -88,8 +88,7 @@ ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_packages_and
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_go.yml
 ```
 
-* 安装 chrony 时间服务器
-
+* 安装 chrony 时间服务器，并将时区设置成“Asia/Shanghai”
 ```
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_and_setup_chrony.yml
 ```
