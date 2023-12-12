@@ -20,7 +20,7 @@ from kubernetes import config
 '''
 Import local libs
 '''
-from utils.misc import singleton, runCmd
+from utils.misc import singleton, runCmd, CDaemon
 from utils import logger
 from utils import constants
     
