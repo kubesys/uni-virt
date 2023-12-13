@@ -21,17 +21,16 @@ SDN for Kubernetes network
 # Books
 
 - https://feisky.gitbooks.io/sdn/ovs/ovn-internal.html
+- https://hechao.li/2018/05/15/VXLAN-Hands-on-Lab/
+- https://github.com/cao19881125/ovn_lab
 
 - L3
   - http://dani.foroselectronica.es/simple-ovn-setup-in-5-minutes-491/
   - https://developers.redhat.com/blog/2018/09/03/ovn-dynamic-ip-address-management/
 
-- OVN
+- DHCP
   - https://blog.oddbit.com/post/2019-12-19-ovn-and-dhcp/
 
-- Basic:
-  - https://hechao.li/2018/05/15/VXLAN-Hands-on-Lab/
-  - https://github.com/cao19881125/ovn_lab
 
 - Floating IP:
   - https://segmentfault.com/a/1190000020311817
