@@ -1058,7 +1058,7 @@ def updateDomain(jsondict):
         arraylist = '/home/kubevmm/core/utils/arraylist.cfg'
     else:
         arraylist = '/etc/uniVirt/arraylist.cfg'
-    with arraylist as fr:
+    with open(arraylist) as fr:
         for line in fr:
             l = str.strip(line)
             alist = l.split('-')
@@ -1071,7 +1071,7 @@ def updateDomainSnapshot(jsondict):
         arraylist = '/home/kubevmm/core/utils/arraylist.cfg'
     else:
         arraylist = '/etc/uniVirt/arraylist.cfg'
-    with arraylist as fr:
+    with open(arraylist) as fr:
         for line in fr:
             l = str.strip(line)
             alist = l.split('-')
