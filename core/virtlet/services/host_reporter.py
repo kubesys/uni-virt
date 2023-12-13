@@ -4,6 +4,7 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 
 @author: wuyuewen@otcaix.iscas.ac.cn
 @author: wuheng@otcaix.iscas.ac.cn
+@author: liujiexin@otcaix.iscas.ac.cn
 '''
 
 '''
@@ -15,6 +16,8 @@ from json import dumps
 from json import loads
 from xml.etree.ElementTree import fromstring
 from xmljson import badgerfish as bf
+from tenacity import retry,stop_after_attempt,wait_random,before_sleep_log
+import logging
 
 '''
 Import third party libs
@@ -99,22 +102,20 @@ def main():
             time.sleep(3)
 #             restart_service = True
             continue
-                
+
+
+@retry(stop=stop_after_attempt(4),
+       wait=wait_random(min=0,max=3),
+       before_sleep=before_sleep_log(logger,logging.WARNING,True),
+       reraise=True)
 def _patch_node_status():
-    for i in range(1,4):
-        try:
-            host = client.CoreV1Api().read_node_status(name=HOSTNAME)
-            node_watcher = HostCycler()
-            host.status = node_watcher.get_node_status()
-            client.CoreV1Api().patch_node_status(name=HOSTNAME, body=host)
-            return
-        except Exception as e:
-            if i == 3:
-                raise e
-            else:
-                time.sleep(1)
-                continue
-        
+    host = client.CoreV1Api().read_node_status(name=HOSTNAME)
+    node_watcher = HostCycler()
+    host.status = node_watcher.get_node_status()
+    client.CoreV1Api().patch_node_status(name=HOSTNAME, body=host)
+    return
+
+
 def _check_vm_by_hosting_node(group, version, plural, metadata_name):
     try:
         logger.debug('1.Doing hosting node verification for VM: %s' % metadata_name)
@@ -139,29 +140,28 @@ def _check_vm_by_hosting_node(group, version, plural, metadata_name):
                 undefine(metadata_name)    
     except:
         logger.error('Oops! ', exc_info=1)
-        
+
+
+@retry(stop=stop_after_attempt(3),
+       wait=wait_random(min=0,max=3),
+       before_sleep=before_sleep_log(logger,logging.WARNING,True),
+       reraise=True)
 def _destroy_vm_retries(metadata_name):
-    for i in range(1,4):
-        try:
-            destroy(metadata_name)
-            return
-        except Exception as e:
-            if i == 3:
-                raise e
-            else:
-                time.sleep(1)
-                continue
-        
+    destroy(metadata_name)
+    return
+
+
+@retry(stop=stop_after_attempt(3),
+       wait=wait_random(min=8,max=15),
+       before_sleep=before_sleep_log(logger,logging.WARNING,True),
+       reraise=True)
 def _check_ha_and_autostart_vm(group, version, plural, metadata_name):
-    try:
-        logger.debug('2.Doing HA verification for VM: %s' % metadata_name)
-        ha = get_ha_from_kubernetes(group, version, 'default', plural, metadata_name)
-        if ha:
-            if is_vm_exists(metadata_name) and not is_vm_active(metadata_name):
-                logger.debug('Autostart HA VM: %s.' % (metadata_name))
-                start(metadata_name)
-    except:
-        logger.error('Oops! ', exc_info=1)
+    logger.debug('2.Doing HA verification for VM: %s' % metadata_name)
+    ha = get_ha_from_kubernetes(group, version, 'default', plural, metadata_name)
+    if ha:
+        if is_vm_exists(metadata_name) and not is_vm_active(metadata_name):
+            logger.debug('Autostart HA VM: %s.' % (metadata_name))
+            start(metadata_name)
         
 def _check_and_enable_HA():
     push_node_label_value(HOSTNAME, "nodeHA", None)
