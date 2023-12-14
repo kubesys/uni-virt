@@ -441,7 +441,9 @@ bash scripts/shells/service-adm.sh
 
 ## 开发版本
 ```
-V1.0.0.lab    支持Ansible安装部署，支持CentOS7和Ubuntu22，支持kube-ovn和Rook
+v1.0.0.lab    支持Ansible安装部署，支持CentOS7和Ubuntu22，支持kube-ovn和Rook
+v1.0.1.air
+v1.0.1.gfdx
 ```
 
 ## 发行版本

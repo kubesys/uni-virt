@@ -10,7 +10,7 @@ else
         echo -e "\033[3;30;47m*** Build a new release version: \033[5;36;47m($1)\033[0m)"
         echo -e "Institute of Software, Chinese Academy of Sciences"
         echo -e "        wuyuewen@otcaix.iscas.ac.cn"
-        echo -e "              Copyright (2021)\n"
+        echo -e "              Copyright (2024)\n"
     else
         echo "error: wrong syntax in release version number, support chars=[A-Za-z0-9.]"
         exit 1

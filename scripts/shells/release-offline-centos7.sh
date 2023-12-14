@@ -10,7 +10,7 @@ else
         echo -e "\033[3;30;47m*** Build a new release version: \033[5;36;47m($1)\033[0m)"
         echo -e "Institute of Software, Chinese Academy of Sciences"
         echo -e "        wuyuewen@otcaix.iscas.ac.cn"
-        echo -e "              Copyright (2021)\n"
+        echo -e "              Copyright (2024)\n"
     else
         echo "error: wrong syntax in release version number, support chars=[A-Za-z0-9.]"
         exit 1
@@ -221,20 +221,20 @@ echo -e "\033[3;30;47m*** Login docker image repository in coding.\033[0m"
 #    echo "    Success build base/centos7."
 #fi
 #
-#docker buildx build virtlet/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION} --platform linux/amd64 --push
-#
-#docker buildx build virtctl/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION} --platform linux/amd64 --push
-#
-#docker buildx build libvirtwatcher/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION} --platform linux/amd64 --push
-#
-#docker buildx build virtmonitor/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:${VERSION} --platform linux/amd64 --push
-#
+docker buildx build virtlet/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION} --platform linux/amd64 --push
+
+docker buildx build virtctl/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION} --platform linux/amd64 --push
+
+docker buildx build libvirtwatcher/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION} --platform linux/amd64 --push
+
+docker buildx build virtmonitor/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:${VERSION} --platform linux/amd64 --push
+
 
 #docker build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest --platform linux/amd64
-docker build virtlet/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION} --platform linux/amd64
-docker build virtctl/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION} --platform linux/amd64
-docker build libvirtwatcher/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION} --platform linux/amd64
-docker build virtmonitor/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:${VERSION} --platform linux/amd64
+#docker build virtlet/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION} --platform linux/amd64
+#docker build virtctl/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION} --platform linux/amd64
+#docker build libvirtwatcher/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION} --platform linux/amd64
+#docker build virtmonitor/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:${VERSION} --platform linux/amd64
 
 #step 3 docker push
 
