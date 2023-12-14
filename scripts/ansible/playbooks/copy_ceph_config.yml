@@ -18,4 +18,3 @@
     - name: Copy /etc/ceph/ files from pod to each node
       ansible.builtin.shell: |
         kubectl cp {{ namespace }}/{{ podname }}:/etc/ceph /etc/ceph
-      delegate_to: localhost
