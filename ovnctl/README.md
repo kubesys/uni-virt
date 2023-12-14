@@ -44,11 +44,6 @@ SDN for Kubernetes network
   - http://blog.spinhirne.com/2016/10/ovn-and-acls.html
   - https://blog.csdn.net/zhengmx100/article/details/75431393
 
-- VxLan
-  - https://macauleycheng.gitbooks.io/ovn/examplewith-vtep.html
-  - http://docs.openvswitch.org/en/latest/howto/vtep/
-  - https://hechao.li/2018/05/15/VXLAN-Hands-on-Lab/
-  - https://docs.pica8.com/display/picos2102cg/OVSDB+VTEP+with+vtep-ctl+Configuration+Examples
   
 - Debug
   - https://www.twblogs.net/a/5b8118292b71772165aaf9a5
@@ -62,6 +57,12 @@ SDN for Kubernetes network
   - https://blog.scottlowe.org/2016/12/09/using-ovn-with-kvm-libvirt/
 
 # Dprecated
+
+- VxLan
+  - https://macauleycheng.gitbooks.io/ovn/examplewith-vtep.html
+  - http://docs.openvswitch.org/en/latest/howto/vtep/
+  - https://hechao.li/2018/05/15/VXLAN-Hands-on-Lab/
+  - https://docs.pica8.com/display/picos2102cg/OVSDB+VTEP+with+vtep-ctl+Configuration+Examples
 
 ```
 Notes to self: Clustering seems to be doable in OVS > 2.9 (>2.10 preferred). A working example can be seen here:
