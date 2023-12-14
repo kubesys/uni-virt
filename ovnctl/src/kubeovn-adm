@@ -360,7 +360,7 @@ function bind-swport()
   iface=$(ovs-vsctl get interface $name external_ids:iface-id | sed s/\"//g)
   ifmac=$(ovs-vsctl get interface $name external_ids:attached-mac | sed s/\"//g)
   
-  dhcpid="41b17e46-4485-4f1f-ac99-945308f54caa"
+  dhcpid=$($NB_CMD list DHCP_Options | grep -B 4 "ref=$switch," | grep _uuid | awk -F":" '{print$2}' | sed 's/ //g')
   #dhcpid=$($NB_CMD show | grep "$switch-" | awk -F"$switch-" '{print$2}')
   $NB_CMD --if-exists lsp-del $iface
   $NB_CMD lsp-add $switch $iface
