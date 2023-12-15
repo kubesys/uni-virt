@@ -44,7 +44,7 @@ Import third party libs
 from kubernetes import client, config
 from kubernetes.client import V1DeleteOptions
 from kubernetes.client.rest import ApiException
-from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_type,retry_if_not_exception_message,retry_unless_exception_type
+from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_type,retry_if_exception_message
 
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 TOKEN_ORIGIN = constants.KUBERNETES_TOKEN_FILE_ORIGIN
@@ -66,7 +66,7 @@ def create_custom_object(group, version, plural, body):
 
 
 @retry(stop=stop_after_attempt(3),
-       retry=retry_if_not_exception_message(match='Not Found'),
+       retry=retry_if_exception_message(match='Not Found'),
        wait=wait_random(min=0,max=3),
        reraise=True)
 def get_custom_object(group, version, plural, metadata_name):
@@ -77,7 +77,7 @@ def get_custom_object(group, version, plural, metadata_name):
 
 
 @retry(stop=stop_after_attempt(3),
-       retry=retry_if_not_exception_message(match='Not Found'),
+       retry=retry_if_exception_message(match='Not Found'),
        wait=wait_random(min=0,max=3),
        reraise=True)
 def list_custom_object(group, version, plural):
@@ -88,7 +88,7 @@ def list_custom_object(group, version, plural):
 
 
 @retry(stop=stop_after_attempt(3),
-       retry=retry_if_not_exception_message(match='Not Found'),
+       retry=retry_if_exception_message(match='Not Found'),
        wait=wait_random(min=0,max=3),
        reraise=True)
 def update_custom_object(group, version, plural, metadata_name, body):
@@ -100,7 +100,7 @@ def update_custom_object(group, version, plural, metadata_name, body):
 
 
 @retry(stop=stop_after_attempt(3),
-       retry=retry_if_not_exception_message(match='Not Found'),
+       retry=retry_if_exception_message(match='Not Found'),
        wait=wait_random(min=0,max=3),
        reraise=True)
 def delete_custom_object(group, version, plural, metadata_name):

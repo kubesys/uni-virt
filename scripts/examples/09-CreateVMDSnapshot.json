@@ -1,0 +1,23 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachineDiskSnapshot",
+  "metadata": {
+    "name": "backuptest1-snapshot",
+    "labels": {
+      "host": "133.133.135.134"
+    }
+  },
+  "spec": {
+    "nodeName": "133.133.135.134",
+    "lifecycle": {
+      "createDiskExternalSnapshot": {
+        "type": "localfs",
+        "pool": "cephfspool134",
+        "source": "backuptest0",
+        "name": "backuptest1-snapshot",
+        "format": "qcow2",
+        "domain": "backuptest1"
+      }
+    }
+  }
+}
