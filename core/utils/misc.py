@@ -3,6 +3,7 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 
 @author: wuyuewen@otcaix.iscas.ac.cn
 @author: wuheng@otcaix.iscas.ac.cn
+@author: liujiexin@otcaix.iscas.ac.cn
 '''
 import json
 from json import loads, load, dumps, dump
@@ -43,7 +44,7 @@ Import third party libs
 from kubernetes import client, config
 from kubernetes.client import V1DeleteOptions
 from kubernetes.client.rest import ApiException
-from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_type
+from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_type,retry_if_not_exception_message,retry_unless_exception_type
 
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 TOKEN_ORIGIN = constants.KUBERNETES_TOKEN_FILE_ORIGIN
@@ -64,82 +65,50 @@ def create_custom_object(group, version, plural, body):
     return retv
 
 
+@retry(stop=stop_after_attempt(3),
+       retry=retry_if_not_exception_message(match='Not Found'),
+       wait=wait_random(min=0,max=3),
+       reraise=True)
 def get_custom_object(group, version, plural, metadata_name):
-    for i in range(1, 4):
-        try:
-            config.load_kube_config(config_file=TOKEN)
-            jsonStr = client.CustomObjectsApi().get_namespaced_custom_object(
-                group=group, version=version, namespace='default', plural=plural, name=metadata_name)
-            return jsonStr
-        except ApiException as e:
-            if e.reason == 'Not Found':
-                raise e
-            elif i == 3:
-                raise e
-            else:
-                time.sleep(1)
-                continue
-        except Exception as e:
-            raise e
+    config.load_kube_config(config_file=TOKEN)
+    jsonStr = client.CustomObjectsApi().get_namespaced_custom_object(
+        group=group, version=version, namespace='default', plural=plural, name=metadata_name)
+    return jsonStr
 
 
+@retry(stop=stop_after_attempt(3),
+       retry=retry_if_not_exception_message(match='Not Found'),
+       wait=wait_random(min=0,max=3),
+       reraise=True)
 def list_custom_object(group, version, plural):
-    for i in range(1, 4):
-        try:
-            config.load_kube_config(config_file=TOKEN)
-            jsonStr = client.CustomObjectsApi().list_cluster_custom_object(
-                group=group, version=version, plural=plural).get('items')
-            return jsonStr
-        except ApiException as e:
-            if e.reason == 'Not Found':
-                raise e
-            elif i == 3:
-                raise e
-            else:
-                time.sleep(1)
-                continue
-        except Exception as e:
-            raise e
+    config.load_kube_config(config_file=TOKEN)
+    jsonStr = client.CustomObjectsApi().list_cluster_custom_object(
+        group=group, version=version, plural=plural).get('items')
+    return jsonStr
 
 
+@retry(stop=stop_after_attempt(3),
+       retry=retry_if_not_exception_message(match='Not Found'),
+       wait=wait_random(min=0,max=3),
+       reraise=True)
 def update_custom_object(group, version, plural, metadata_name, body):
-    for i in range(1, 4):
-        try:
-            config.load_kube_config(config_file=TOKEN)
-            body = updateDescription(body)
-            retv = client.CustomObjectsApi().replace_namespaced_custom_object(
-                group=group, version=version, namespace='default', plural=plural, name=metadata_name, body=body)
-            return retv
-        except ApiException as e:
-            if e.reason == 'Not Found':
-                raise e
-            elif i == 3:
-                raise e
-            else:
-                time.sleep(1)
-                continue
-        except Exception as e:
-            raise e
+    config.load_kube_config(config_file=TOKEN)
+    body = updateDescription(body)
+    retv = client.CustomObjectsApi().replace_namespaced_custom_object(
+        group=group, version=version, namespace='default', plural=plural, name=metadata_name, body=body)
+    return retv
 
 
+@retry(stop=stop_after_attempt(3),
+       retry=retry_if_not_exception_message(match='Not Found'),
+       wait=wait_random(min=0,max=3),
+       reraise=True)
 def delete_custom_object(group, version, plural, metadata_name):
-    for i in range(1, 4):
-        try:
-            config.load_kube_config(config_file=TOKEN)
-            retv = client.CustomObjectsApi().delete_namespaced_custom_object(
-                group=group, version=version, namespace='default', plural=plural, name=metadata_name,
-                body=V1DeleteOptions())
-            return retv
-        except ApiException as e:
-            if e.reason == 'Not Found':
-                return
-            elif i == 3:
-                raise e
-            else:
-                time.sleep(1)
-                continue
-        except Exception as e:
-            raise e
+    config.load_kube_config(config_file=TOKEN)
+    retv = client.CustomObjectsApi().delete_namespaced_custom_object(
+        group=group, version=version, namespace='default', plural=plural, name=metadata_name,
+        body=V1DeleteOptions())
+    return retv
 
 
 def get_IP():
