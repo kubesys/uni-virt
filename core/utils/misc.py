@@ -36,14 +36,14 @@ from pprint import pformat
 from six import iteritems
 from xml.etree import ElementTree
 from collections import namedtuple
-from kubernetes.client import V1DeleteOptions
-from kubernetes.client.rest import ApiException
 
 '''
 Import third party libs
 '''
 from kubernetes import client, config
+from kubernetes.client import V1DeleteOptions
 from kubernetes.client.rest import ApiException
+from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_type
 
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 TOKEN_ORIGIN = constants.KUBERNETES_TOKEN_FILE_ORIGIN
@@ -52,22 +52,16 @@ RESOURCE_FILE_PATH = constants.KUBEVMM_RESOURCE_FILE_PATH
 OVN_CONFIG_FILE = constants.KUBEVMM_OVN_FILE
 
 
+@retry(stop=stop_after_attempt(3),
+       retry=retry_if_exception_type(ApiException),
+       wait=wait_random(min=0,max=3),
+       reraise=True)
 def create_custom_object(group, version, plural, body):
-    for i in range(1, 4):
-        try:
-            config.load_kube_config(config_file=TOKEN)
-            retv = client.CustomObjectsApi().create_namespaced_custom_object(group=group,
-                                                                             version=version, namespace='default',
-                                                                             plural=plural, body=body)
-            return retv
-        except ApiException as e:
-            if i == 3:
-                raise e
-            else:
-                time.sleep(1)
-                continue
-        except Exception as e:
-            raise e
+    config.load_kube_config(config_file=TOKEN)
+    retv = client.CustomObjectsApi().create_namespaced_custom_object(group=group,
+                                                                     version=version, namespace='default',
+                                                                     plural=plural, body=body)
+    return retv
 
 
 def get_custom_object(group, version, plural, metadata_name):
