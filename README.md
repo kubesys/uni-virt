@@ -1,16 +1,38 @@
+目录：
 
+* [程序介绍](#程序介绍)
+* [环境依赖](#环境依赖)
+  * [支持的操作系统](#支持的操作系统)
+  * [软件依赖](#软件依赖)
+  * [通过Ansible安装`uniVirt`后新增软件依赖:](#通过ansible安装univirt后新增软件依赖)
+  * [python3 包依赖](#python3-包依赖)
+  * [相关程序](#相关程序)
+* [在线相关](#在线相关)
+  * [安装 `uniVirt`](#安装-univirt)
+  * [版本发布和更新](#版本发布和更新)
+  * [卸载 `uniVirt`](#卸载-univirt)
+  * [新命令相关](#新命令相关)
+  * [开发者调试模式](#开发者调试模式)
+* [离线部署](#离线部署)
+* [相关知识说明](#相关知识说明)
+  * [项目结构](#项目结构)
+  * [支持的虚拟机管理 Custom Resource Definition (CRD)](#支持的虚拟机管理-custom-resource-definition-crd)
+  * [core文件夹中的主要模块介绍](#core文件夹中的主要模块介绍)
+* [版本信息](#版本信息)
+  * [开发版本](#开发版本)
+  * [发行版本](#发行版本)
 ------------------------------------------------------------
 # 程序介绍
 混合云管理后端程序，通过Kubernetes框架实现 Docker/Containerd/RunC 容器与 libvirt KVM 虚拟机生命周期管理，支持虚拟机/容器在Overlay和Underlay网络互联互通，支持Ceph分布式存储。
 
 # 环境依赖
 
-* 支持的操作系统
+## 支持的操作系统
 
 - ubuntu22.04 (kernel 版本: >= 6.2.0-35-generic)
 - centos7.9 (kernel 版本: 3.10.0-1160.102.1.el7.x86_64)
 
-* 软件依赖
+## 软件依赖
 
 - Kubernetes/Docker: 1.23.6/20.10.15
 - Libvirt/KVM: 4.5.0/2.12.0(centos7.9), 8.0.0/6.2.0(ubuntu22.04)
@@ -18,18 +40,57 @@
 - Kube-ovn: 1.12.2        
 - Ansible: >=2.9.27 
 
-* 通过Ansible安装`uniVirt`后新增软件依赖:
+
+
+## 通过Ansible安装`uniVirt`后新增软件依赖:
 
 - python: python3.9.7(centos7.9), python3.10.12(ubuntu22.04)
 - go: 1.19.1
 
-## 相关程序
-* 前端开发SDK —— java-sdk
-```
-https://github.com/kubesys/sdk
-```
+## python3 包依赖
+开发环境通过 pip3 install 安装，运行环境通过上面的 Ansible 自动安装。
+* Python>=3.9.7
+* libvirt-python==5.9.0
+* kubernetes==26.1.0
+* others:
+  altgraph==0.17.3
+  cachetools==4.2.4
+  certifi==2023.5.7
+  charset-normalizer==2.0.12
+  google-auth==2.21.0
+  grpcio==1.48.2
+  grpcio-tools==1.48.2
+  idna==3.4
+  importlib-metadata==4.8.3
+  oauthlib==3.2.2
+  prometheus-client==0.17.0
+  protobuf==3.19.6
+  psutil==5.9.5
+  pyasn1==0.5.0
+  pyasn1-modules==0.3.0
+  pyinstaller==4.10
+  pyinstaller-hooks-contrib==2022.0
+  python-dateutil==2.8.2
+  PyYAML==6.0
+  requests==2.27.1
+  requests-oauthlib==1.3.1
+  rsa==4.9
+  six==1.16.0
+  tenacity==8.2.3
+  threadpool==1.3.2
+  typing_extensions==4.1.1
+  urllib3==1.26.16
+  watchdog==2.3.1
+  websocket-client==1.3.1
+  xmljson==0.2.1
+  xmltodict==0.13.0
+  zipp==3.6.0
 
-# 普通用户: 在线安装
+## 相关程序
+* 前端开发SDK —— [java-sdk](https://github.com/kubesys/sdk)
+
+
+# 在线相关
 
 ## 安装 `uniVirt`
 
@@ -119,29 +180,6 @@ ansible-playbook -i localhost, -e "ver=v1.0.0.lab" scripts/ansible/playbooks/ins
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/create_comm_service_env.yml
 ```
 
-### 验证安装，当 virt-tool 都处于 Ready 状态则安装成功
-
-```
-kubectl get po -A | grep virt-tool
-```
-
-## 更新 `uniVirt`
-
-* 更新至指定版本，例如：v1.0.1.lab，则修改 -e "ver=v1.0.1.lab" 参数
-
-```
-ansible-playbook -i localhost, -e "ver=v1.0.1.lab" scripts/ansible/playbooks/update_uniVirt.yml
-```
-
-
-## 卸载 `uniVirt`
-
-### 卸载，例如： v1.0.0.lab
-
-```
-ansible-playbook -i localhost, -e "ver=v1.0.0.lab" scripts/ansible/playbooks/uninstall_uniVirt.yml
-```
-
 ### 步骤5：当集群部署了 rook ceph 后，配置安装 ceph 客户端
 
 * 配置`inventory-ceph.ini`文件，
@@ -172,141 +210,54 @@ ansible-playbook -i inventory-ceph.ini scripts/ansible/playbooks/copy_ceph_confi
 ceph fs status
 ```
 
-# 普通用户：离线安装
 
-* （待支持）
+### 验证安装，当 virt-tool 都处于 Ready 状态则安装成功
 
-# 开发人员: 简明手册
-## python3 包依赖，开发环境通过 pip3 install 安装，运行环境通过上面的 Ansible 自动安装。
-* Python>=3.9.7
-* libvirt-python==5.9.0
-* kubernetes==26.1.0
-* others:
-  altgraph==0.17.3
-  cachetools==4.2.4
-  certifi==2023.5.7
-  charset-normalizer==2.0.12
-  google-auth==2.21.0
-  grpcio==1.48.2
-  grpcio-tools==1.48.2
-  idna==3.4
-  importlib-metadata==4.8.3
-  oauthlib==3.2.2
-  prometheus-client==0.17.0
-  protobuf==3.19.6
-  psutil==5.9.5
-  pyasn1==0.5.0
-  pyasn1-modules==0.3.0
-  pyinstaller==4.10
-  pyinstaller-hooks-contrib==2022.0
-  python-dateutil==2.8.2
-  PyYAML==6.0
-  requests==2.27.1
-  requests-oauthlib==1.3.1
-  rsa==4.9
-  six==1.16.0
-  tenacity==8.2.3
-  threadpool==1.3.2
-  typing_extensions==4.1.1
-  urllib3==1.26.16
-  watchdog==2.3.1
-  websocket-client==1.3.1
-  xmljson==0.2.1
-  xmltodict==0.13.0
-  zipp==3.6.0
-
-## 目录结构
 ```
-* ----core ## 核心模块，通过Kubernetes CRD方式实现了虚拟机生命周期管理
-*  ┝--libvirtwatcher ## 这个服务是DaemonSet virt-tool的一部分，监听libivrt-python中汇报的KVM虚拟机事件，包括虚拟机创建、删除、添加网卡等等。
-*  ┝--plugins ## 这个文件夹包含可编译的python3执行文件，实现了KVM虚拟机管理功能。
-*  ┝--utils ## 这个文件夹包含这个工程用到的工具方法。
-*   ┕-constants.py ##  核心参数配置文件。
-*  ┝--virtctl ## 这个服务是DaemonSet virt-tool的一部分，实现了k8s监听器watcher.py，命令转换器convertor.py，异步调用器executor.py，以及常规命令调用和RPC调用两种调用策略defaultPolicy.py和rpcPolicy.py。
-*  ┝--virtlet ## 这个服务是DaemonSet virt-tool的一部分，host_reporter.py负责统计当前KVM虚拟机占用资源情况，向K8s周期性推送KVM虚拟机资源用量；os_event_handler.py负责监听处理系统事件，包括存储文件状态变化。
-*  ┕--virtmonitor ## 这个服务是DaemonSet virt-tool的一部分，负责监听虚拟机的实时资源用量，包括CPU、内存、磁盘IO、网络IO，并将结果汇报给Prometheus。
-* ----docker ## 容器镜像的build目录
-*  ┝--base ## `uniVirt`的基础运行环境Dockerfile。
-*  ┝--libvirtwatcher ## libvirtwatcher服务的Dockerfile。
-*  ┝--virtctl ## virtctl服务的Dockerfile。
-*  ┝--virtlet ## virtlet服务的Dockerfile。
-*  ┕--virtmonitor ## virtmonitor服务的Dockerfile。
-* ----scripts ## 脚本。
-*  ┝--ansible ## Ansible安装脚本。
-*  ┝--examples ## Json示例，按照步骤在Kubernetes集群中创建一个虚拟机，用`kubectl apply -f`命令执行。
-*  ┝--plugins ## Yaml示例，用于部署 Prometheus, node-exporter 和 grafana。
-*  ┝--shells ## Shell脚本，用于发布版本。
-*  ┝--specs ## SPEC文件，用于生成 RPM 包。
-*  ┕--yamls ## Yaml示例，用于安装/卸载 DamonSet `virt-tool` 以及 CRD.
-* ----docs ## 相关文档
-* ----ovnctl ## 针对 KVM 虚拟机的 Open Virtial Network (OVN) 网络管理
-*  ┝--configs
-*  ┝--olds
-*  ┝--spec
-*  ┕--src
-* ----sdsctl ## 通过 Rook 实现 KVM 虚拟机的磁盘、磁盘镜像、磁盘快照等管理。 
-*  ┝--cmd
-*  ┝--docs
-*  ┝--ftp
-*  ┝--grpcservice
-*  ┝--pipe
-*  ┝--pkg
-*  ┝--rook
-*  ┕--test
+kubectl get po -A | grep virt-tool
 ```
 
-## 支持的虚拟机管理 Custom Resource Definition (CRD)
+## 版本发布和更新
+注意！发布版本区分 CentOS7 和 Ubuntu22，需要在各自操作系统机器上进行。
 
-* CRD —— 资源类型 —— 所属模块
-```
-virtualmachines —— 虚拟机 —— core/plugins/virshplus.py
-virtualmachinedisks —— 虚拟机磁盘 —— sdsctl/cmd/sdsctl/main.go
-virtualmachinediskimages —— 虚拟机磁盘镜像 —— sdsctl/cmd/sdsctl/main.go
-virtualmachinedisksnapshots —— 虚拟机磁盘快照 —— sdsctl/cmd/sdsctl/main.go
-virtualmachinepools —— 虚拟机存储池 —— sdsctl/cmd/sdsctl/main.go
-virtualmachinenetworks —— 虚拟机网络 —— ovnctl/src/kubeovn-adm
-```
+每个运行环境请尽量单独发布版本，版本命名规范是：v1.0.0.<环境名称>，例如，v1.0.0.lab 表示lab实验室测试环境，v1.0.0.air，等等。
 
-## 开发步骤
-### core文件夹中的主要模块介绍
-* virtctl —— 虚拟机命令执行服务，当 watcher.py 监测到目标 CRD 存在 lifecycle 结构时，通过 convertor.py 解析 lifecycle 的命令名称和参数并转换成可执行命令，通过设置命令执行策略 defaultPolicy.py 执行命令，并查询执行结果。
-* 服务内部调用链如下
+### 发布一个 CentOS7 的 v1.0.1.lab 版本
+
 ```
-virtctl_in_docker.py -> watcher.py -> convertor.py -> defaultPolicy.py (or rpcPolicy.py) -> executor.py
-```
-* 服务日志：每个计算节点拥有独立日志，例如计算节点worker1上的虚拟机在worker1上查看
-```
-/var/log/virtctl.log
-```
-* virtlet —— 虚拟机状态同步服务，host_reporter.py负责统计当前KVM虚拟机占用资源情况，向K8s周期性推送KVM虚拟机资源用量；os_event_handler.py负责监听处理系统事件，向k8s同步状态变化。
-* 服务内部调用链如下
-```
-virtlet_in_docker.py --> host_reporter.py
-                      ┕> os_event_handler.py
-```
-* 服务日志
-```
-/var/log/virtlet.log
-```
-* virtmonitor —— 虚拟机资源监听器，监听虚拟机的实时资源用量，包括CPU、内存、磁盘IO、网络IO，并将结果汇报给Prometheus。
-* 服务内部调用链如下
-```
-virt_monitor_in_docker.py
-```
-* 服务日志
-```
-/var/log/virtmonitor.log
-```
-* libvirtwatcher —— 虚拟机事件监听器，监听 libivrt-python 中汇报的 KVM 虚拟机事件，包括虚拟机创建、删除、添加网卡等等。
-* 服务内部调用链如下
-```
-libvirt_watcher_in_docker.py -> libvirt_event_handler.py
-```
-* 服务日志
-```
-/var/log/virtlet.log
+cd /root/uniVirt
+bash scripts/shells/release-version-centos7.sh v1.0.1.lab
 ```
 
+### 发布一个 Ubuntu22 的 v1.0.1.lab 版本
+
+```
+cd /root/uniVirt
+bash scripts/shells/release-version-ubuntu22.sh v1.0.1.lab
+```
+
+### 更新 `uniVirt`
+
+* 更新至指定版本，例如：v1.0.1.lab，则修改 -e "ver=v1.0.1.lab" 参数
+
+```
+ansible-playbook -i localhost, -e "ver=v1.0.1.lab" scripts/ansible/playbooks/update_uniVirt.yml
+```
+### 验证安装，当 virt-tool 都处于 Ready 状态则安装成功
+
+```
+kubectl get po -A | grep virt-tool
+```
+
+## 卸载 `uniVirt`
+
+### 卸载，例如： v1.0.0.lab
+
+```
+ansible-playbook -i localhost, -e "ver=v1.0.0.lab" scripts/ansible/playbooks/uninstall_uniVirt.yml
+```
+
+## 新命令相关
 ### 步骤1：注册新命令
 * 新命令注册与配置在core/utils/constants.py文件中，以CREATE_AND_START_VM_FROM_ISO_CMD为例
 ```
@@ -360,24 +311,7 @@ CREATE_AND_START_VM_FROM_ISO_CMD   = "default,name,none,virshplus create_and_sta
 kubectl get vm -n kube-system -o wide
 ```
 
-## 版本发布
-注意！发布版本区分 CentOS7 和 Ubuntu22，需要在各自操作系统机器上进行。
 
-每个运行环境请尽量单独发布版本，版本命名规范是：v1.0.0.<环境名称>，例如，v1.0.0.lab 表示lab实验室测试环境，v1.0.0.air，等等。
-
-### 发布一个 CentOS7 的 v1.0.1.lab 版本
-
-```
-cd /root/uniVirt
-bash scripts/shells/release-version-centos7.sh v1.0.1.lab
-```
-
-### 发布一个 Ubuntu22 的 v1.0.1.lab 版本
-
-```
-cd /root/uniVirt
-bash scripts/shells/release-version-ubuntu22.sh v1.0.1.lab
-```
 
 ## 开发者调试模式
 开发者调试模式允许uniVirt服务通过本地源码方式运行，要求：1）下载了本工程源码，2）按照前序ansible步骤安装过环境依赖，包括libvirt、python3等，并且启动了libvirt服务。
@@ -434,6 +368,103 @@ kubectl label node <hostname> doslab/virt.tool.ubuntu=
 * 查询支持的操作
 ```commandline
 bash scripts/shells/service-adm.sh
+```
+
+
+# 离线部署
+
+* （待支持）
+
+# 相关知识说明
+## 项目结构
+```
+* ----core ## 核心模块，通过Kubernetes CRD方式实现了虚拟机生命周期管理
+*  ┝--libvirtwatcher ## 这个服务是DaemonSet virt-tool的一部分，监听libivrt-python中汇报的KVM虚拟机事件，包括虚拟机创建、删除、添加网卡等等。
+*  ┝--plugins ## 这个文件夹包含可编译的python3执行文件，实现了KVM虚拟机管理功能。
+*  ┝--utils ## 这个文件夹包含这个工程用到的工具方法。
+*   ┕-constants.py ##  核心参数配置文件。
+*  ┝--virtctl ## 这个服务是DaemonSet virt-tool的一部分，实现了k8s监听器watcher.py，命令转换器convertor.py，异步调用器executor.py，以及常规命令调用和RPC调用两种调用策略defaultPolicy.py和rpcPolicy.py。
+*  ┝--virtlet ## 这个服务是DaemonSet virt-tool的一部分，host_reporter.py负责统计当前KVM虚拟机占用资源情况，向K8s周期性推送KVM虚拟机资源用量；os_event_handler.py负责监听处理系统事件，包括存储文件状态变化。
+*  ┕--virtmonitor ## 这个服务是DaemonSet virt-tool的一部分，负责监听虚拟机的实时资源用量，包括CPU、内存、磁盘IO、网络IO，并将结果汇报给Prometheus。
+* ----docker ## 容器镜像的build目录
+*  ┝--base ## `uniVirt`的基础运行环境Dockerfile。
+*  ┝--libvirtwatcher ## libvirtwatcher服务的Dockerfile。
+*  ┝--virtctl ## virtctl服务的Dockerfile。
+*  ┝--virtlet ## virtlet服务的Dockerfile。
+*  ┕--virtmonitor ## virtmonitor服务的Dockerfile。
+* ----scripts ## 脚本。
+*  ┝--ansible ## Ansible安装脚本。
+*  ┝--examples ## Json示例，按照步骤在Kubernetes集群中创建一个虚拟机，用`kubectl apply -f`命令执行。
+*  ┝--plugins ## Yaml示例，用于部署 Prometheus, node-exporter 和 grafana。
+*  ┝--shells ## Shell脚本，用于发布版本。
+*  ┝--specs ## SPEC文件，用于生成 RPM 包。
+*  ┕--yamls ## Yaml示例，用于安装/卸载 DamonSet `virt-tool` 以及 CRD.
+* ----docs ## 相关文档
+* ----ovnctl ## 针对 KVM 虚拟机的 Open Virtial Network (OVN) 网络管理
+*  ┝--configs
+*  ┝--olds
+*  ┝--spec
+*  ┕--src
+* ----sdsctl ## 通过 Rook 实现 KVM 虚拟机的磁盘、磁盘镜像、磁盘快照等管理。 
+*  ┝--cmd
+*  ┝--docs
+*  ┝--ftp
+*  ┝--grpcservice
+*  ┝--pipe
+*  ┝--pkg
+*  ┝--rook
+*  ┕--test
+```
+## 支持的虚拟机管理 Custom Resource Definition (CRD)
+
+* CRD —— 资源类型 —— 所属模块
+```
+virtualmachines —— 虚拟机 —— core/plugins/virshplus.py
+virtualmachinedisks —— 虚拟机磁盘 —— sdsctl/cmd/sdsctl/main.go
+virtualmachinediskimages —— 虚拟机磁盘镜像 —— sdsctl/cmd/sdsctl/main.go
+virtualmachinedisksnapshots —— 虚拟机磁盘快照 —— sdsctl/cmd/sdsctl/main.go
+virtualmachinepools —— 虚拟机存储池 —— sdsctl/cmd/sdsctl/main.go
+virtualmachinenetworks —— 虚拟机网络 —— ovnctl/src/kubeovn-adm
+```
+
+
+## core文件夹中的主要模块介绍
+* virtctl —— 虚拟机命令执行服务，当 watcher.py 监测到目标 CRD 存在 lifecycle 结构时，通过 convertor.py 解析 lifecycle 的命令名称和参数并转换成可执行命令，通过设置命令执行策略 defaultPolicy.py 执行命令，并查询执行结果。
+* 服务内部调用链如下
+```
+virtctl_in_docker.py -> watcher.py -> convertor.py -> defaultPolicy.py (or rpcPolicy.py) -> executor.py
+```
+* 服务日志：每个计算节点拥有独立日志，例如计算节点worker1上的虚拟机在worker1上查看
+```
+/var/log/virtctl.log
+```
+* virtlet —— 虚拟机状态同步服务，host_reporter.py负责统计当前KVM虚拟机占用资源情况，向K8s周期性推送KVM虚拟机资源用量；os_event_handler.py负责监听处理系统事件，向k8s同步状态变化。
+* 服务内部调用链如下
+```
+virtlet_in_docker.py --> host_reporter.py
+                      ┕> os_event_handler.py
+```
+* 服务日志
+```
+/var/log/virtlet.log
+```
+* virtmonitor —— 虚拟机资源监听器，监听虚拟机的实时资源用量，包括CPU、内存、磁盘IO、网络IO，并将结果汇报给Prometheus。
+* 服务内部调用链如下
+```
+virt_monitor_in_docker.py
+```
+* 服务日志
+```
+/var/log/virtmonitor.log
+```
+* libvirtwatcher —— 虚拟机事件监听器，监听 libivrt-python 中汇报的 KVM 虚拟机事件，包括虚拟机创建、删除、添加网卡等等。
+* 服务内部调用链如下
+```
+libvirt_watcher_in_docker.py -> libvirt_event_handler.py
+```
+* 服务日志
+```
+/var/log/virtlet.log
 ```
 
 ------------------------------------------------------------
