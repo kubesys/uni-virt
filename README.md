@@ -40,8 +40,6 @@
 - Kube-ovn: 1.12.2        
 - Ansible: >=2.9.27 
 
-
-
 ## 通过Ansible安装`uniVirt`后新增软件依赖:
 
 - python: python3.9.7(centos7.9), python3.10.12(ubuntu22.04)
@@ -94,21 +92,19 @@
 
 ## 安装 `uniVirt`
 
-### 准备工作: 推荐通过 `kubez-ansible` 安装 Kubernetes 集群.
-```
-https://github.com/pixiu-io/kubez-ansible
-```
+### 准备工作
+推荐通过 [kubez-ansible](https://github.com/pixiu-io/kubez-ansible) 安装 Kubernetes 集群。
 
 ### 步骤1: clone 这个工程
 
-```
+```shell
 cd /root
 git clone https://github.com/kubesys/uniVirt
 ```
 
 ### 步骤2: 准备Ansible安装
 
-```
+```shell
 cd uniVirt
 bash setup.sh
 cp scripts/ansible/inventory.ini ./
@@ -119,7 +115,7 @@ vi inventory.ini
 修改 `[chrony]` 组设置 chrony 时间服务器节点。
 请参考如下示例：
 
-```
+```ini
 [master] # 主节点组
 # 填节点hostname，即IP地址
 192.168.100.10
@@ -139,30 +135,30 @@ vi inventory.ini
 
 * 通过 `inventory.ini` 进行安装
 
-```
+```shell
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_packages_and_dependencies.yml
 ```
 
 * 安装 golang 环境
 
-```
+```shell
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_go.yml
 ```
 
 * 安装 chrony 时间服务器，并将时区设置成“Asia/Shanghai”
-```
+```shell
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_and_setup_chrony.yml
 ```
 
 * 配置集群免秘钥登录
 
-```
+```shell
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/config_root_ssh.yml
 ```
 
 * 为计算节点打标签
 
-```
+```shell
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/label_k8s_nodes.yml
 ```
 
@@ -170,13 +166,13 @@ ansible-playbook -i inventory.ini scripts/ansible/playbooks/label_k8s_nodes.yml
 
 * 安装指定版本的 `uniVirt`，例如：v1.0.0.lab，则修改 -e "ver=v1.0.0.lab" 参数
 
-```
+```shell
 ansible-playbook -i localhost, -e "ver=v1.0.0.lab" scripts/ansible/playbooks/install_uniVirt.yml
 ```
 
 * 配置、启动外部服务
 
-```
+```shell
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/create_comm_service_env.yml
 ```
 
@@ -184,13 +180,13 @@ ansible-playbook -i inventory.ini scripts/ansible/playbooks/create_comm_service_
 
 * 配置`inventory-ceph.ini`文件，
 
-```
+```shell
 cp scripts/ansible/inventory-ceph.ini ./
 vi inventory-ceph.ini
 ```
 
 * 设置 rook ceph cluster 对应的 namespace，以及属于这个 ceph 集群的节点
-```
+```ini
 [rook-ceph]  #namespace名称
 #填节点hostname，即IP地址
 133.133.135.134
@@ -201,19 +197,18 @@ vi inventory-ceph.ini
 ```
 
 * 配置集群中节点的 ceph 客户端
-```
+```shell
 ansible-playbook -i inventory-ceph.ini scripts/ansible/playbooks/copy_ceph_config.yml
 ```
 
 * 验证 ceph 客户端，在 ceph 集群中任意节点执行
-```
+```shell
 ceph fs status
 ```
 
-
 ### 验证安装，当 virt-tool 都处于 Ready 状态则安装成功
 
-```
+```shell
 kubectl get po -A | grep virt-tool
 ```
 
@@ -224,14 +219,14 @@ kubectl get po -A | grep virt-tool
 
 ### 发布一个 CentOS7 的 v1.0.1.lab 版本
 
-```
+```shell
 cd /root/uniVirt
 bash scripts/shells/release-version-centos7.sh v1.0.1.lab
 ```
 
 ### 发布一个 Ubuntu22 的 v1.0.1.lab 版本
 
-```
+```shell
 cd /root/uniVirt
 bash scripts/shells/release-version-ubuntu22.sh v1.0.1.lab
 ```
@@ -240,12 +235,12 @@ bash scripts/shells/release-version-ubuntu22.sh v1.0.1.lab
 
 * 更新至指定版本，例如：v1.0.1.lab，则修改 -e "ver=v1.0.1.lab" 参数
 
-```
+```shell
 ansible-playbook -i localhost, -e "ver=v1.0.1.lab" scripts/ansible/playbooks/update_uniVirt.yml
 ```
 ### 验证安装，当 virt-tool 都处于 Ready 状态则安装成功
 
-```
+```shell
 kubectl get po -A | grep virt-tool
 ```
 
@@ -253,14 +248,14 @@ kubectl get po -A | grep virt-tool
 
 ### 卸载，例如： v1.0.0.lab
 
-```
+```shell
 ansible-playbook -i localhost, -e "ver=v1.0.0.lab" scripts/ansible/playbooks/uninstall_uniVirt.yml
 ```
 
 ## 新命令相关
 ### 步骤1：注册新命令
 * 新命令注册与配置在core/utils/constants.py文件中，以CREATE_AND_START_VM_FROM_ISO_CMD为例
-```
+```python
 '''Virtual Machine supported commands'''
 # 命令名称 = “命令调用策略，对象名称，前序操作，执行命令，查询操作”
 CREATE_AND_START_VM_FROM_ISO_CMD   = "default,name,none,virshplus create_and_start_vm_from_iso,virshplus dumpxml"
@@ -277,7 +272,7 @@ CREATE_AND_START_VM_FROM_ISO_CMD   = "default,name,none,virshplus create_and_sta
 
 ### 步骤4：测试新命令
 * 参考`scripts/examples/`中的 Json 文件写带有 lifecycle 的测试脚本。
-```
+```json lines
 {
   "apiVersion": "doslab.io/v1", //不用修改
   "kind": "VirtualMachine", //CRD对应的Kind，参考constants.py中设置
@@ -307,66 +302,64 @@ CREATE_AND_START_VM_FROM_ISO_CMD   = "default,name,none,virshplus create_and_sta
 ```
 ### 步骤5：验证结果
 * 调用 `kubectl get <CRD> -n kube-system -o wide`命令查询结果，例如
-```
+```shell
 kubectl get vm -n kube-system -o wide
 ```
-
-
 
 ## 开发者调试模式
 开发者调试模式允许uniVirt服务通过本地源码方式运行，要求：1）下载了本工程源码，2）按照前序ansible步骤安装过环境依赖，包括libvirt、python3等，并且启动了libvirt服务。
 
 ### 启用调试模式
-* 禁用当前节点的virt-tool服务
+#### 禁用当前节点的virt-tool服务
 * CentOS 7执行
-```commandline
+```shell
 kubectl label node <hostname> doslab/virt.tool.centos-
 ```
 * Ubuntu 22执行
-```commandline
+```shell
 kubectl label node <hostname> doslab/virt.tool.ubuntu-
 ```
-* 从本地启动uniVirt
-```commandline
+#### 从本地启动uniVirt
+```shell
 cd /root/uniVirt
 bash scripts/shells/service-adm.sh restart
 ```
 
 ### 更新二进制可执行程序并启用调试模式
-* 禁用当前节点的virt-tool服务
+#### 禁用当前节点的virt-tool服务
 * CentOS 7执行
-```commandline
+```shell
 kubectl label node <hostname> doslab/virt.tool.centos-
 ```
 * Ubuntu 22执行
-```commandline
+```shell
 kubectl label node <hostname> doslab/virt.tool.ubuntu-
 ```
-* 从本地启动uniVirt
-```commandline
+#### 从本地启动uniVirt
+```shell
 cd /root/uniVirt
 bash scripts/shells/service-adm.sh update
 ```
 
 ### 退出调试模式
-* 停止本地服务
-```commandline
+#### 停止本地服务
+```shell
 cd /root/uniVirt
 bash scripts/shells/service-adm.sh stop
 ```
-* 重新启用当前节点的virt-tool服务
+#### 重新启用当前节点的virt-tool服务
 * CentOS 7执行
-```commandline
+```shell
 kubectl label node <hostname> doslab/virt.tool.centos=
 ```
 * Ubuntu 22执行
-```commandline
+```shell
 kubectl label node <hostname> doslab/virt.tool.ubuntu=
 ```
 
-### 其他支持的操作
-* 查询支持的操作
-```commandline
+### 其他操作
+#### 查询支持的操作
+```shell
 bash scripts/shells/service-adm.sh
 ```
 
@@ -429,45 +422,48 @@ virtualmachinenetworks —— 虚拟机网络 —— ovnctl/src/kubeovn-adm
 
 
 ## core文件夹中的主要模块介绍
-* virtctl —— 虚拟机命令执行服务，当 watcher.py 监测到目标 CRD 存在 lifecycle 结构时，通过 convertor.py 解析 lifecycle 的命令名称和参数并转换成可执行命令，通过设置命令执行策略 defaultPolicy.py 执行命令，并查询执行结果。
-* 服务内部调用链如下
+
+### virtctl
+虚拟机命令执行服务，当 watcher.py 监测到目标 CRD 存在 lifecycle 结构时，通过 convertor.py 解析 lifecycle 的命令名称和参数并转换成可执行命令，通过设置命令执行策略 defaultPolicy.py 执行命令，并查询执行结果。
+#### 服务内部调用链如下
 ```
 virtctl_in_docker.py -> watcher.py -> convertor.py -> defaultPolicy.py (or rpcPolicy.py) -> executor.py
 ```
-* 服务日志：每个计算节点拥有独立日志，例如计算节点worker1上的虚拟机在worker1上查看
-```
-/var/log/virtctl.log
-```
-* virtlet —— 虚拟机状态同步服务，host_reporter.py负责统计当前KVM虚拟机占用资源情况，向K8s周期性推送KVM虚拟机资源用量；os_event_handler.py负责监听处理系统事件，向k8s同步状态变化。
-* 服务内部调用链如下
+#### 服务日志
+* 每个计算节点拥有独立日志，例如计算节点worker1上的虚拟机在worker1上查看  
+* 见 `/var/log/virtctl.log`
+
+### virtlet 
+虚拟机状态同步服务，host_reporter.py负责统计当前KVM虚拟机占用资源情况，向K8s周期性推送KVM虚拟机资源用量；os_event_handler.py负责监听处理系统事件，向k8s同步状态变化。
+#### 服务内部调用链如下
 ```
 virtlet_in_docker.py --> host_reporter.py
                       ┕> os_event_handler.py
 ```
-* 服务日志
-```
-/var/log/virtlet.log
-```
-* virtmonitor —— 虚拟机资源监听器，监听虚拟机的实时资源用量，包括CPU、内存、磁盘IO、网络IO，并将结果汇报给Prometheus。
-* 服务内部调用链如下
+#### 服务日志
+* 见 `/var/log/virtlet.log`
+
+### virtmonitor
+虚拟机资源监听器，监听虚拟机的实时资源用量，包括CPU、内存、磁盘IO、网络IO，并将结果汇报给Prometheus。
+#### 服务内部调用链如下
 ```
 virt_monitor_in_docker.py
 ```
-* 服务日志
-```
-/var/log/virtmonitor.log
-```
-* libvirtwatcher —— 虚拟机事件监听器，监听 libivrt-python 中汇报的 KVM 虚拟机事件，包括虚拟机创建、删除、添加网卡等等。
-* 服务内部调用链如下
+#### 服务日志
+* 见`/var/log/virtmonitor.log`
+
+### libvirtwatcher
+虚拟机事件监听器，监听 libivrt-python 中汇报的 KVM 虚拟机事件，包括虚拟机创建、删除、添加网卡等等。
+#### 服务内部调用链如下
 ```
 libvirt_watcher_in_docker.py -> libvirt_event_handler.py
 ```
-* 服务日志
-```
-/var/log/virtlet.log
-```
+#### 服务日志
+* 见 `/var/log/virtlet.log`
 
-------------------------------------------------------------
+### sdsctl
+* 见 [sdsctl/README.md](sdsctl/README.md)
+
 # 版本信息
 
 ## 开发版本
