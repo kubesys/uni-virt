@@ -33,7 +33,10 @@
 
     - name: Reload bashrc to apply changes
       shell: bash --rcfile "{{ ansible_env.HOME }}/.bashrc"
+      async: 60  # 设置一个合适的超时时间
+      poll: 0    # 非阻塞，立即返回结果
       when: ansible_os_family == 'RedHat'
+
 
     - name: Install Python 3.9.7 using conda
       shell: /opt/anaconda3/bin/conda install -y python=3.9.7
