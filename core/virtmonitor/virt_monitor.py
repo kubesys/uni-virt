@@ -7,6 +7,7 @@ import operator
 import time
 import threading
 import threadpool
+import concurrent.futures
 from prometheus_client.core import CollectorRegistry
 from prometheus_client import Gauge,start_http_server,Counter
 from kubernetes import config
@@ -40,7 +41,7 @@ LAST_RESOURCE_UTILIZATION = {}
 
 ALL_VMS_IN_PROMETHEUS = []
 
-thread_pool = threadpool.ThreadPool(10)
+# thread_pool = threadpool.ThreadPool(10)
 
 # vm_cpu_system_proc_rate = Gauge('vm_cpu_system_proc_rate', 'The CPU rate of running system processes in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels"])
@@ -319,44 +320,31 @@ def get_macs(vm):
 
 def collect_vm_metrics(zone):
     try:
-        global ALL_VMS_IN_PROMETHEUS
         vm_list = list_active_vms()
         all_vm = list_all_vms()
         vm_not_exists = []
+
+        global ALL_VMS_IN_PROMETHEUS
         if ALL_VMS_IN_PROMETHEUS:
             vm_not_exists = list(set(ALL_VMS_IN_PROMETHEUS).difference(set(all_vm)))
+
         ALL_VMS_IN_PROMETHEUS = all_vm
-#         global VMS_CACHE
-        vm_stopped = []
-#         if VMS_CACHE:
-#         print(all_vm)
-#         print(vm_list)
-#         print(vm_not_exists)
+
         logger.debug(vm_list)
-        threads = []
+
+        vm_stopped = []
         if all_vm:
             vm_stopped = list(set(all_vm).difference(set(vm_list)))
-        for vm in vm_list:
-#             t = threading.Thread(target=get_vm_metrics,args=(vm, zone,))
-            t = threadpool.makeRequests(get_vm_metrics, [((vm, zone),{})])
-            threads.extend(t)
-        for vm in vm_stopped:
-#             t = threading.Thread(target=zero_vm_metrics,args=(vm, zone,))
-            t = threadpool.makeRequests(zero_vm_metrics, [((vm, zone),{})])
-            threads.extend(t)
-        for vm in vm_not_exists:
-#             t = threading.Thread(target=delete_vm_metrics,args=(vm, zone,))
-            t = threadpool.makeRequests(delete_vm_metrics, [((vm, zone),{})])
-            threads.extend(t)
-#         for thread in threads:
-#             thread.setDaemon(True)
-#             thread.start()
-        map(thread_pool.putRequest,threads)
-        thread_pool.wait()
-    except:
-        logger.warning('Oops! ', exc_info=1)
-        return        
-#         get_vm_metrics(vm, zone)
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            for vm in vm_list:
+                executor.submit(get_vm_metrics, vm, zone)
+            for vm in vm_stopped:
+                executor.submit(zero_vm_metrics, vm, zone)
+            for vm in vm_not_exists:
+                executor.submit(delete_vm_metrics, vm, zone)
+    except Exception as e:
+        logger.exception('Error in collect_vm_metrics: %s', str(e))
         
 def get_vm_metrics(vm, zone):
     try:
@@ -416,7 +404,6 @@ def get_vm_metrics(vm, zone):
         if vm in CPU_UTILIZATION.keys() and cpu_number == CPU_UTILIZATION[vm].get('cpu_number'):
             interval = time.time() - CPU_UTILIZATION[vm].get('time')
             cpu_util = (cpu_time - float(CPU_UTILIZATION[vm].get('cpu_time')))/ cpu_number / interval
-            logger.debug('%.2f %.2f %.2f %.2f' % (interval, cpu_util, cpu_system_util, cpu_user_util))
             logger.debug(CPU_UTILIZATION[vm], cpu_number, cpu_time, interval)
             CPU_UTILIZATION[vm] = {'cpu_time': cpu_time,
                                     'time': time.time(), 'cpu_number': cpu_number}
