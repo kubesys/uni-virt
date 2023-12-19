@@ -6,7 +6,6 @@ import sys
 import operator
 import time
 import threading
-import threadpool
 import concurrent.futures
 from prometheus_client.core import CollectorRegistry
 from prometheus_client import Gauge,start_http_server,Counter
