@@ -4,7 +4,7 @@
 
   vars:
     ver: "v1.0.0"
-    yaml_directory: "/etc/uniVirt/yamls"
+    yaml_directory: "/root/uniVirt/yamls"
 
   tasks:
     - name: Copy virt-tool-centos.yaml.tmp to virt-tool-centos.yaml
