@@ -67,9 +67,10 @@ def main():
             if ha_check:
                 for vm in list_vms():
                     _check_vm_by_hosting_node(GROUP, VERSION, PLURAL, vm)
-                    _check_ha_and_autostart_vm(GROUP, VERSION, PLURAL, vm)
-                    with contextlib.suppress(RetryError):
+                    try:
                         _check_ha_and_autostart_vm(GROUP, VERSION, PLURAL, vm)
+                    except RetryError:
+                        pass
                     _check_vm_power_state(GROUP, VERSION, PLURAL, vm)
                 ha_check = False
             _patch_node_status()
