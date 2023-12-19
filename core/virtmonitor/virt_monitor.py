@@ -332,7 +332,7 @@ def collect_vm_metrics(zone):
 #         print(all_vm)
 #         print(vm_list)
 #         print(vm_not_exists)
-        logger.debug(all_vm)
+        logger.debug(vm_list)
         threads = []
         if all_vm:
             vm_stopped = list(set(all_vm).difference(set(vm_list)))
@@ -581,6 +581,7 @@ def get_vm_metrics(vm, zone):
             vm_network_send_packages_per_secend.labels(zone, HOSTNAME, vm, labels.get('owner'), labels.get('router'), labels.get('autoscalinggroup'), labels.get('cluster'), net_metrics['device']).set(net_metrics['network_write_packages_per_secend'])
         return resource_utilization
     except Exception as e:
+        logger.error('Oops! ', exc_info=1)
         raise e
 
 def delete_vm_metrics(vm, zone):
