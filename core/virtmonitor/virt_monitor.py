@@ -42,100 +42,100 @@ ALL_VMS_IN_PROMETHEUS = []
 
 thread_pool = threadpool.ThreadPool(10)
 
-# vm_cpu_system_proc_rate = Gauge('vm_cpu_system_proc_rate', 'The CPU rate of running system processes in virtual machine', \
+# vm_cpu_system_proc_rate = Gauge('vm_cpu_system_proc_rate', 'The CPU rate of running system processes in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels"])
-# vm_cpu_usr_proc_rate = Gauge('vm_cpu_usr_proc_rate', 'The CPU rate of running user processes in virtual machine', \
+# vm_cpu_usr_proc_rate = Gauge('vm_cpu_usr_proc_rate', 'The CPU rate of running user processes in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels"])
-# vm_cpu_idle_rate = Gauge('vm_cpu_idle_rate', 'The CPU idle rate in virtual machine', \
+# vm_cpu_idle_rate = Gauge('vm_cpu_idle_rate', 'The CPU idle rate in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels"])
-# vm_mem_total_bytes = Gauge('vm_mem_total_bytes', 'The total memory bytes in virtual machine', \
+# vm_mem_total_bytes = Gauge('vm_mem_total_bytes', 'The total memory bytes in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels"])
-# vm_mem_available_bytes = Gauge('vm_mem_available_bytes', 'The available memory bytes in virtual machine', \
+# vm_mem_available_bytes = Gauge('vm_mem_available_bytes', 'The available memory bytes in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels"])
-# vm_mem_buffers_bytes = Gauge('vm_mem_buffers_bytes', 'The buffers memory bytes in virtual machine', \
+# vm_mem_buffers_bytes = Gauge('vm_mem_buffers_bytes', 'The buffers memory bytes in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels"])
-# vm_mem_rate = Gauge('vm_mem_rate', 'The memory rate in virtual machine', \
+# vm_mem_rate = Gauge('vm_mem_rate', 'The memory rate in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels"])
-# vm_disk_read_requests_per_secend = Gauge('vm_disk_read_requests_per_secend', 'Disk read requests per second in virtual machine', \
+# vm_disk_read_requests_per_secend = Gauge('vm_disk_read_requests_per_secend', 'Disk read requests per second in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels", 'device'])
-# vm_disk_write_requests_per_secend = Gauge('vm_disk_write_requests_per_secend', 'Disk write requests per second in virtual machine', \
+# vm_disk_write_requests_per_secend = Gauge('vm_disk_write_requests_per_secend', 'Disk write requests per second in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels", 'device'])
-# vm_disk_read_bytes_per_secend = Gauge('vm_disk_read_bytes_per_secend', 'Disk read bytes per second in virtual machine', \
+# vm_disk_read_bytes_per_secend = Gauge('vm_disk_read_bytes_per_secend', 'Disk read bytes per second in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels", 'device'])
-# vm_disk_write_bytes_per_secend = Gauge('vm_disk_write_bytes_per_secend', 'Disk write bytes per second in virtual machine', \
+# vm_disk_write_bytes_per_secend = Gauge('vm_disk_write_bytes_per_secend', 'Disk write bytes per second in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels", 'device'])
-# vm_network_receive_packages_per_secend = Gauge('vm_network_receive_packages_per_secend', 'Network receive packages per second in virtual machine', \
+# vm_network_receive_packages_per_secend = Gauge('vm_network_receive_packages_per_secend', 'Network receive packages per second in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels", 'device'])
-# vm_network_receive_bytes_per_secend = Gauge('vm_network_receive_bytes_per_secend', 'Network receive bytes per second in virtual machine', \
+# vm_network_receive_bytes_per_secend = Gauge('vm_network_receive_bytes_per_secend', 'Network receive bytes per second in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels", 'device'])
-# vm_network_receive_errors_per_secend = Gauge('vm_network_receive_errors_per_secend', 'Network receive errors per second in virtual machine', \
+# vm_network_receive_errors_per_secend = Gauge('vm_network_receive_errors_per_secend', 'Network receive errors per second in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels", 'device'])
-# vm_network_receive_drops_per_secend = Gauge('vm_network_receive_drops_per_secend', 'Network receive drops per second in virtual machine', \
+# vm_network_receive_drops_per_secend = Gauge('vm_network_receive_drops_per_secend', 'Network receive drops per second in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels", 'device'])
-# vm_network_send_packages_per_secend = Gauge('vm_network_send_packages_per_secend', 'Network send packages per second in virtual machine', \
+# vm_network_send_packages_per_secend = Gauge('vm_network_send_packages_per_secend', 'Network send packages per second in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels", 'device'])
-# vm_network_send_bytes_per_secend = Gauge('vm_network_send_bytes_per_secend', 'Network send bytes per second in virtual machine', \
+# vm_network_send_bytes_per_secend = Gauge('vm_network_send_bytes_per_secend', 'Network send bytes per second in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels", 'device'])
-# vm_network_send_errors_per_secend = Gauge('vm_network_send_errors_per_secend', 'Network send errors per second in virtual machine', \
+# vm_network_send_errors_per_secend = Gauge('vm_network_send_errors_per_secend', 'Network send errors per second in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels", 'device'])
-# vm_network_send_drops_per_secend = Gauge('vm_network_send_drops_per_secend', 'Network send drops per second in virtual machine', \
+# vm_network_send_drops_per_secend = Gauge('vm_network_send_drops_per_secend', 'Network send drops per second in virtual machine',
 #                                 ['zone', 'host', 'vm', "labels", 'device'])
-# storage_pool_total_size_kilobytes = Gauge('storage_pool_total_size_kilobytes', 'Storage pool total size in kilobytes on host', \
+# storage_pool_total_size_kilobytes = Gauge('storage_pool_total_size_kilobytes', 'Storage pool total size in kilobytes on host',
 #                                 ['zone', 'host', 'pool', 'type'])
-# storage_pool_used_size_kilobytes = Gauge('storage_pool_used_size_kilobytes', 'Storage pool used size in kilobytes on host', \
+# storage_pool_used_size_kilobytes = Gauge('storage_pool_used_size_kilobytes', 'Storage pool used size in kilobytes on host',
 #                                 ['zone', 'host', 'pool', 'type'])
-# storage_disk_total_size_kilobytes = Gauge('storage_disk_total_size_kilobytes', 'Storage disk total size in kilobytes on host', \
+# storage_disk_total_size_kilobytes = Gauge('storage_disk_total_size_kilobytes', 'Storage disk total size in kilobytes on host',
 #                                 ['zone', 'host', 'pool', 'type', 'disk'])
-# storage_disk_used_size_kilobytes = Gauge('storage_disk_used_size_kilobytes', 'Storage disk used size in kilobytes on host', \
+# storage_disk_used_size_kilobytes = Gauge('storage_disk_used_size_kilobytes', 'Storage disk used size in kilobytes on host',
 #                                 ['zone', 'host', 'pool', 'type', 'disk'])
 
 # VMS_CACHE = []
 
-# vm_cpu_system_proc_rate = Gauge('vm_cpu_system_proc_rate', 'The CPU rate of running system processes in virtual machine', \
+# vm_cpu_system_proc_rate = Gauge('vm_cpu_system_proc_rate', 'The CPU rate of running system processes in virtual machine',
 #                                 ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster"])
-# vm_cpu_usr_proc_rate = Gauge('vm_cpu_usr_proc_rate', 'The CPU rate of running user processes in virtual machine', \
+# vm_cpu_usr_proc_rate = Gauge('vm_cpu_usr_proc_rate', 'The CPU rate of running user processes in virtual machine',
 #                                 ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster"])
-vm_cpu_idle_rate = Gauge('vm_cpu_idle_rate', 'The CPU idle rate in virtual machine', \
-                                ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster"])
-vm_mem_total_bytes = Gauge('vm_mem_total_bytes', 'The total memory bytes in virtual machine', \
-                                ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster"])
-vm_mem_available_bytes = Gauge('vm_mem_available_bytes', 'The available memory bytes in virtual machine', \
-                                ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster"])
-vm_mem_buffers_bytes = Gauge('vm_mem_buffers_bytes', 'The buffers memory bytes in virtual machine', \
-                                ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster"])
-vm_mem_rate = Gauge('vm_mem_rate', 'The memory rate in virtual machine', \
-                                ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster"])
-vm_disk_read_requests_per_secend = Gauge('vm_disk_read_requests_per_secend', 'Disk read requests per second in virtual machine', \
+vm_cpu_idle_rate = Gauge('vm_cpu_idle_rate', 'The CPU idle rate in virtual machine',
+                         ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster"])
+vm_mem_total_bytes = Gauge('vm_mem_total_bytes', 'The total memory bytes in virtual machine',
+                           ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster"])
+vm_mem_available_bytes = Gauge('vm_mem_available_bytes', 'The available memory bytes in virtual machine',
+                               ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster"])
+vm_mem_buffers_bytes = Gauge('vm_mem_buffers_bytes', 'The buffers memory bytes in virtual machine',
+                             ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster"])
+vm_mem_rate = Gauge('vm_mem_rate', 'The memory rate in virtual machine',
+                    ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster"])
+vm_disk_read_requests_per_secend = Gauge('vm_disk_read_requests_per_secend', 'Disk read requests per second in virtual machine',
+                                         ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
+vm_disk_write_requests_per_secend = Gauge('vm_disk_write_requests_per_secend', 'Disk write requests per second in virtual machine',
+                                          ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
+vm_disk_read_bytes_per_secend = Gauge('vm_disk_read_bytes_per_secend', 'Disk read bytes per second in virtual machine',
+                                      ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
+vm_disk_write_bytes_per_secend = Gauge('vm_disk_write_bytes_per_secend', 'Disk write bytes per second in virtual machine',
                                 ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
-vm_disk_write_requests_per_secend = Gauge('vm_disk_write_requests_per_secend', 'Disk write requests per second in virtual machine', \
+vm_network_receive_packages_per_secend = Gauge('vm_network_receive_packages_per_secend', 'Network receive packages per second in virtual machine',
                                 ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
-vm_disk_read_bytes_per_secend = Gauge('vm_disk_read_bytes_per_secend', 'Disk read bytes per second in virtual machine', \
+vm_network_receive_bytes_per_secend = Gauge('vm_network_receive_bytes_per_secend', 'Network receive bytes per second in virtual machine',
                                 ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
-vm_disk_write_bytes_per_secend = Gauge('vm_disk_write_bytes_per_secend', 'Disk write bytes per second in virtual machine', \
+vm_network_receive_errors_per_secend = Gauge('vm_network_receive_errors_per_secend', 'Network receive errors per second in virtual machine',
                                 ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
-vm_network_receive_packages_per_secend = Gauge('vm_network_receive_packages_per_secend', 'Network receive packages per second in virtual machine', \
+vm_network_receive_drops_per_secend = Gauge('vm_network_receive_drops_per_secend', 'Network receive drops per second in virtual machine',
                                 ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
-vm_network_receive_bytes_per_secend = Gauge('vm_network_receive_bytes_per_secend', 'Network receive bytes per second in virtual machine', \
+vm_network_send_packages_per_secend = Gauge('vm_network_send_packages_per_secend', 'Network send packages per second in virtual machine',
                                 ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
-vm_network_receive_errors_per_secend = Gauge('vm_network_receive_errors_per_secend', 'Network receive errors per second in virtual machine', \
+vm_network_send_bytes_per_secend = Gauge('vm_network_send_bytes_per_secend', 'Network send bytes per second in virtual machine',
                                 ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
-vm_network_receive_drops_per_secend = Gauge('vm_network_receive_drops_per_secend', 'Network receive drops per second in virtual machine', \
+vm_network_send_errors_per_secend = Gauge('vm_network_send_errors_per_secend', 'Network send errors per second in virtual machine',
                                 ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
-vm_network_send_packages_per_secend = Gauge('vm_network_send_packages_per_secend', 'Network send packages per second in virtual machine', \
+vm_network_send_drops_per_secend = Gauge('vm_network_send_drops_per_secend', 'Network send drops per second in virtual machine',
                                 ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
-vm_network_send_bytes_per_secend = Gauge('vm_network_send_bytes_per_secend', 'Network send bytes per second in virtual machine', \
-                                ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
-vm_network_send_errors_per_secend = Gauge('vm_network_send_errors_per_secend', 'Network send errors per second in virtual machine', \
-                                ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
-vm_network_send_drops_per_secend = Gauge('vm_network_send_drops_per_secend', 'Network send drops per second in virtual machine', \
-                                ['zone', 'host', 'vm', "owner", "router", "autoscalinggroup", "cluster", 'device'])
-storage_pool_total_size_kilobytes = Gauge('storage_pool_total_size_kilobytes', 'Storage pool total size in kilobytes on host', \
+storage_pool_total_size_kilobytes = Gauge('storage_pool_total_size_kilobytes', 'Storage pool total size in kilobytes on host',
                                 ['zone', 'host', 'pool', 'type'])
-storage_pool_used_size_kilobytes = Gauge('storage_pool_used_size_kilobytes', 'Storage pool used size in kilobytes on host', \
+storage_pool_used_size_kilobytes = Gauge('storage_pool_used_size_kilobytes', 'Storage pool used size in kilobytes on host',
                                 ['zone', 'host', 'pool', 'type'])
-storage_disk_total_size_kilobytes = Gauge('storage_disk_total_size_kilobytes', 'Storage disk total size in kilobytes on host', \
+storage_disk_total_size_kilobytes = Gauge('storage_disk_total_size_kilobytes', 'Storage disk total size in kilobytes on host',
                                 ['zone', 'host', 'pool', 'type', 'disk'])
-storage_disk_used_size_kilobytes = Gauge('storage_disk_used_size_kilobytes', 'Storage disk used size in kilobytes on host', \
+storage_disk_used_size_kilobytes = Gauge('storage_disk_used_size_kilobytes', 'Storage disk used size in kilobytes on host',
                                 ['zone', 'host', 'pool', 'type', 'disk'])
 
 class KillableThread:
@@ -170,7 +170,7 @@ class KillableThread:
 def collect_storage_metrics(zone):
     config.load_kube_config(config_file=TOKEN)
     vmps = list_objects_in_kubernetes(GROUP_VMP, VERSION_VMP, PLURAL_VMP)
-#     storages = {VDISK_FS_MOUNT_POINT: 'vdiskfs', SHARE_FS_MOUNT_POINT: 'nfs/glusterfs', \
+#     storages = {VDISK_FS_MOUNT_POINT: 'vdiskfs', SHARE_FS_MOUNT_POINT: 'nfs/glusterfs',
 #                 LOCAL_FS_MOUNT_POINT: 'localfs', BLOCK_FS_MOUNT_POINT: 'blockfs'}
     for vmp in vmps:
         try:
@@ -328,6 +328,7 @@ def collect_vm_metrics(zone):
 #         print(all_vm)
 #         print(vm_list)
 #         print(vm_not_exists)
+        logger.debug(all_vm)
         threads = []
         if all_vm:
             vm_stopped = list(set(all_vm).difference(set(vm_list)))
@@ -407,12 +408,12 @@ def get_vm_metrics(vm, zone):
         first_time = False
         cpu_util = 0.00
         global CPU_UTILIZATION
-    #     logger.debug(vm)
+        logger.debug(vm)
         if vm in CPU_UTILIZATION.keys() and cpu_number == CPU_UTILIZATION[vm].get('cpu_number'):
             interval = time.time() - CPU_UTILIZATION[vm].get('time')
             cpu_util = (cpu_time - float(CPU_UTILIZATION[vm].get('cpu_time')))/ cpu_number / interval
-    #         logger.debug('%.2f %.2f %.2f %.2f' % (interval, cpu_util, cpu_system_util, cpu_user_util))
-    #         logger.debug(CPU_UTILIZATION[vm], cpu_number, cpu_time, interval)
+            logger.debug('%.2f %.2f %.2f %.2f' % (interval, cpu_util, cpu_system_util, cpu_user_util))
+            logger.debug(CPU_UTILIZATION[vm], cpu_number, cpu_time, interval)
             CPU_UTILIZATION[vm] = {'cpu_time': cpu_time,
                                     'time': time.time(), 'cpu_number': cpu_number}
         else:
@@ -423,7 +424,7 @@ def get_vm_metrics(vm, zone):
             '%.2f' % abs(1 - cpu_util) if abs(1 - cpu_util) <= 1.00 and abs(1 - cpu_util) >= 0.00 else 0.00
         else:
             resource_utilization['cpu_metrics']['cpu_idle_rate'] = '%.2f' % (1.00)
-    #     logger.debug(resource_utilization['cpu_metrics'])
+        logger.debug(resource_utilization['cpu_metrics'])
         mem_stats = runCmdRaiseException('timeout 2 virsh dommemstat %s' % vm)
         mem_actual = 0.00
         mem_unused = 0.00
@@ -720,6 +721,8 @@ class ClientDaemon(CDaemon):
             #         registry = CollectorRegistry(auto_describe=False)
                 config.load_kube_config(config_file=TOKEN)
                 zone = get_field_in_kubernetes_node(HOSTNAME, ['metadata', 'labels', 'zone'])
+                if not zone:
+                    zone = "default"
                 while True:
             #             init(registry)
                     config.load_kube_config(config_file=TOKEN)
