@@ -252,8 +252,6 @@ def runCmdAndGetOutput(cmd):
     try:
         std_out = p.stdout.readlines()
         std_err = p.stderr.readlines()
-        logger.debug(std_out)
-        logger.debug(std_err)
         if std_out:
             msg = ''
             for line in std_out:
@@ -262,6 +260,7 @@ def runCmdAndGetOutput(cmd):
         if std_err:
             return ''
     except Exception:
+        logger.warning('Oops! ', exc_info=1)
         return ''
     finally:
         p.stdout.close()
