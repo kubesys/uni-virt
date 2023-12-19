@@ -252,6 +252,8 @@ def runCmdAndGetOutput(cmd):
     try:
         std_out = p.stdout.readlines()
         std_err = p.stderr.readlines()
+        logger.debug(std_out)
+        logger.debug(std_err)
         if std_out:
             msg = ''
             for line in std_out:
@@ -291,9 +293,7 @@ def list_active_vms():
 
 def list_all_vms():
     output = runCmdAndGetOutput('virsh list --all')
-    logger.debug(output)
     lines = output.splitlines()
-    logger.debug(lines)
     if (len(lines) < 2):
         return []
     vms = []
