@@ -247,24 +247,27 @@ def get_vdisk_metrics(pool_mount_point, disk_type, disk, zone):
 
 def runCmdAndGetOutput(cmd):
     if not cmd:
-        return
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return None
     try:
-        std_out = p.stdout.readlines()
-        std_err = p.stderr.readlines()
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        std_out, std_err = p.communicate()
+        std_out = std_out.decode() if std_out else ''
+        std_err = std_err.decode() if std_err else ''
+
         if std_out:
-            msg = ''
-            for line in std_out:
-                msg = msg + line
-            return msg
-        if std_err:
+            return std_out.strip()  # 返回去掉末尾换行符的字符串
+        elif std_err:
+            logger.warning('Error occurred: %s', std_err)
             return ''
-    except Exception:
-        logger.warning('Oops! ', exc_info=1)
+        else:
+            logger.warning('No output or error')
+            return ''
+    except subprocess.CalledProcessError as e:
+        logger.error('Command failed with code %s: %s', e.returncode, e.output)
         return ''
-    finally:
-        p.stdout.close()
-        p.stderr.close()
+    except Exception as e:
+        logger.exception('Unexpected error occurred: %s', str(e))
+        return ''
 
 def get_disks_spec(domain):
     output = runCmdAndGetOutput('virsh domblklist %s' % domain)
