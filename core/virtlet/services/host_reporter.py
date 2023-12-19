@@ -16,8 +16,9 @@ from json import dumps
 from json import loads
 from xml.etree.ElementTree import fromstring
 from xmljson import badgerfish as bf
-from tenacity import retry,stop_after_attempt,wait_random,before_sleep_log
+from tenacity import retry, stop_after_attempt, wait_random, before_sleep_log, RetryError
 import logging
+import contextlib
 
 '''
 Import third party libs
@@ -52,6 +53,7 @@ PLURAL = constants.KUBERNETES_PLURAL_VM
 
 logger = logger.set_logger(os.path.basename(__file__), constants.KUBEVMM_VIRTLET_LOG)
 
+
 def main():
     ha_check = True
     ha_enable = True
@@ -66,6 +68,8 @@ def main():
                 for vm in list_vms():
                     _check_vm_by_hosting_node(GROUP, VERSION, PLURAL, vm)
                     _check_ha_and_autostart_vm(GROUP, VERSION, PLURAL, vm)
+                    with contextlib.suppress(RetryError):
+                        _check_ha_and_autostart_vm(GROUP, VERSION, PLURAL, vm)
                     _check_vm_power_state(GROUP, VERSION, PLURAL, vm)
                 ha_check = False
             _patch_node_status()
@@ -153,8 +157,7 @@ def _destroy_vm_retries(metadata_name):
 
 @retry(stop=stop_after_attempt(3),
        wait=wait_random(min=8,max=15),
-       before_sleep=before_sleep_log(logger,logging.WARNING,True),
-       reraise=True)
+       before_sleep=before_sleep_log(logger,logging.WARNING,True))
 def _check_ha_and_autostart_vm(group, version, plural, metadata_name):
     logger.debug('2.Doing HA verification for VM: %s' % metadata_name)
     ha = get_ha_from_kubernetes(group, version, 'default', plural, metadata_name)
@@ -166,7 +169,8 @@ def _check_ha_and_autostart_vm(group, version, plural, metadata_name):
 def _check_and_enable_HA():
     push_node_label_value(HOSTNAME, "nodeHA", None)
 #     runCmd("kubectl label node --kubeconfig=%s %s nodeHA-" % (TOKEN_ORIGIN,HOSTNAME))
-        
+
+
 def _check_vm_power_state(group, version, plural, metadata_name):
     try:
         logger.debug('3.Check the power state of VM: %s' % metadata_name)
