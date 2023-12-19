@@ -291,7 +291,9 @@ def list_active_vms():
 
 def list_all_vms():
     output = runCmdAndGetOutput('virsh list --all')
+    logger.debug(output)
     lines = output.splitlines()
+    logger.debug(lines)
     if (len(lines) < 2):
         return []
     vms = []
@@ -721,8 +723,6 @@ class ClientDaemon(CDaemon):
             #         registry = CollectorRegistry(auto_describe=False)
                 config.load_kube_config(config_file=TOKEN)
                 zone = get_field_in_kubernetes_node(HOSTNAME, ['metadata', 'labels', 'zone'])
-                if not zone:
-                    zone = "default"
                 while True:
             #             init(registry)
                     config.load_kube_config(config_file=TOKEN)
