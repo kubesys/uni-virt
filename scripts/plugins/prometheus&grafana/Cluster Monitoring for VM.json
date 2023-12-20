@@ -102,7 +102,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(time() - node_boot_time_seconds{instance=~\"^^$Node$$\"})",
+          "expr": "sum(time() - node_boot_time_seconds{instance=~\"^^$Node$\"})",
           "format": "time_series",
           "hide": false,
           "instant": true,
@@ -191,7 +191,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "avg(irate(node_cpu_seconds_total{instance=~\"^^$Node$$\",mode=\"iowait\"}[30m])) * 100",
+          "expr": "avg(irate(node_cpu_seconds_total{instance=~\"^^$Node$\",mode=\"iowait\"}[30m])) * 100",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -282,7 +282,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(count(node_cpu_seconds_total{instance=~\"^$Node$\", mode='system'}) by (cpu))",
+          "expr": "sum(count(node_cpu_seconds_total{instance=~\"^$Node\", mode='system'}) by (cpu))",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
@@ -369,7 +369,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum (container_memory_working_set_bytes{id=\"/\",kubernetes_io_hostname=~\"^^$Node$$\"})",
+          "expr": "sum (container_memory_working_set_bytes{id=\"/\",kubernetes_io_hostname=~\"^^$Node$\"})",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -455,7 +455,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum (machine_memory_bytes{kubernetes_io_hostname=~\"^^$Node$$\"})",
+          "expr": "sum (machine_memory_bytes{kubernetes_io_hostname=~\"^^$Node$\"})",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -540,7 +540,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum (container_memory_working_set_bytes{id=\"/\",kubernetes_io_hostname=~\"^^$Node$$\"}) / sum (machine_memory_bytes{kubernetes_io_hostname=~\"^^$Node$$\"}) * 100",
+          "expr": "sum (container_memory_working_set_bytes{id=\"/\",kubernetes_io_hostname=~\"^^$Node$\"}) / sum (machine_memory_bytes{kubernetes_io_hostname=~\"^^$Node$\"}) * 100",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -627,7 +627,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum (rate (container_cpu_usage_seconds_total{id=\"/\",kubernetes_io_hostname=~\"^^$Node$$\"}[$interval])) / sum (machine_cpu_cores{kubernetes_io_hostname=~\"^^$Node$$\"}) * 100",
+          "expr": "sum (rate (container_cpu_usage_seconds_total{id=\"/\",kubernetes_io_hostname=~\"^^$Node$\"}[$interval])) / sum (machine_cpu_cores{kubernetes_io_hostname=~\"^^$Node$\"}) * 100",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -809,7 +809,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(irate(node_cpu_seconds_total{instance=~\"^^$Node$$\",mode=\"system\"}[30m])) by (instance)",
+          "expr": "avg(irate(node_cpu_seconds_total{instance=~\"^^$Node$\",mode=\"system\"}[30m])) by (instance)",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -820,7 +820,7 @@
           "step": 20
         },
         {
-          "expr": "avg(irate(node_cpu_seconds_total{instance=~\"^^$Node$$\",mode=\"user\"}[30m])) by (instance)",
+          "expr": "avg(irate(node_cpu_seconds_total{instance=~\"^^$Node$\",mode=\"user\"}[30m])) by (instance)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -829,7 +829,7 @@
           "step": 240
         },
         {
-          "expr": "avg(irate(node_cpu_seconds_total{instance=~\"^^$Node$$\",mode=\"iowait\"}[30m])) by (instance)",
+          "expr": "avg(irate(node_cpu_seconds_total{instance=~\"^^$Node$\",mode=\"iowait\"}[30m])) by (instance)",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -839,7 +839,7 @@
           "step": 240
         },
         {
-          "expr": "1 - avg(irate(node_cpu_seconds_total{instance=~\"^^$Node$$\",mode=\"idle\"}[30m])) by (instance)",
+          "expr": "1 - avg(irate(node_cpu_seconds_total{instance=~\"^^$Node$\",mode=\"idle\"}[30m])) by (instance)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -952,7 +952,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "node_memory_MemTotal_bytes{instance=~\"^$Node$\"}",
+          "expr": "node_memory_MemTotal_bytes{instance=~\"^$Node\"}",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -962,7 +962,7 @@
           "step": 4
         },
         {
-          "expr": "node_memory_MemTotal_bytes{instance=~\"^$Node$\"} - node_memory_MemAvailable_bytes{instance=~\"^$Node$\"}",
+          "expr": "node_memory_MemTotal_bytes{instance=~\"^$Node\"} - node_memory_MemAvailable_bytes{instance=~\"^$Node\"}",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -971,7 +971,7 @@
           "step": 4
         },
         {
-          "expr": "node_memory_MemAvailable_bytes{instance=~\"^$Node$\"}",
+          "expr": "node_memory_MemAvailable_bytes{instance=~\"^$Node\"}",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -1078,7 +1078,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(node_network_receive_bytes_total{instance=~'^$Node$',device!~'tap.*|veth.*|br.*|docker.*|virbr*|lo*'}[30m])*8",
+          "expr": "irate(node_network_receive_bytes_total{instance=~'^$Node',device!~'tap.*|veth.*|br.*|docker.*|virbr*|lo*'}[30m])*8",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{instance}}_{{device}}_receive",
@@ -1086,7 +1086,7 @@
           "step": 4
         },
         {
-          "expr": "irate(node_network_transmit_bytes_total{instance=~'^$Node$',device!~'tap.*|veth.*|br.*|docker.*|virbr*|lo*'}[30m])*8",
+          "expr": "irate(node_network_transmit_bytes_total{instance=~'^$Node',device!~'tap.*|veth.*|br.*|docker.*|virbr*|lo*'}[30m])*8",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{instance}}_{{device}}_transmit",
@@ -1186,7 +1186,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "1-(node_filesystem_free_bytes{instance=~'^$Node$',fstype=~\"ext4|xfs\"} / node_filesystem_size_bytes{instance=~'^$Node$',fstype=~\"ext4|xfs\"})",
+          "expr": "1-(node_filesystem_free_bytes{instance=~'^$Node',fstype=~\"ext4|xfs\"} / node_filesystem_size_bytes{instance=~'^$Node',fstype=~\"ext4|xfs\"})",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -1194,7 +1194,7 @@
           "refId": "A"
         },
         {
-          "expr": "node_filesystem_files_free{instance=~'^$Node$',fstype=~\"ext4|xfs\"} / node_filesystem_files{instance=~'^$Node$',fstype=~\"ext4|xfs\"}",
+          "expr": "node_filesystem_files_free{instance=~'^$Node',fstype=~\"ext4|xfs\"} / node_filesystem_files{instance=~'^$Node',fstype=~\"ext4|xfs\"}",
           "hide": true,
           "legendFormat": "Inodes：{{instance}}：{{mountpoint}}",
           "refId": "B"
@@ -1298,7 +1298,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(node_disk_read_bytes_total{instance=~\"^$Node$\"}[30m])",
+          "expr": "irate(node_disk_read_bytes_total{instance=~\"^$Node\"}[30m])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1307,7 +1307,7 @@
           "step": 10
         },
         {
-          "expr": "irate(node_disk_written_bytes_total{instance=~\"^$Node$\"}[30m])",
+          "expr": "irate(node_disk_written_bytes_total{instance=~\"^$Node\"}[30m])",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -1422,7 +1422,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(node_disk_io_time_seconds_total{instance=~\"^$Node$\"}[30m])",
+          "expr": "irate(node_disk_io_time_seconds_total{instance=~\"^$Node\"}[30m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{instance}}_{{device}}_ IO time",
@@ -1524,7 +1524,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "node_load1{instance=~\"^$Node$\"}",
+          "expr": "node_load1{instance=~\"^$Node\"}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1536,7 +1536,7 @@
           "target": ""
         },
         {
-          "expr": "node_load5{instance=~\"^$Node$\"}",
+          "expr": "node_load5{instance=~\"^$Node\"}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1546,7 +1546,7 @@
           "step": 20
         },
         {
-          "expr": "node_load15{instance=~\"^$Node$\"}",
+          "expr": "node_load15{instance=~\"^$Node\"}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -1651,7 +1651,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(node_disk_read_time_seconds_total{instance=~\"^$Node$\"}[30m]) / irate(node_disk_reads_completed_total{instance=~\"^$Node$\"}[30m])",
+          "expr": "irate(node_disk_read_time_seconds_total{instance=~\"^$Node\"}[30m]) / irate(node_disk_reads_completed_total{instance=~\"^$Node\"}[30m])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1661,7 +1661,7 @@
           "refId": "B"
         },
         {
-          "expr": "irate(node_disk_write_time_seconds_total{instance=~\"^$Node$\"}[30m]) / irate(node_disk_writes_completed_total{instance=~\"^$Node$\"}[30m])",
+          "expr": "irate(node_disk_write_time_seconds_total{instance=~\"^$Node\"}[30m]) / irate(node_disk_writes_completed_total{instance=~\"^$Node\"}[30m])",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1766,7 +1766,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(node_disk_reads_completed_total{instance=~\"^$Node$\"}[30m])",
+          "expr": "irate(node_disk_reads_completed_total{instance=~\"^$Node\"}[30m])",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -1776,7 +1776,7 @@
           "step": 10
         },
         {
-          "expr": "irate(node_disk_writes_completed_total{instance=~\"^$Node$\"}[30m])",
+          "expr": "irate(node_disk_writes_completed_total{instance=~\"^$Node\"}[30m])",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -1899,7 +1899,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "node_netstat_Tcp_CurrEstab{instance=~'^$Node$'}",
+          "expr": "node_netstat_Tcp_CurrEstab{instance=~'^$Node'}",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1910,28 +1910,28 @@
           "step": 20
         },
         {
-          "expr": "node_sockstat_TCP_tw{instance=~'^$Node$'}",
+          "expr": "node_sockstat_TCP_tw{instance=~'^$Node'}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{instance}}_TCP_tw",
           "refId": "D"
         },
         {
-          "expr": "node_sockstat_sockets_used{instance=~'^$Node$'}",
+          "expr": "node_sockstat_sockets_used{instance=~'^$Node'}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{instance}}_Sockets_used",
           "refId": "B"
         },
         {
-          "expr": "node_sockstat_UDP_inuse{instance=~'^$Node$'}",
+          "expr": "node_sockstat_UDP_inuse{instance=~'^$Node'}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{instance}}_UDP_inuse",
           "refId": "C"
         },
         {
-          "expr": "node_sockstat_TCP_alloc{instance=~'^$Node$'}",
+          "expr": "node_sockstat_TCP_alloc{instance=~'^$Node'}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{instance}}_TCP_alloc",
@@ -2026,7 +2026,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum (container_memory_working_set_bytes{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^^$Node$$\"}) by (pod_name)",
+          "expr": "sum (container_memory_working_set_bytes{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^^$Node$\"}) by (pod_name)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -2125,7 +2125,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum (container_memory_usage_bytes{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^^$Node$$\"}) by (kubernetes_io_hostname)",
+          "expr": "sum (container_memory_usage_bytes{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^^$Node$\"}) by (kubernetes_io_hostname)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -2320,7 +2320,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum (rate (container_cpu_usage_seconds_total{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^^$Node$$\"}[$interval])) by (pod_name)",
+          "expr": "sum (rate (container_cpu_usage_seconds_total{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^^$Node$\"}[$interval])) by (pod_name)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -2419,7 +2419,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum (rate (container_cpu_usage_seconds_total{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^^$Node$$\"}[$interval])) by (kubernetes_io_hostname)",
+          "expr": "sum (rate (container_cpu_usage_seconds_total{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^^$Node$\"}[$interval])) by (kubernetes_io_hostname)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -2533,7 +2533,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum (rate (container_network_receive_bytes_total{kubernetes_io_hostname=~\"^^$Node$$\"}[$interval]))",
+          "expr": "sum (rate (container_network_receive_bytes_total{kubernetes_io_hostname=~\"^^$Node$\"}[$interval]))",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -2543,7 +2543,7 @@
           "step": 10
         },
         {
-          "expr": "- sum (rate (container_network_transmit_bytes_total{kubernetes_io_hostname=~\"^^$Node$$\"}[$interval]))",
+          "expr": "- sum (rate (container_network_transmit_bytes_total{kubernetes_io_hostname=~\"^^$Node$\"}[$interval]))",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -2642,7 +2642,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vm_cpu_idle_rate{host=~\"^vm.$Node\"})by(vm)",
+          "expr": "sum(vm_cpu_idle_rate{host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -2740,7 +2740,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vm_cpu_system_proc_rate{host=~\"^vm.$Node\"})by(vm)",
+          "expr": "sum(vm_cpu_system_proc_rate{host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -2838,7 +2838,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vm_cpu_usr_proc_rate{host=~\"^vm.$Node$$\"})by(vm)",
+          "expr": "sum(vm_cpu_usr_proc_rate{host=~\"^$Node$\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -2936,7 +2936,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vm_disk_read_bytes_per_secend{host=~\"^vm.$Node\"})by(vm)",
+          "expr": "sum(vm_disk_read_bytes_per_secend{host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -2946,7 +2946,7 @@
           "step": 10
         },
         {
-          "expr": "sum(vm_disk_write_bytes_per_secend{host=~\"^vm.^$Node$$\",exported_host=~\"^vm.^$Node$$\"})by(vm)",
+          "expr": "sum(vm_disk_write_bytes_per_secend{host=~\"^$Node\",exported_host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "write-{{ vm}}",
@@ -3041,7 +3041,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vm_disk_read_requests_per_secend{host=~\"^vm.$Node\"})by(vm)",
+          "expr": "sum(vm_disk_read_requests_per_secend{host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -3051,7 +3051,7 @@
           "step": 10
         },
         {
-          "expr": "sum(vm_disk_write_requests_per_secend{host=~\"^vm.^$Node$$\",exported_host=~\"^vm.^$Node$$\"})by(vm)",
+          "expr": "sum(vm_disk_write_requests_per_secend{host=~\"^$Node\",exported_host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "write-{{ vm}}",
@@ -3147,7 +3147,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vm_mem_total_bytes{host=~\"^vm.$Node\"})by(vm)",
+          "expr": "sum(vm_mem_total_bytes{host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "instant": false,
           "interval": "10s",
@@ -3247,7 +3247,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum (rate (container_network_receive_bytes_total{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^$Node$\"}[$interval])) by (pod_name)",
+          "expr": "sum (rate (container_network_receive_bytes_total{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^$Node\"}[$interval])) by (pod_name)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -3257,7 +3257,7 @@
           "step": 10
         },
         {
-          "expr": "- sum (rate (container_network_transmit_bytes_total{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^^$Node$$\"}[$interval])) by (pod_name)",
+          "expr": "- sum (rate (container_network_transmit_bytes_total{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^^$Node$\"}[$interval])) by (pod_name)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -3355,7 +3355,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vm_network_receive_bytes_per_secend{host=\"vm.$Node\"})by(vm)",
+          "expr": "sum(vm_network_receive_bytes_per_secend{host=\"$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -3365,7 +3365,7 @@
           "step": 10
         },
         {
-          "expr": "sum(vm_network_send_bytes_per_secend{host=~\"^vm.^$Node$$\",exported_host=~\"^vm.^$Node$$\"})by(vm)",
+          "expr": "sum(vm_network_send_bytes_per_secend{host=~\"^$Node\",exported_host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -3463,7 +3463,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vm_network_receive_drops_per_secend{host=\"vm.$Node\"})by(vm)",
+          "expr": "sum(vm_network_receive_drops_per_secend{host=\"$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -3473,7 +3473,7 @@
           "step": 10
         },
         {
-          "expr": "sum(vm_network_send_drops_per_secend{host=~\"^vm.^$Node$$\",exported_host=~\"^vm.^$Node$$\"})by(vm)",
+          "expr": "sum(vm_network_send_drops_per_secend{host=~\"^$Node\",exported_host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -3571,7 +3571,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vm_network_receive_errors_per_secend{host=~\"vm.$Node\"})by(vm)",
+          "expr": "sum(vm_network_receive_errors_per_secend{host=~\"$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -3581,7 +3581,7 @@
           "step": 10
         },
         {
-          "expr": "sum(vm_network_send_errors_per_secend{host=~\"^vm.^$Node$$\",exported_host=~\"^vm.^$Node$$\"})by(vm)",
+          "expr": "sum(vm_network_send_errors_per_secend{host=~\"^$Node\",exported_host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -3679,7 +3679,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vm_network_receive_packages_per_secend{host=~\"vm.$Node\"})by(vm)",
+          "expr": "sum(vm_network_receive_packages_per_secend{host=~\"$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -3689,7 +3689,7 @@
           "step": 10
         },
         {
-          "expr": "sum(vm_network_send_packages_per_secend{host=~\"^vm.^$Node$$\",exported_host=~\"^vm.^$Node$$\"})by(vm)",
+          "expr": "sum(vm_network_send_packages_per_secend{host=~\"^$Node\",exported_host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -3787,7 +3787,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vm_mem_total_bytes{host=~\"^vm.$Node\"})by(vm)",
+          "expr": "sum(vm_mem_total_bytes{host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -3885,7 +3885,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vm_mem_available_bytes{host=~\"^vm.$Node\"})by(vm)",
+          "expr": "sum(vm_mem_available_bytes{host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -3983,7 +3983,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vm_mem_buffers_bytes{host=~\"^vm.$Node\"})by(vm)",
+          "expr": "sum(vm_mem_buffers_bytes{host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,
@@ -4081,7 +4081,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(vm_mem_rate{host=~\"^vm.$Node\"})by(vm)",
+          "expr": "sum(vm_mem_rate{host=~\"^$Node\"})by(vm)",
           "format": "time_series",
           "interval": "10s",
           "intervalFactor": 1,

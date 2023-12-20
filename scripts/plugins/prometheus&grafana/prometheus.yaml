@@ -39,7 +39,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: prometheus
-  namespace: cloudplus
+  namespace: kube-mlops
   labels:
     app: prometheus
 ---
@@ -50,7 +50,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: prometheus
-    namespace: cloudplus
+    namespace: kube-mlops
 roleRef:
   kind: ClusterRole
   name: system:kubelet-api-admin
@@ -60,7 +60,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-conf
-  namespace: cloudplus
+  namespace: kube-mlops
   labels:
     app: prometheus
 data:
@@ -232,7 +232,7 @@ data:
       - job_name: 'grafana'
         static_configs:
           - targets:
-              - 'grafana-service.cloudplus:3000'
+              - 'grafana-service.kube-mlops:3000'
 
       - job_name: 'kubernetes-apiservers'
 
@@ -504,7 +504,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-rules
-  namespace: cloudplus
+  namespace: kube-mlops
   labels:
     app: prometheus
 data:
@@ -527,7 +527,7 @@ metadata:
   labels:
     app: prometheus
   name: prometheus
-  namespace: cloudplus
+  namespace: kube-mlops
 spec:
   replicas: 1
   revisionHistoryLimit: 10
@@ -583,7 +583,7 @@ metadata:
   labels:
     app: prometheus
   name: prometheus-service
-  namespace: cloudplus
+  namespace: kube-mlops
 spec:
   ports:
     - port: 9090
