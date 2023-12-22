@@ -76,7 +76,7 @@ else
     echo "    Success compile <kubevmm-adm>."
 fi
 cp -f ./dist/centos7/kubevmm-adm ../../dist/centos7
-pyinstaller --distpath ./dist/centos7/ -F virshplus.py --hidden-import tenacity --add-data ../utils/*:utils
+pyinstaller --distpath ./dist/centos7/ -F virshplus.py --hidden-import tenacity --add-data ../utils/*:utils --clean
 if [ $? -ne 0 ]; then
     echo "    Failed to compile <virshplus>!"
     exit 1
