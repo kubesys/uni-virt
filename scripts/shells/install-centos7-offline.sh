@@ -14,7 +14,7 @@ pushImage(){
   cd ..
 }
 
-PushRpm(){
+pushRpm(){
   printChangeIp
   tar xzvf rpm-package.tar.gz
   cd package || exit 1
