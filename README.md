@@ -365,8 +365,60 @@ bash scripts/shells/service-adm.sh
 
 
 # 离线部署
+以centos7系统为例进行离线部署
+## 安装
+### kubez-ansible-offline相关
+#### 安装包目录
 
-* （待支持）
+- base.sh
+- k8s-centos7-v1.23.17_images.tar.gz
+- k8soffimage.tar.gz
+- nexus.tar.gz
+- k8s-v1.23.17-rpm.tar.gz
+- setup_env.sh
+#### 下载方式
+- https://github.com/pixiu-io/kubez-ansible-offline/blob/master/docs/install/offline.md
+
+- https://github.com/pixiu-io/kubez-ansible-offline/blob/master/docs/install/prerequisites.md
+
+### uniVirt相关
+
+| 文件名                         | 说明        |
+|-----------------------------|-----------|
+| uniVirt                     | 项目代码      |
+| python-package.tar.gz       | python软件包 |
+| rpm-package.tar.gz          | rpm包      |
+| go1.19.1.linux-amd64.tar.gz | go语言包     |
+| command.tar.gz              | 可执行文件包    |
+| image.tar.gz                | 所需全部镜像    |
+| install-centos7-offline.sh  | 部署脚本      |
+
+
+## 部署
+### kubez-ansible系列
+根据文档说明安装好集群所需环境并自由选择软件配置
+
+环境配置文档：https://github.com/pixiu-io/kubez-ansible-offline/blob/master/docs/install/offline.md
+
+集群部署文档：https://github.com/pixiu-io/kubez-ansible-offline/blob/master/docs/install/multinode.md
+
+### `sdsctl`的部署
+1. 修改`install-centos7-offline.sh`中的脚本内容
+```shell
+vi install-centos7-offline.sh
+# 本机ip
+LOCALIP="localhost"     #修改为本机 IP 地址
+```
+2. 运行脚本上传rpm和镜像
+```shell
+sh install-centos7-offline.sh push
+```
+3. 安装sdsctl
+```shell
+sh install-centos7-offline.sh sdsctl
+```
+
+
 
 # 相关知识说明
 ## 项目结构
