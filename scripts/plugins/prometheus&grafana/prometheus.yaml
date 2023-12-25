@@ -135,7 +135,7 @@ data:
         - source_labels: [__meta_kubernetes_node_name]
           action: keep
           regex: vm\..+
-        - source_labels: [__meta_kubernetes_node_annotation_THISIP]
+        - source_labels: [__meta_kubernetes_node_address_InternalIP]
           regex: (.+)
           target_label: __address__
           replacement: ${1}:19998
