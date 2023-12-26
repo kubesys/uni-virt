@@ -2,6 +2,7 @@
 * 集群安装好了prometheus和grafana
 
 # prometheus配置
+* 1. kubectl apply -f prometheus.yaml
 
 # grafana配置
 * 1. 在“菜单->管理->插件”中搜索prometheus，安装插件，并且配置正确的url，保存测试连通性；
