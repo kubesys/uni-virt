@@ -383,15 +383,15 @@ bash scripts/shells/service-adm.sh
 
 ### uniVirt相关
 
-| 文件名                         | 说明        |
-|-----------------------------|-----------|
-| uniVirt.tar.gz              | 项目代码      |
-| python-package.tar.gz       | python软件包 |
-| rpm-package.tar.gz          | rpm包      |
-| go1.19.1.linux-amd64.tar.gz | go语言包     |
-| command.tar.gz              | 可执行文件包    |
-| image.tar.gz                | 所需全部镜像    |
-| install-centos7-offline.sh  | 部署脚本      |
+| 文件名                         | 说明        | 包含                  |
+|-----------------------------|-----------|---------------------|
+| uniVirt.tar.gz              | 项目代码      | 全部项目代码、可执行文件以及部署脚本等 |
+| python-package.tar.gz       | python软件包 |                     |
+| rpm-package.tar.gz          | rpm包      |                     |
+| go1.19.1.linux-amd64.tar.gz | go语言包     |                     |
+| command.tar.gz              | 可执行文件包    |                     |
+| image.tar.gz                | 所需全部镜像    |                     |
+| install-centos7-offline.sh  | 部署脚本      |                     |
 
 ## kube-ovn相关
 - base.sh - 安装脚本
@@ -412,8 +412,8 @@ LOCALIP="localhost"     #修改为本机 IP 地址
 ```
 2. 运行脚本上传rpm和镜像
 ```shell
-sh install-centos7-offline.sh push image
-sh install-centos7-offline.sh push rpm
+sh uniVirt/scripts/shells/install-centos7-offline.sh push image
+sh uniVirt/scripts/shells/install-centos7-offline.sh push rpm
 ```
 
 ### 部署kube-ovn
@@ -435,17 +435,15 @@ ansible-playbook -i inventory.ini scripts/ansible/playbooks/config_root_ssh.yml
 ```shell
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/label_k8s_nodes.yml
 ```
-5. 每个运行环境请尽量单独发布版本，版本命名规范是：v1.0.0.<环境名称>，例如，v1.0.0.lab 表示lab实验室测试环境，v1.0.0.air，等等。
-```shell
-bash scripts/shells/release-offline-centos7.sh v1.0.1.lab
-```
-6. 安装指定版本的 `uniVirt`，例如：v1.0.0.lab，则修改 -e "ver=v1.0.0.lab" 参数
+
+5. 安装指定版本的 `uniVirt`，例如：v1.0.0.lab，则修改 -e "ver=v1.0.0.lab" 参数
 
 ```shell
+bash scripts/shells/release-offline-centos7.sh v1.0.1.lab
 ansible-playbook -i localhost, -e "ver=v1.0.0.lab,offline=1" scripts/ansible/playbooks/install_uniVirt.yml
 ```
 
-7.  配置、启动外部服务
+6. 配置、启动外部服务
 
 ```shell
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/create_comm_service_env.yml
