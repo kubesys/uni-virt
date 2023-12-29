@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-LOCALIP="192.168.10.12"
+LOCALIP="localhost"
 registry=$LOCALIP:58001
 if [ "$LOCALIP" = "localhost" ]; then
 		echo "你的ip未修改,请修改成你部署机ip"
