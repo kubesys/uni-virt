@@ -14,13 +14,22 @@
   * [新命令相关](#新命令相关)
   * [开发者调试模式](#开发者调试模式)
 * [离线部署](#离线部署)
+  * [提前准备好](#提前准备好)
+  * [部署前的准备工作](#部署前的准备工作)
+  * [部署](#部署)
 * [相关知识说明](#相关知识说明)
   * [项目结构](#项目结构)
   * [支持的虚拟机管理 Custom Resource Definition (CRD)](#支持的虚拟机管理-custom-resource-definition-crd)
   * [core文件夹中的主要模块介绍](#core文件夹中的主要模块介绍)
+    * [virtctl](#virtctl)
+    * [virtlet](#virtlet-)
+    * [virtmonitor](#virtmonitor)
+    * [libvirtwatcher](#libvirtwatcher)
+    * [sdsctl](#sdsctl)
 * [版本信息](#版本信息)
   * [开发版本](#开发版本)
   * [发行版本](#发行版本)
+
 ------------------------------------------------------------
 # 程序介绍
 混合云管理后端程序，通过Kubernetes框架实现 Docker/Containerd/RunC 容器与 libvirt KVM 虚拟机生命周期管理，支持虚拟机/容器在Overlay和Underlay网络互联互通，支持Ceph分布式存储。
@@ -164,6 +173,7 @@ ansible-playbook -i inventory.ini scripts/ansible/playbooks/label_k8s_nodes.yml
 
 ### 步骤4：在 Kubernetes 集群中安装 `uniVirt` DaemonSet
 
+* 先执行[版本发布](#版本发布)中的步骤
 * 安装指定版本的 `uniVirt`，例如：v1.0.0.lab，则修改 -e "ver=v1.0.0.lab" 参数
 
 ```shell
@@ -213,18 +223,19 @@ kubectl get po -A | grep virt-tool
 ```
 
 ## 版本发布和更新
+### 版本发布
 注意！发布版本区分 CentOS7 和 Ubuntu22，需要在各自操作系统机器上进行。
 
 每个运行环境请尽量单独发布版本，版本命名规范是：v1.0.0.<环境名称>，例如，v1.0.0.lab 表示lab实验室测试环境，v1.0.0.air，等等。
 
-### 发布一个 CentOS7 的 v1.0.1.lab 版本
+#### 发布一个 CentOS7 的 v1.0.1.lab 版本
 
 ```shell
 cd /root/uniVirt
 bash scripts/shells/release-version-centos7.sh v1.0.1.lab
 ```
 
-### 发布一个 Ubuntu22 的 v1.0.1.lab 版本
+#### 发布一个 Ubuntu22 的 v1.0.1.lab 版本
 
 ```shell
 cd /root/uniVirt
@@ -236,7 +247,7 @@ bash scripts/shells/release-version-ubuntu22.sh v1.0.1.lab
 * 更新至指定版本，例如：v1.0.1.lab，则修改 -e "ver=v1.0.1.lab" 参数
 
 ```shell
-ansible-playbook -i localhost, -e "ver=v1.0.1.lab" scripts/ansible/playbooks/update_uniVirt.yml
+ansible-playbook -i localhost -e "ver=v1.0.1.lab" scripts/ansible/playbooks/update_uniVirt.yml
 ```
 ### 验证安装，当 virt-tool 都处于 Ready 状态则安装成功
 
@@ -366,7 +377,7 @@ bash scripts/shells/service-adm.sh
 
 # 离线部署
 以centos7系统为例进行离线部署
-## 安装
+## 提前准备好
 ### kubez-ansible-offline相关
 #### 安装包目录
 
@@ -393,67 +404,74 @@ bash scripts/shells/service-adm.sh
 | image.tar.gz                | 所需全部镜像    |                     |
 | install-centos7-offline.sh  | 部署脚本      |                     |
 
-## kube-ovn相关
+### kube-ovn相关
 - base.sh - 安装脚本
-
-
-## 部署
+```shell
+wget https://raw.githubusercontent.com/kubeovn/kube-ovn/release-1.12/dist/images/install.sh
+```
+## 部署前的准备工作
 ### kubez-ansible系列
 根据文档说明安装好集群所需环境并自由选择软件配置
 
 环境配置文档：https://github.com/pixiu-io/kubez-ansible-offline/blob/master/docs/install/offline.md
 
 集群部署文档：https://github.com/pixiu-io/kubez-ansible-offline/blob/master/docs/install/multinode.md
-### 部署前的准备工作
-1. 修改`install-centos7-offline.sh`和`release-offline-centos7.sh`中的脚本内容
+### uniVirt系列
+1. 修改`install-centos7-offline.sh`中的脚本内容
 ```shell
 # 本机ip
 LOCALIP="localhost"     #修改为本机 IP 地址
 ```
 2. 运行脚本上传rpm和镜像
-```shell
-sh uniVirt/scripts/shells/install-centos7-offline.sh push image
-sh uniVirt/scripts/shells/install-centos7-offline.sh push rpm
-```
 
+```shell
+# 全部上传
+sh uniVirt/scripts/shells/base.sh push all                      # 上传全部 rpm 包和所需镜像到 nexus 仓库
+
+# 或者单独上传
+sh uniVirt/scripts/shells/install-centos7-offline.sh push image #上传iamges
+sh uniVirt/scripts/shells/install-centos7-offline.sh push rpm   #上传rpm包
+```
 ### 部署kube-ovn
 https://g-ubjg5602.coding.net/p/iscas-system/km/spaces/1274254/pages/K-69
-### 部署`uniVirt`
-1. 执行[安装 `uniVirt`](#安装-univirt)中的步骤二
+
+## 部署
+1. 执行安装 `uniVirt`中的[步骤2](#步骤2-准备ansible安装)
 2. 安装项目所需依赖
 ```shell
 ansible-playbook -i inventory.ini -e "offline=1" scripts/ansible/playbooks/install_packages_and_dependencies.yml
 ```
-4. 安装 chrony 时间服务器，并将时区设置成“Asia/Shanghai”
+3. 安装 chrony 时间服务器，并将时区设置成“Asia/Shanghai”
 ```shell
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_and_setup_chrony.yml
 ```
 
-3. 配置集群免秘钥登录
-
+4. 配置集群免密钥登录
 ```shell
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/config_root_ssh.yml
 ```
 
-4. 为计算节点打标签
-
+5. 为计算节点打标签
 ```shell
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/label_k8s_nodes.yml
 ```
 
-5. 安装指定版本的 `uniVirt`，例如：v1.0.0.lab，则修改 -e "ver=v1.0.0.lab" 参数
-
+6. 安装指定版本的 `uniVirt`，例如：v1.0.0.lab，则修改v1.0.0.lab参数
 ```shell
-bash scripts/shells/release-offline-centos7.sh v1.0.1.lab
-ansible-playbook -i localhost, -e "ver=v1.0.0.lab,offline=1" scripts/ansible/playbooks/install_uniVirt.yml
+bash scripts/shells/release-offline-centos7.sh v1.0.0.lab
+ansible-playbook -i localhost -e "ver=v1.0.0.lab,offline=1" scripts/ansible/playbooks/install_uniVirt.yml
 ```
 
-6. 配置、启动外部服务
-
+7. 配置、启动外部服务
 ```shell
-ansible-playbook -i inventory.ini scripts/ansible/playbooks/create_comm_service_env.yml
+ansible-playbook -i inventory.ini -e "offline=1" scripts/ansible/playbooks/create_comm_service_env.yml
 ```
+8. 如果已经安装了rook ceph请继续执行[步骤5](#步骤5可选当集群部署了-rook-ceph-后配置安装-ceph-客户端)
 
+9. 验证安装，当 virt-tool 都处于 Ready 状态则安装成功
+```shell
+kubectl get po -A | grep virt-tool
+```
 # 相关知识说明
 ## 项目结构
 ```

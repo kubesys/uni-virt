@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-LOCALIP="localhost"
-registry=$LOCALIP:58001
-if [ "$LOCALIP" = "localhost" ]; then
-		echo "你的ip未修改,请修改成你部署机ip"
-		exit 1
-fi
+#LOCALIP="localhost"
+#registry=$LOCALIP:58001
+#if [ "$LOCALIP" = "localhost" ]; then
+#		echo "你的ip未修改,请修改成你部署机ip"
+#		exit 1
+#fi
 ##############################init###############################################
 if [ ! -n "$1" ] ;then
     echo "error: please input a release version number!"
@@ -207,12 +207,12 @@ cd docker
 
 #DOCKER_USER=netgenius201
 
-echo -e "\033[3;30;47m*** Login docker image repository.\033[0m"
+#echo -e "\033[3;30;47m*** Login docker image repository.\033[0m"
 #echo "Username: $DOCKER_USER"
 #docker login --username=bigtree0613@126.com registry.cn-hangzhou.aliyuncs.com
 #docker login -u ${DOCKER_USER} ${DOCKER_HUB_URL}
 #docker login -u containers-1701096977881 -p 12dc49b311d6efd88014314e08eb6eda138b3816 g-ubjg5602-docker.pkg.coding.net
-docker login $registry/pixiuio -u admin -p admin123
+#docker login $registry/pixiuio -u admin -p admin123
 #if [ $? -ne 0 ]; then
 #    echo "    Failed to login coding repository!"
 #    exit 1
@@ -244,7 +244,7 @@ docker login $registry/pixiuio -u admin -p admin123
 
 
 #docker build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest
-docker tag base:latest g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest
+#docker tag base:latest g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest
 docker build virtlet/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION}
 docker build virtctl/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION}
 docker build libvirtwatcher/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION}
