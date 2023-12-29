@@ -424,6 +424,11 @@ https://g-ubjg5602.coding.net/p/iscas-system/km/spaces/1274254/pages/K-69
 ```shell
 ansible-playbook -i inventory.ini -e "offline=1" scripts/ansible/playbooks/install_packages_and_dependencies.yml
 ```
+4. 安装 chrony 时间服务器，并将时区设置成“Asia/Shanghai”
+```shell
+ansible-playbook -i inventory.ini scripts/ansible/playbooks/install_and_setup_chrony.yml
+```
+
 3. 配置集群免秘钥登录
 
 ```shell
