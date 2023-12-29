@@ -176,7 +176,7 @@ ansible-playbook -i localhost, -e "ver=v1.0.0.lab" scripts/ansible/playbooks/ins
 ansible-playbook -i inventory.ini scripts/ansible/playbooks/create_comm_service_env.yml
 ```
 
-### 步骤5：当集群部署了 rook ceph 后，配置安装 ceph 客户端
+### 步骤5（可选）：当集群部署了 rook ceph 后，配置安装 ceph 客户端
 
 * 配置`inventory-ceph.ini`文件，
 
@@ -385,13 +385,16 @@ bash scripts/shells/service-adm.sh
 
 | 文件名                         | 说明        |
 |-----------------------------|-----------|
-| uniVirt                     | 项目代码      |
+| uniVirt.tar.gz              | 项目代码      |
 | python-package.tar.gz       | python软件包 |
 | rpm-package.tar.gz          | rpm包      |
 | go1.19.1.linux-amd64.tar.gz | go语言包     |
 | command.tar.gz              | 可执行文件包    |
 | image.tar.gz                | 所需全部镜像    |
 | install-centos7-offline.sh  | 部署脚本      |
+
+## kube-ovn相关
+- base.sh - 安装脚本
 
 
 ## 部署
@@ -401,24 +404,52 @@ bash scripts/shells/service-adm.sh
 环境配置文档：https://github.com/pixiu-io/kubez-ansible-offline/blob/master/docs/install/offline.md
 
 集群部署文档：https://github.com/pixiu-io/kubez-ansible-offline/blob/master/docs/install/multinode.md
-
-### `sdsctl`的部署
-1. 修改`install-centos7-offline.sh`中的脚本内容
+### 部署前的准备工作
+1. 修改`install-centos7-offline.sh`和`release-offline-centos7.sh`中的脚本内容
 ```shell
-vi install-centos7-offline.sh
 # 本机ip
 LOCALIP="localhost"     #修改为本机 IP 地址
 ```
 2. 运行脚本上传rpm和镜像
 ```shell
-sh install-centos7-offline.sh push
+sh install-centos7-offline.sh push image
+sh install-centos7-offline.sh push rpm
 ```
-3. 安装sdsctl
+
+### 部署kube-ovn
+https://g-ubjg5602.coding.net/p/iscas-system/km/spaces/1274254/pages/K-69
+### 部署`uniVirt`
+1. 执行[安装 `uniVirt`](#安装-univirt)中的步骤二
+2. 安装项目所需依赖
 ```shell
-sh install-centos7-offline.sh sdsctl
+ansible-playbook -i inventory.ini -e "offline=1" scripts/ansible/playbooks/install_packages_and_dependencies.yml
+```
+3. 配置集群免秘钥登录
+
+```shell
+ansible-playbook -i inventory.ini scripts/ansible/playbooks/config_root_ssh.yml
 ```
 
+4. 为计算节点打标签
 
+```shell
+ansible-playbook -i inventory.ini scripts/ansible/playbooks/label_k8s_nodes.yml
+```
+5. 每个运行环境请尽量单独发布版本，版本命名规范是：v1.0.0.<环境名称>，例如，v1.0.0.lab 表示lab实验室测试环境，v1.0.0.air，等等。
+```shell
+bash scripts/shells/release-offline-centos7.sh v1.0.1.lab
+```
+6. 安装指定版本的 `uniVirt`，例如：v1.0.0.lab，则修改 -e "ver=v1.0.0.lab" 参数
+
+```shell
+ansible-playbook -i localhost, -e "ver=v1.0.0.lab,offline=1" scripts/ansible/playbooks/install_uniVirt.yml
+```
+
+7.  配置、启动外部服务
+
+```shell
+ansible-playbook -i inventory.ini scripts/ansible/playbooks/create_comm_service_env.yml
+```
 
 # 相关知识说明
 ## 项目结构

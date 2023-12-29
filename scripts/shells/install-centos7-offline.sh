@@ -7,9 +7,17 @@ printChangeIp() {
 	fi
 }
 
+imageload() {
+  echo "正在导入镜像"
+  for i in $(ls *.tar)
+  do
+        docker load -i $i
+  done
+}
 pushImage(){
   printChangeIp
   tar xzvf image.tar.gz
+  imageload
   sh load_image.sh $LOCALIP
   cd ..
 }
