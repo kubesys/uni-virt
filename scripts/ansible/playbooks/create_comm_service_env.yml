@@ -2,6 +2,8 @@
 - name: Create comm service env
   hosts: master:worker
   become: yes
+  vars:
+    offline:
 
   tasks:
     - name: Ensure target directory exists
@@ -25,6 +27,14 @@
         cmd: "bash create-comm-service.sh"
       args:
         chdir: "/etc/uniVirt/sdsctl/grpcservice"
+      when: offline is none
+
+    - name: Execute create-comm-service.sh script in offline mode
+      ansible.builtin.command:
+        cmd: "bash create-comm-service.sh offline"
+      args:
+        chdir: "/etc/uniVirt/sdsctl/grpcservice"
+      when: offline is not none
 
     - name: Restart kubestack-commctl service
       ansible.builtin.systemd:

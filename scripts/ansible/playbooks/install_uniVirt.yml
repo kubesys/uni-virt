@@ -4,7 +4,8 @@
 
   vars:
     ver: "v1.0.0"
-    yaml_directory: "/root/uniVirt/yamls"
+    yaml_directory: "/root/uniVirt/scripts/yamls"
+    offline:
 
   tasks:
     - name: Copy virt-tool-centos.yaml.tmp to virt-tool-centos.yaml
@@ -21,6 +22,13 @@
         path: "{{ yaml_directory }}/centos7/virt-tool-centos.yaml"
         regexp: 'v1.0.0'
         replace: '{{ ver }}'
+
+    - name: Replace ImagePullPolicy in virt-tool-centos.yaml
+      ansible.builtin.replace:
+        path: "{{ yaml_directory }}/centos7/virt-tool-centos.yaml"
+        regexp: 'Always'
+        replace: 'IfNotPresent'
+      when: offline is not none
 
     - name: Apply Kubernetes YAMLs for CentOS7
       command: "kubectl apply -f {{ yaml_directory }}/centos7/"

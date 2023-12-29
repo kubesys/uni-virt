@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-
+#LOCALIP="localhost"
+#registry=$LOCALIP:58001
+#if [ "$LOCALIP" = "localhost" ]; then
+#		echo "你的ip未修改,请修改成你部署机ip"
+#		exit 1
+#fi
 ##############################init###############################################
 if [ ! -n "$1" ] ;then
     echo "error: please input a release version number!"
@@ -68,26 +73,34 @@ cp -rf ./scripts/plugins ./dist/centos7
 
 echo ${VERSION} > ./VERSION
 cd ./core/plugins
-pyinstaller --distpath ./dist/centos7/ -F kubevmm_adm.py -n kubevmm-adm
-if [ $? -ne 0 ]; then
-    echo "    Failed to compile <kubevmm-adm>!"
-    exit 1
-else
-    echo "    Success compile <kubevmm-adm>."
-fi
+#pyinstaller --distpath ./dist/centos7/ -F kubevmm_adm.py -n kubevmm-adm
+#if [ $? -ne 0 ]; then
+#    echo "    Failed to compile <kubevmm-adm>!"
+#    exit 1
+#else
+#    echo "    Success compile <kubevmm-adm>."
+#fi
 cp -f ./dist/centos7/kubevmm-adm ../../dist/centos7
-pyinstaller --distpath ./dist/centos7/ -F virshplus.py
-if [ $? -ne 0 ]; then
-    echo "    Failed to compile <virshplus>!"
-    exit 1
-else
-    echo "    Success compile <virshplus>."
-fi
+#pyinstaller --distpath ./dist/centos7/ -F virshplus.py
+#if [ $? -ne 0 ]; then
+#    echo "    Failed to compile <virshplus>!"
+#    exit 1
+#else
+#    echo "    Success compile <virshplus>."
+#fi
 cp -f ./dist/centos7/virshplus ../../dist/centos7
-cd ../../
+cd ../../../
 #cp -rf ../SDS ./
 #cd ./SDS
-
+tar xzvf go1.19.1.linux-amd64.tar.gz
+if [ ! -d "$HOME/local" ]; then
+	mkdir -p $HOME/local
+fi
+cp -rf go $HOME/local
+echo 'export GOROOT=/usr/local/go' >> /root/.bashrc
+echo 'export GOPATH=$HOME/go' >> /root/.bashrc
+echo 'export PATH=/usr/local/go/bin:$HOME/go/bin:$PATH' >> /root/.bashrc
+. /root/.bashrc
 #git clone https://gitlink.org.cn/kubestack/sdsctl.git
 #cd ./sdsctl/cmd/sdsctl
 #go build -o sdsctl main.go
@@ -130,6 +143,7 @@ cd ../../
 #find ${SHELL_FOLDER}/dist/centos7 -type d -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
 
 #cp -rf ./dist/ansible docker/base/centos7
+cd uniVirt
 cp -rf ./dist/centos7/sdsctl docker/virtctl/centos7
 cp -rf ./dist/centos7/commctl docker/virtctl/centos7
 #cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/kubeovn-adm ./dist/centos7/device-passthrough ./dist/centos7/virt-monitor ./dist/centos7/monitor docker/virtctl
@@ -193,12 +207,12 @@ cd docker
 
 #DOCKER_USER=netgenius201
 
-echo -e "\033[3;30;47m*** Login docker image repository in coding.\033[0m"
+#echo -e "\033[3;30;47m*** Login docker image repository.\033[0m"
 #echo "Username: $DOCKER_USER"
 #docker login --username=bigtree0613@126.com registry.cn-hangzhou.aliyuncs.com
 #docker login -u ${DOCKER_USER} ${DOCKER_HUB_URL}
 #docker login -u containers-1701096977881 -p 12dc49b311d6efd88014314e08eb6eda138b3816 g-ubjg5602-docker.pkg.coding.net
-
+#docker login $registry/pixiuio -u admin -p admin123
 #if [ $? -ne 0 ]; then
 #    echo "    Failed to login coding repository!"
 #    exit 1
@@ -230,6 +244,7 @@ echo -e "\033[3;30;47m*** Login docker image repository in coding.\033[0m"
 
 
 #docker build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest
+#docker tag base:latest g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest
 docker build virtlet/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION}
 docker build virtctl/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION}
 docker build libvirtwatcher/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION}
