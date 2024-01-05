@@ -418,3 +418,59 @@ spec:
     - jsonPath: .spec.nodeName
       name: NODE
       type: string
+  ---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    kubevirt.io: ""
+  name: virtualmachinespecs.doslab.io
+spec:
+  group: doslab.io
+  names:
+    kind: VirtualMachineSpec
+    plural: virtualmachinespecs
+    shortNames:
+      - vmsp
+      - vmsps
+    singular: virtualmachinespec
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    kubevirt.io: ""
+  name: virtualmachinediskspecs.doslab.io
+spec:
+  group: doslab.io
+  names:
+    kind: VirtualMachineDiskSpec
+    plural: virtualmachinediskspecs
+    shortNames:
+      - vmdsp
+      - vmdsps
+    singular: virtualmachinediskspec
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
