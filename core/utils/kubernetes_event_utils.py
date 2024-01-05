@@ -7,6 +7,7 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 '''
 import os
 import time
+from tenacity import retry,stop_after_attempt,wait_random
 from kubernetes import client, config
 try:
     from utils import logger
@@ -31,6 +32,7 @@ class KubernetesEvent:
         self.event_id = event_id
         self.time_start = now_to_datetime()
 
+    @retry(stop=stop_after_attempt(10),wait=wait_random(min=1,max=3),reraise=True)
     def create_event(self, status, event_type):
         time_end = now_to_datetime()
         message = 'type:%s, name:%s, operation:%s, status:%s, reporter:%s, eventId:%s, duration:%f' \
@@ -38,18 +40,12 @@ class KubernetesEvent:
            self.reporter, self.event_id, (time_end - self.time_start).total_seconds())
         event = UserDefinedEvent(self.event_metadata_name, self.time_start, time_end, 
                                  self.involved_object_name, self.involved_object_kind, 
-                                 message, self.involved_cmd_key, event_type) 
-        for i in range(1,10):
-            try:
-                config.load_kube_config(config_file=TOKEN)
-                event.registerKubernetesEvent()
-                return
-            except Exception as e:
-                if i == 9:
-                    raise e
-                else:
-                    time.sleep(3)   
-            
+                                 message, self.involved_cmd_key, event_type)
+        config.load_kube_config(config_file=TOKEN)
+        event.registerKubernetesEvent()
+        return
+
+    @retry(stop=stop_after_attempt(10),wait=wait_random(min=1,max=3),reraise=True)
     def update_evet(self, status, event_type):
         time_end = now_to_datetime()
         message = 'type:%s, name:%s, operation:%s, status:%s, reporter:%s, eventId:%s, duration:%f' \
@@ -57,14 +53,7 @@ class KubernetesEvent:
            self.reporter, self.event_id, (time_end - self.time_start).total_seconds())
         event = UserDefinedEvent(self.event_metadata_name, self.time_start, time_end, 
                                  self.involved_object_name, self.involved_object_kind, 
-                                 message, self.involved_cmd_key, event_type)    
-        for i in range(1,10):
-            try:
-                config.load_kube_config(config_file=TOKEN)
-                event.updateKubernetesEvent()
-                return
-            except Exception as e:
-                if i == 9:
-                    raise e
-                else:
-                    time.sleep(3)
+                                 message, self.involved_cmd_key, event_type)
+        config.load_kube_config(config_file=TOKEN)
+        event.updateKubernetesEvent()
+        return
