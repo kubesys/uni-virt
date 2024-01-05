@@ -21,6 +21,7 @@ except:
 logger = logger.set_logger(os.path.basename(__file__), constants.KUBEVMM_VIRTCTL_LOG)
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 
+
 class KubernetesEvent:
     
     def __init__(self, metadata_name, the_cmd_key, k8s_object_kind, event_id):
@@ -32,28 +33,25 @@ class KubernetesEvent:
         self.event_id = event_id
         self.time_start = now_to_datetime()
 
-    @retry(stop=stop_after_attempt(10),wait=wait_random(min=1,max=3),reraise=True)
-    def create_event(self, status, event_type):
+    def event_helper(self, status, event_type):
         time_end = now_to_datetime()
         message = 'type:%s, name:%s, operation:%s, status:%s, reporter:%s, eventId:%s, duration:%f' \
-        % (self.involved_object_kind, self.involved_object_name, self.involved_cmd_key, status, 
-           self.reporter, self.event_id, (time_end - self.time_start).total_seconds())
-        event = UserDefinedEvent(self.event_metadata_name, self.time_start, time_end, 
-                                 self.involved_object_name, self.involved_object_kind, 
+                  % (self.involved_object_kind, self.involved_object_name, self.involved_cmd_key, status,
+                     self.reporter, self.event_id, (time_end - self.time_start).total_seconds())
+        event = UserDefinedEvent(self.event_metadata_name, self.time_start, time_end,
+                                 self.involved_object_name, self.involved_object_kind,
                                  message, self.involved_cmd_key, event_type)
         config.load_kube_config(config_file=TOKEN)
+        return event
+
+    @retry(stop=stop_after_attempt(10),wait=wait_random(min=1,max=3),reraise=True)
+    def create_event(self, status, event_type):
+        event=self.event_helper(status,event_type)
         event.registerKubernetesEvent()
         return
 
     @retry(stop=stop_after_attempt(10),wait=wait_random(min=1,max=3),reraise=True)
     def update_evet(self, status, event_type):
-        time_end = now_to_datetime()
-        message = 'type:%s, name:%s, operation:%s, status:%s, reporter:%s, eventId:%s, duration:%f' \
-        % (self.involved_object_kind, self.involved_object_name, self.involved_cmd_key, status, 
-           self.reporter, self.event_id, (time_end - self.time_start).total_seconds())
-        event = UserDefinedEvent(self.event_metadata_name, self.time_start, time_end, 
-                                 self.involved_object_name, self.involved_object_kind, 
-                                 message, self.involved_cmd_key, event_type)
-        config.load_kube_config(config_file=TOKEN)
+        event=self.event_helper(status,event_type)
         event.updateKubernetesEvent()
         return
