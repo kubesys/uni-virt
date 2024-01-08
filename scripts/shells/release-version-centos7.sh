@@ -174,6 +174,9 @@ if [ ! -d "../docker/virtmonitor/centos7/kubesys" ]; then
 	mkdir -p ../docker/virtmonitor/centos7/kubesys
 fi
 cp -rf kubesys/*.py ../docker/virtctl/centos7/kubesys
+cp -rf kubesys/*.py ../docker/virtlet/centos7/kubesys
+cp -rf kubesys/*.py ../docker/libvirtwatcher/centos7/kubesys
+cp -rf kubesys/*.py ../docker/virtmonitor/centos7/kubesys
 cp -rf utils/*.py ../docker/virtctl/centos7/utils/
 cp -rf utils/*.py ../docker/virtlet/centos7/utils/
 cp -rf utils/*.py ../docker/libvirtwatcher/centos7/utils/
