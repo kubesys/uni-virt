@@ -29,6 +29,7 @@ GROUP = constants.KUBERNETES_GROUP
 PLURAL_VMP = constants.KUBERNETES_PLURAL_VMP
 VERSION_VMP = constants.KUBERNETES_API_VERSION
 GROUP_VMP = constants.KUBERNETES_GROUP
+KIND_VMP=constants.KUBERNETES_KIND_VMP
 SHARE_FS_MOUNT_POINT = constants.KUBEVMM_SHARE_FS_MOUNT_POINT
 VDISK_FS_MOUNT_POINT = constants.KUBEVMM_VDISK_FS_MOUNT_POINT
 LOCAL_FS_MOUNT_POINT = constants.KUBEVMM_LOCAL_FS_MOUNT_POINT
@@ -199,8 +200,7 @@ class KillableThread:
 
 
 def collect_storage_metrics(zone):
-    config.load_kube_config(config_file=TOKEN)
-    vmps = list_objects_in_kubernetes(GROUP_VMP, VERSION_VMP, PLURAL_VMP)
+    vmps = list_objects_in_kubernetes(kind=KIND_VMP)
     #     storages = {VDISK_FS_MOUNT_POINT: 'vdiskfs', SHARE_FS_MOUNT_POINT: 'nfs/glusterfs',
     #                 LOCAL_FS_MOUNT_POINT: 'localfs', BLOCK_FS_MOUNT_POINT: 'blockfs'}
     for vmp in vmps:
