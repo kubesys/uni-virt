@@ -49,7 +49,7 @@ Import third party libs
 from kubernetes import client, config
 from kubernetes.client import V1DeleteOptions
 from kubernetes.client.rest import ApiException
-from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_type, retry_if_exception_message
+from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_message,retry_if_result
 
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 TOKEN_ORIGIN = constants.KUBERNETES_TOKEN_FILE_ORIGIN
@@ -68,9 +68,13 @@ OVN_CONFIG_FILE = constants.KUBEVMM_OVN_FILE
 #                                                                      version=version, namespace='default',
 #                                                                      plural=plural, body=body)
 #     return retv
+def is_none_p(value):
+    """Return True if value is None"""
+    return value is None
+
 
 @retry(stop=stop_after_attempt(3),
-       retry=retry_if_exception_type(ApiException),
+       retry=retry_if_result(is_none_p),
        wait=wait_random(min=0, max=3),
        reraise=True)
 def create_custom_object(jsonStr):
