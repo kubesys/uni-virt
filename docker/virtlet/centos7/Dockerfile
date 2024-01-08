@@ -8,6 +8,8 @@ ADD *.sh /home/kubevmm/core/
 
 ADD virtlet /home/kubevmm/core/virtlet
 
+ADD kubesys /home/kubevmm/core/kubesys
+
 ADD utils /home/kubevmm/core/utils
 
 ADD *.cfg /home/kubevmm/core/utils

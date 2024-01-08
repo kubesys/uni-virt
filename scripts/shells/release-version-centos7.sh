@@ -52,6 +52,8 @@ rm -f ./core/plugins/device-passthrough~
 cp -f ./core/utils/arraylist.cfg ./dist/centos7
 cp -rf ./scripts/yamls ./dist/centos7
 cp -rf ./scripts/plugins ./dist/centos7
+cp -rf ./client_python/kubesys ./dist/centos7
+cp -rf ./client_python/kubesys ./core
 #if [ ! -d "./dist/ansible/playbooks" ]; then
 #	mkdir -p ./dist/ansible/playbooks
 #fi
@@ -159,6 +161,19 @@ fi
 if [ ! -d "../docker/virtmonitor/centos7/utils" ]; then
 	mkdir -p ../docker/virtmonitor/centos7/utils
 fi
+if [ ! -d "../docker/virtctl/centos7/kubesys" ]; then
+	mkdir -p ../docker/virtctl/centos7/kubesys
+fi
+if [ ! -d "../docker/virtlet/centos7/kubesys" ]; then
+	mkdir -p ../docker/virtlet/centos7/kubesys
+fi
+if [ ! -d "../docker/libvirtwatcher/centos7/kubesys" ]; then
+	mkdir -p ../docker/libvirtwatcher/centos7/kubesys
+fi
+if [ ! -d "../docker/virtmonitor/centos7/kubesys" ]; then
+	mkdir -p ../docker/virtmonitor/centos7/kubesys
+fi
+cp -rf kubesys/*.py ../docker/virtctl/centos7/kubesys
 cp -rf utils/*.py ../docker/virtctl/centos7/utils/
 cp -rf utils/*.py ../docker/virtlet/centos7/utils/
 cp -rf utils/*.py ../docker/libvirtwatcher/centos7/utils/
