@@ -19,6 +19,7 @@ except:
     from exception import InternalServerError, NotFound, Forbidden, BadRequest
     import constants
     sys.path.append("..")
+    sys.path.append('./core/')
     from kubesys.client import KubernetesClient
 
 '''
