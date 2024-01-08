@@ -1,4 +1,4 @@
-cryptography~=41.0.0
+cryptography>=3.4
 grpcio>=1.48
 grpcio-tools>=1.48
 kubernetes~=26.1.0
