@@ -95,6 +95,7 @@
 
 ## 相关程序
 * 前端开发SDK —— [java-sdk](https://github.com/kubesys/sdk)
+* kubernetes python客户端 —— [client-python](https://github.com/kubesys/client_python.git)
 
 
 # 在线相关
@@ -104,7 +105,7 @@
 ### 准备工作
 推荐通过 [kubez-ansible](https://github.com/pixiu-io/kubez-ansible) 安装 Kubernetes 集群。
 
-### 步骤1: clone 这个工程
+### 步骤1: clone 这个工程和依赖项目
 
 ```shell
 cd /root

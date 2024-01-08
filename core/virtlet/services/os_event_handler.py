@@ -59,6 +59,7 @@ LIBVIRT_XML_DIR = constants.KUBEVMM_LIBVIRT_VM_XML_DIR
 VMD_TEMPLATE_DIR = constants.KUBEVMM_DEFAULT_VMDI_DIR
 
 HOSTNAME = get_hostname_in_lower_case()
+NAMESPACE='default'
 logger = logger.set_logger(os.path.basename(__file__), constants.KUBEVMM_VIRTLET_LOG)
 
 
@@ -135,7 +136,7 @@ def myVmVolEventHandler(event, pool, name, group, version, plural):
         try:
             logger.debug('Create vm disk %s, report to virtlet' % name)
             jsondict = {'spec': {'volume': {}, 'nodeName': HOSTNAME, 'status': {}},
-                        'kind': VMD_KIND, 'metadata': {'labels': {'host': HOSTNAME}, 'name': name},
+                        'kind': VMD_KIND, 'metadata': {'labels': {'host': HOSTNAME}, 'name': name,'namespace':NAMESPACE},
                         'apiVersion': '%s/%s' % (group, version)}
             with open(get_pool_path(pool) + '/' + name + '/config.json', "r") as f:
                 config = json.load(f)
@@ -150,7 +151,7 @@ def myVmVolEventHandler(event, pool, name, group, version, plural):
             jsondict = updateJsonRemoveLifecycle(jsondict, vol_json)
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             try:
-                create_custom_object(group, version, plural, body)
+                create_custom_object(str(jsondict))
             except ApiException as e:
                 logger.error(e)
 
@@ -477,7 +478,7 @@ def myVmSnapshotEventHandler(event, vm, name, group, version, plural):
         try:
             logger.debug('Create vm snapshot %s, report to virtlet' % name)
             jsondict = {'spec': {'domainsnapshot': {}, 'nodeName': HOSTNAME, 'status': {}},
-                        'kind': VMSN_KIND, 'metadata': {'labels': {'host': HOSTNAME}, 'name': name},
+                        'kind': VMSN_KIND, 'metadata': {'labels': {'host': HOSTNAME}, 'name': name,'namespace':NAMESPACE},
                         'apiVersion': '%s/%s' % (group, version)}
             snap_xml = get_snapshot_xml(vm, name)
             snap_json = toKubeJson(xmlToJson(snap_xml))
@@ -485,7 +486,7 @@ def myVmSnapshotEventHandler(event, vm, name, group, version, plural):
             jsondict = updateJsonRemoveLifecycle(jsondict, snap_json)
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             try:
-                create_custom_object(group, version, plural, body)
+                create_custom_object(str(jsondict))
             except ApiException as e:
                 logger.error(e)
 
@@ -718,7 +719,7 @@ def myVmLibvirtXmlEventHandler(event, name, xml_path, group, version, plural):
         try:
             logger.debug('***Create VM %s from back-end, report to virtlet***' % name)
             jsondict = {'spec': {'domain': {}, 'nodeName': HOSTNAME, 'status': {}},
-                        'kind': VM_KIND, 'metadata': {'labels': {'host': HOSTNAME}, 'name': name},
+                        'kind': VM_KIND, 'metadata': {'labels': {'host': HOSTNAME}, 'name': name,'namespace': NAMESPACE},
                         'apiVersion': '%s/%s' % (group, version)}
             vm_xml = get_xml(name)
             vm_power_state = vm_state(name).get(name)
@@ -729,7 +730,7 @@ def myVmLibvirtXmlEventHandler(event, name, xml_path, group, version, plural):
             body = addNodeName(jsondict)
             try:
                 logger.debug("Create VM %s from back-end: %s" %(name, body))
-                create_custom_object(group, version, plural, body)
+                create_custom_object(str(jsondict))
             except ApiException as e:
                 if e.reason == 'Conflict':
                     _solve_conflict_in_VM(name, group, version, plural)
@@ -898,7 +899,7 @@ def myVmdImageLibvirtXmlEventHandler(event, name, pool, xml_path, group, version
             refresh_pool(pool)
             logger.debug('Create vm disk image %s, report to virtlet' % name)
             jsondict = {'spec': {'volume': {}, 'nodeName': HOSTNAME, 'status': {}},
-                        'kind': VMDI_KIND, 'metadata': {'labels': {'host': HOSTNAME}, 'name': name},
+                        'kind': VMDI_KIND, 'metadata': {'labels': {'host': HOSTNAME}, 'name': name,'namespace': NAMESPACE},
                         'apiVersion': '%s/%s' % (group, version)}
             vmd_xml = get_volume_xml(pool, name)
             vol_path = get_volume_path(pool, name)
@@ -908,7 +909,7 @@ def myVmdImageLibvirtXmlEventHandler(event, name, pool, xml_path, group, version
             jsondict = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             body = addNodeName(jsondict)
             try:
-                create_custom_object(group, version, plural, body)
+                create_custom_object(str(jsondict))
             except ApiException as e:
                 logger.error(e)
 
@@ -1042,7 +1043,7 @@ def myImageLibvirtXmlEventHandler(event, name, xml_path, group, version, plural)
         try:
             logger.debug('Create vm image %s, report to virtlet' % name)
             jsondict = {'spec': {'domain': {}, 'nodeName': HOSTNAME, 'status': {}},
-                        'kind': VMI_KIND, 'metadata': {'labels': {'host': HOSTNAME}, 'name': name},
+                        'kind': VMI_KIND, 'metadata': {'labels': {'host': HOSTNAME}, 'name': name,'namespace': NAMESPACE},
                         'apiVersion': '%s/%s' % (group, version)}
             with open(xml_path, 'r') as fr:
                 vm_xml = fr.read()
@@ -1052,7 +1053,7 @@ def myImageLibvirtXmlEventHandler(event, name, xml_path, group, version, plural)
             jsondict = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             body = addNodeName(jsondict)
             try:
-                create_custom_object(group, version, plural, body)
+                create_custom_object(str(jsondict))
             except ApiException as e:
                 logger.error(e)
 

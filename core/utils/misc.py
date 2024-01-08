@@ -31,7 +31,7 @@ import socket
 import shlex
 import errno
 from functools import wraps
-import os, sys, time, signal, atexit, subprocess
+import os, time, signal, atexit, subprocess
 import threading
 import random
 import socket
@@ -58,15 +58,24 @@ RESOURCE_FILE_PATH = constants.KUBEVMM_RESOURCE_FILE_PATH
 OVN_CONFIG_FILE = constants.KUBEVMM_OVN_FILE
 
 
+# @retry(stop=stop_after_attempt(3),
+#        retry=retry_if_exception_type(ApiException),
+#        wait=wait_random(min=0, max=3),
+#        reraise=True)
+# def create_custom_object(group, version, plural, body):
+#     config.load_kube_config(config_file=TOKEN)
+#     retv = client.CustomObjectsApi().create_namespaced_custom_object(group=group,
+#                                                                      version=version, namespace='default',
+#                                                                      plural=plural, body=body)
+#     return retv
+
 @retry(stop=stop_after_attempt(3),
        retry=retry_if_exception_type(ApiException),
        wait=wait_random(min=0, max=3),
        reraise=True)
-def create_custom_object(group, version, plural, body):
-    config.load_kube_config(config_file=TOKEN)
-    retv = client.CustomObjectsApi().create_namespaced_custom_object(group=group,
-                                                                     version=version, namespace='default',
-                                                                     plural=plural, body=body)
+def create_custom_object(jsonStr):
+    client=KubernetesClient(token=TOKEN)
+    retv=client.createResource(jsonStr)[0]
     return retv
 
 
