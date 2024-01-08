@@ -5,6 +5,7 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 @author: wuheng@otcaix.iscas.ac.cn
 @author: liujiexin@otcaix.iscas.ac.cn
 '''
+import sys
 import json
 from json import loads, load, dumps, dump
 
@@ -12,12 +13,13 @@ try:
     from utils.libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
     from utils.exception import InternalServerError, NotFound, Forbidden, BadRequest
     from utils import constants
-
+    from kubesys.client import KubernetesClient
 except:
     from libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
     from exception import InternalServerError, NotFound, Forbidden, BadRequest
     import constants
-from kubesys.client import KubernetesClient
+    sys.path.append("..")
+    from kubesys.client import KubernetesClient
 
 '''
 Import python libs
