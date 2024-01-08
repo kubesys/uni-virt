@@ -11,7 +11,7 @@ RUN yum install epel-release -y && \
     yum install glusterfs-client-xlators glusterfs-cli lusterfs-extra-xlators glusterfs-fuse iscsiadm -y && \
     yum install openvswitch-ovn* openvswitch python-openvswitch openvswitch-test openvswitch-devel openvswitch-ipsec -y && \
     pip3 install --upgrade pip && \
-    pip3 install --ignore-installed threadpool prometheus_client kubernetes==26.1.0 libvirt-python==5.9.0 xmljson xmltodict watchdog pyyaml grpcio grpcio-tools protobuf psutil tenacity && \
+    pip3 install --ignore-installed threadpool prometheus_client kubernetes==26.1.0 libvirt-python==5.9.0 xmljson xmltodict watchdog pyyaml grpcio grpcio-tools protobuf psutil tenacity cryptography&& \
     bash sdsctl-install.sh && \
     yum clean all && \
     rm -fr /tmp/*
