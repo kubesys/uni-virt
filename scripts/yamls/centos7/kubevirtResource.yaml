@@ -212,7 +212,7 @@ spec:
     - jsonPath: .spec.volume.target.format._type
       name: TYPE
       type: string  
-    - jsonPath: .spec.volume.target.path
+    - jsonPath: .spec.volume.target.path.text
       name: PATH
       type: string  
     - jsonPath: .spec.status.conditions.state.waiting.reason
