@@ -12,7 +12,11 @@ from kubernetes.client import V1DeleteOptions
 from kubernetes.client.rest import ApiException
 import logging
 import logging.handlers
+from kubernetes import config,client
 
+from kubernetes.client import V1DeleteOptions
+from kubesys.client import KubernetesClient
+from kubesys.exceptions import HTTPError
 try:
     from utils import constants
     from utils.exception import BadRequest
@@ -228,17 +232,12 @@ def list_node():
             config.load_kube_config(TOKEN)
             jsondict = client.CoreV1Api().list_node().to_dict()
             return jsondict
-        except ApiException as e:
-            if e.reason == 'Not Found':
+        except HTTPError as e:
+            if str(e).find('Not Found'):
                 return False
-            else:
-                time.sleep(1)
-        except Exception as e:
-            if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                    'ApiException') != -1:
-                config.load_kube_config(TOKEN)
+        finally:
             k8s_logger.debug(traceback.format_exc())
-            k8s_logger.debug("sleep 3 sec")
+            k8s_logger.debug("sleep 1 sec")
             time.sleep(1)
     raise BadRequest('can not get node info from k8s.')
 
@@ -258,37 +257,24 @@ class K8sHelper(object):
                                                                                   plural=resources[self.kind]['plural'],
                                                                                   name=name)
                 return True
-            except ApiException as e:
-                if e.reason == 'Not Found':
+            except HTTPError as e:
+                if str(e).find('Not Found'):
                     return False
-                else:
-                    time.sleep(1)
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+            finally:
                 k8s_logger.debug(traceback.format_exc())
-                k8s_logger.debug("sleep 3 sec")
+                k8s_logger.debug("sleep 1 sec")
                 time.sleep(1)
         raise BadRequest('can not get %s %s response from k8s.' % (self.kind, name))
 
     def get(self, name):
         for i in range(RETRY_TIMES):
             try:
-                config.load_kube_config(TOKEN)
-                jsondict = client.CustomObjectsApi().get_namespaced_custom_object(group=resources[self.kind]['group'],
-                                                                                  version=resources[self.kind][
-                                                                                      'version'],
-                                                                                  namespace='default',
-                                                                                  plural=resources[self.kind]['plural'],
-                                                                                  name=name)
-                return jsondict
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+                client = KubernetesClient(config=TOKEN)
+                response= client.getResource(kind=self.kind, namespace='default', name=name)
+                return response
+            except:
                 k8s_logger.debug(traceback.format_exc())
-                k8s_logger.debug("sleep 3 sec")
+                k8s_logger.debug("sleep 1 sec")
                 time.sleep(1)
 
         raise BadRequest('can not get %s %s on k8s.' % (self.kind, name))
@@ -306,10 +292,7 @@ class K8sHelper(object):
                 if 'spec' in jsondict.keys() and isinstance(jsondict['spec'], dict) and key in jsondict['spec'].keys():
                     return jsondict['spec'][key]
                 return None
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+            except:
                 time.sleep(1)
         raise BadRequest('can not get %s %s on k8s.' % (self.kind, name))
 
@@ -325,10 +308,7 @@ class K8sHelper(object):
                 jsondict = updateJsonRemoveLifecycle(jsondict, {key: data})
                 body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
                 return body
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+            except:
                 time.sleep(1)
         raise BadRequest('can not get %s %s data on k8s.' % (self.kind, name))
 
@@ -349,10 +329,7 @@ class K8sHelper(object):
                 return client.CustomObjectsApi().create_namespaced_custom_object(
                     group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
                     plural=resources[self.kind]['plural'], body=body)
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+            except:
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
                 time.sleep(1)
@@ -371,10 +348,7 @@ class K8sHelper(object):
                 return client.CustomObjectsApi().replace_namespaced_custom_object(
                     group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
                     plural=resources[self.kind]['plural'], name=name, body=jsondict)
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+            except:
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
                 time.sleep(1)
@@ -395,10 +369,7 @@ class K8sHelper(object):
                 return client.CustomObjectsApi().replace_namespaced_custom_object(
                     group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
                     plural=resources[self.kind]['plural'], name=name, body=jsondict)
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+            except:
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
                 time.sleep(1)
@@ -415,10 +386,7 @@ class K8sHelper(object):
                 return client.CustomObjectsApi().replace_namespaced_custom_object(
                     group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
                     plural=resources[self.kind]['plural'], name=name, body=jsondict)
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+            except:
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
                 time.sleep(1)
@@ -435,10 +403,7 @@ class K8sHelper(object):
                 return client.CustomObjectsApi().create_namespaced_custom_object(
                     group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
                     plural=resources[self.kind]['plural'], body=jsondict)
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+            except:
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
                 time.sleep(1)
@@ -451,16 +416,10 @@ class K8sHelper(object):
                 return client.CustomObjectsApi().delete_namespaced_custom_object(
                     group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
                     plural=resources[self.kind]['plural'], name=name, body=V1DeleteOptions())
-            except ApiException as e:
-                if e.reason == 'Not Found':
+            except HTTPError as e:
+                if str(e).find('Not Found'):
                     return
-                else:
-                    time.sleep(1)
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
-
+            finally:
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
                 time.sleep(1)
@@ -482,10 +441,7 @@ class K8sHelper(object):
                         plural=resources[self.kind]['plural'], name=name, body=jsondict)
                 else:
                     return
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+            except:
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
                 time.sleep(1)
