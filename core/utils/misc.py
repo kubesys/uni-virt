@@ -79,7 +79,7 @@ def is_none_p(value):
        reraise=True)
 def create_custom_object(jsonStr):
     client=KubernetesClient(token=TOKEN)
-    retv=client.createResource(jsonStr)[0]
+    retv=client.createResource(jsonStr)
     return retv
 
 
