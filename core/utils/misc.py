@@ -98,10 +98,9 @@ def get_custom_object(group, version, plural, metadata_name):
        retry=retry_if_exception_message(match='Not Found'),
        wait=wait_random(min=0, max=3),
        reraise=True)
-def list_custom_object(group, version, plural):
-    config.load_kube_config(config_file=TOKEN)
-    jsonStr = client.CustomObjectsApi().list_cluster_custom_object(
-        group=group, version=version, plural=plural).get('items')
+def list_custom_object(kind,namespace):
+    client=KubernetesClient(config=TOKEN)
+    jsonStr=client.listResources(kind=kind,namespace=namespace).get('items')
     return jsonStr
 
 
