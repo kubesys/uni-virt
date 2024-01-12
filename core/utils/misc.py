@@ -456,7 +456,7 @@ def set_field_in_kubernetes_by_index(name, group, version, plural, index, value)
 def list_objects_in_kubernetes(kind):
     try:
         client = KubernetesClient(config=TOKEN)
-        return client.listResources(kind=kind)[0].get('items')
+        return client.listResources(kind=kind).get('items')
     except:
         return None
 
