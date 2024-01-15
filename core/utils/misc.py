@@ -405,8 +405,8 @@ def get_address_set_info(name):
 
 def get_field_in_kubernetes_node(name, index):
     try:
-        v1_node_list = client.CoreV1Api().list_node(label_selector='host=%s' % name)
-        jsondict = v1_node_list.to_dict()
+        client=KubernetesClient(config=TOKEN)
+        jsondict=client.listResourcesWithSelector(kind='Node',namespace="",tp='label',selects={'host':name})
         items = jsondict.get('items')
         if items:
             return get_field(items[0], index)
