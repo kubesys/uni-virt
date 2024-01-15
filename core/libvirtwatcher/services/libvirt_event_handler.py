@@ -41,10 +41,13 @@ from utils.misc import get_hostname_in_lower_case, delete_custom_object, get_cus
 from utils import logger
 from utils import constants
 
+from kubesys.exceptions import HTTPError
+
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 PLURAL = constants.KUBERNETES_PLURAL_VM
 VERSION = constants.KUBERNETES_API_VERSION
 GROUP = constants.KUBERNETES_GROUP
+KIND=constants.KUBERNETES_KIND_VM
 DEFAULT_DEVICE_DIR = constants.KUBEVMM_VM_DEVICES_DIR
 HOSTNAME = get_hostname_in_lower_case()
 
@@ -148,8 +151,8 @@ class MyDomainEventHandler(threading.Thread):
                     # key point
                     jsondict = get_custom_object(GROUP, VERSION, PLURAL, vm_name)
 #                     jsondict_old = jsondict
-                except ApiException as e:
-                    if e.reason == 'Not Found':
+                except HTTPError as e:
+                    if str(e).find('Not Found'):
                         logger.debug('**VM %s already deleted, ignore this 404 error.' % vm_name)
                         ignore_pushing = True
                     else:
@@ -189,10 +192,10 @@ class MyDomainEventHandler(threading.Thread):
                             try:
                                 logger.debug('update %s in kubernetes' % vm_name)
                                 update_custom_object(GROUP, VERSION, PLURAL, vm_name, body)
-                            except ApiException as e:
-                                if e.reason == 'Not Found':
+                            except HTTPError as e:
+                                if str(e).find('Not Found'):
                                     logger.debug('**VM %s already deleted, ignore this 404 error.' % vm_name)
-                                if e.reason == 'Conflict':
+                                if str(e).find('Conflict'):
                                     logger.debug('**Other process updated %s, ignore this 409 error.' % vm_name)
                                 else:
                                     logger.error('Oops! ', exc_info=1)
