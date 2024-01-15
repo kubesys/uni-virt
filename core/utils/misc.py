@@ -1549,38 +1549,45 @@ def get_switch_and_ip_info(vm, device):
 
 def get_all_nodes():
     """:rtype: V1NodeList"""
-    return client.CoreV1Api().list_node()
+    client=KubernetesClient(config=TOKEN)
+    return client.listResources(kind='Node')
 
 
 def get_nodes_num():
     """:rtype: int"""
-    return len(get_all_nodes().items)
+    return len(get_all_nodes().get('items'))
 
 
 def get_all_nodes_name():
     """:rtype: list"""
     names = []
-    for item in get_all_nodes().items:
-        names.append(item.metadata.name)
+    for item in get_all_nodes().get('items'):
+        names.append(item.get('metadata').get('name'))
     return names
 
 
 def get_node_label_value(nodes, label):
     """:type nodes: str:type label: str:rtype: str"""
     try:
+        # for item in get_all_nodes().get('items'):
+        #     if item.get('metadata').get('name')==nodes:
+        #         return item.get('metadata').get('labels')[label]
         i = get_all_nodes_name().index(nodes)
-        return get_all_nodes().items[i].metadata.labels[label]
+        return get_all_nodes().get('items')[i].get('metadata').get('labels')[label]
     except ValueError:
         return None
 
 
 def push_node_label_value(node, label, value):
     """:type node: str:type label: str:type value: str"""
+    client = KubernetesClient(config=TOKEN)
+    jsonDict=client.getResource(kind='Node',name=node)
     body = {"metadata": {"labels": {label: value}}}
+    jsonDict.update(body)
     if node in get_all_nodes_name():
-        client.CoreV1Api().patch_node(node, body)
+        client.updateResource(jsonDict)
     else:
-        raise BadRequest("node %s is not exist" % node)
+        raise BadRequest("node %s does not exist" % node)
 
 
 class UserDefinedEvent(object):
