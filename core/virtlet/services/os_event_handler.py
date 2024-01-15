@@ -117,7 +117,7 @@ def myVmVolEventHandler(event, pool, name, group, version, plural):
                 logger.warning('Oops! ', exc_info=1)
         try:
             logger.debug('Delete vm disk %s, report to virtlet' % name)
-            delete_custom_object(group, version, plural, name)
+            delete_custom_object(VMD_KIND,NAMESPACE, name)
         except HTTPError as e:
             if str(e).find('Not Found'):
                 logger.debug('**VM disk %s already deleted, ignore this 404 error.' % name)
@@ -459,7 +459,7 @@ def myVmSnapshotEventHandler(event, vm, name, group, version, plural):
                 logger.warning('Oops! ', exc_info=1)
         try:
             logger.debug('Delete vm snapshot %s, report to virtlet' % name)
-            delete_custom_object(group, version, plural, name)
+            delete_custom_object(VMSN_KIND,NAMESPACE, name)
         except HTTPError as e:
             if str(e).find('Not Found'):
                 logger.debug('**VM snapshot %s already deleted, ignore this 404 error.' % name)
@@ -955,7 +955,7 @@ def myVmdImageLibvirtXmlEventHandler(event, name, pool, xml_path, group, version
                 logger.warning('Oops! ', exc_info=1)
         try:
             logger.debug('Delete vm disk image %s, report to virtlet' % name)
-            delete_custom_object(group, version, plural, name)
+            delete_custom_object(VMDI_KIND,NAMESPACE, name)
         #                 jsondict = updateDomainStructureAndDeleteLifecycleInJson(jsondict, vmd_json)
         #                 body = addExceptionMessage(jsondict, 'VirtletError', 'VM has been deleted in back-end.')
         #                 modifyStructure(name, body, group, version, plural)
@@ -1119,7 +1119,7 @@ def myImageLibvirtXmlEventHandler(event, name, xml_path, group, version, plural)
                 logger.warning('Oops! ', exc_info=1)
         try:
             logger.debug('Delete vm image %s, report to virtlet' % name)
-            delete_custom_object(group, version, plural, name)
+            delete_custom_object(VMI_KIND,NAMESPACE, name)
         #                 jsondict = updateDomainStructureAndDeleteLifecycleInJson(jsondict, vm_json)
         #                 body = addExceptionMessage(jsondict, 'VirtletError', 'VM has been deleted in back-end.')
         #                 modifyStructure(name, body, group, version, plural)

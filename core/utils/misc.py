@@ -122,11 +122,9 @@ def update_custom_object(group, version, plural, metadata_name, body):
        retry=retry_if_exception_message(match='Not Found'),
        wait=wait_random(min=0, max=3),
        reraise=True)
-def delete_custom_object(group, version, plural, metadata_name):
-    config.load_kube_config(config_file=TOKEN)
-    retv = client.CustomObjectsApi().delete_namespaced_custom_object(
-        group=group, version=version, namespace='default', plural=plural, name=metadata_name,
-        body=V1DeleteOptions())
+def delete_custom_object(kind,namespace, metadata_name):
+    client=KubernetesClient(config=TOKEN)
+    retv=client.deleteResource(kind,namespace,metadata_name)
     return retv
 
 
