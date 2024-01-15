@@ -24,7 +24,7 @@ import contextlib
 Import third party libs
 '''
 from kubernetes import client, config
-from kubernetes.client.rest import ApiException
+# from kubernetes.client.rest import ApiException
 from kubernetes.client.models.v1_node_status import V1NodeStatus
 from kubernetes.client.models.v1_node_condition import V1NodeCondition
 from kubernetes.client.models.v1_node_daemon_endpoints import V1NodeDaemonEndpoints
@@ -43,6 +43,7 @@ from utils.libvirt_util import is_vm_exists, __get_conn, get_xml, vm_state, free
 from utils.misc import push_node_label_value, get_custom_object, update_custom_object, delete_custom_object, change_master_and_reload_config, updateDescription, addPowerStatusMessage, updateDomain, CDaemon, runCmd, get_field_in_kubernetes_by_index, get_hostname_in_lower_case, get_node_name_from_kubernetes, get_ha_from_kubernetes
 from utils import logger
 
+from kubesys.exceptions import HTTPError
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 TOKEN_ORIGIN = constants.KUBERNETES_TOKEN_FILE_ORIGIN
 HOSTNAME = get_hostname_in_lower_case()
@@ -50,7 +51,7 @@ DEFAULT_JSON_BACKUP_DIR = constants.KUBEVMM_DEFAULT_JSON_BACKUP_DIR
 GROUP = constants.KUBERNETES_GROUP
 VERSION = constants.KUBERNETES_API_VERSION
 PLURAL = constants.KUBERNETES_PLURAL_VM
-
+KIND=constants.KUBERNETES_KIND_VM
 logger = logger.set_logger(os.path.basename(__file__), constants.KUBEVMM_VIRTLET_LOG)
 
 
@@ -176,8 +177,8 @@ def _check_vm_power_state(group, version, plural, metadata_name):
     try:
         logger.debug('3.Check the power state of VM: %s' % metadata_name)
         jsondict = get_custom_object(group, version, plural, metadata_name)
-    except ApiException as e:
-        if e.reason == 'Not Found':
+    except HTTPError as e:
+        if str(e).find('Not Found'):
             logger.debug('**VM %s already deleted, ignore this 404 error.' % metadata_name)
             return
     except Exception as e:
@@ -192,10 +193,10 @@ def _check_vm_power_state(group, version, plural, metadata_name):
         body = addPowerStatusMessage(jsondict, vm_power_state, 'The VM is %s' % vm_power_state)
         try:
             update_custom_object(group, version, plural, metadata_name, body)
-        except ApiException as e:
-            if e.reason == 'Not Found':
+        except HTTPError as e:
+            if str(e).find('Not Found'):
                 logger.debug('**VM %s already deleted, ignore this 404.' % metadata_name)
-            if e.reason == 'Conflict':
+            if str(e).find('Conflict'):
                 logger.debug('**Other process updated %s, ignore this 409.' % metadata_name)
             else:
                 logger.error('Oops! ', exc_info=1)
@@ -206,8 +207,8 @@ def _check_vm_power_state(group, version, plural, metadata_name):
 def _backup_json_to_file(group, version, namespace, plural, metadata_name):
     try:
         jsonStr = get_custom_object(group, version, plural, metadata_name)
-    except ApiException as e:
-        if e.reason == 'Not Found':
+    except HTTPError as e:
+        if str(e).find('Not Found'):
             logger.debug('**VM %s already deleted.' % metadata_name)
             return
         else:
