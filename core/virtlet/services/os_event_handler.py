@@ -40,6 +40,8 @@ from utils.misc import create_custom_object, delete_custom_object, get_custom_ob
     addPowerStatusMessage, updateDomainSnapshot, updateDomain, report_failure, get_hostname_in_lower_case, \
     DiskImageHelper
 
+from kubesys.exceptions import HTTPError
+
 GROUP = constants.KUBERNETES_GROUP
 VERSION = constants.KUBERNETES_API_VERSION
 VM_KIND = constants.KUBERNETES_KIND_VM
@@ -97,8 +99,8 @@ def myVmVolEventHandler(event, pool, name, group, version, plural):
             jsondict = updateJsonRemoveLifecycle(jsondict, {})
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             update_custom_object(group, version, plural, name, body)
-        except ApiException as e:
-            if e.reason == 'Not Found':
+        except HTTPError as e:
+            if str(e).find('Not Found'):
                 logger.debug('**VM disk %s already deleted, ignore this 404 error.' % name)
             else:
                 info = sys.exc_info()
@@ -116,8 +118,8 @@ def myVmVolEventHandler(event, pool, name, group, version, plural):
         try:
             logger.debug('Delete vm disk %s, report to virtlet' % name)
             delete_custom_object(group, version, plural, name)
-        except ApiException as e:
-            if e.reason == 'Not Found':
+        except HTTPError as e:
+            if str(e).find('Not Found'):
                 logger.debug('**VM disk %s already deleted, ignore this 404 error.' % name)
             else:
                 info = sys.exc_info()
@@ -152,7 +154,7 @@ def myVmVolEventHandler(event, pool, name, group, version, plural):
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             try:
                 create_custom_object(str(jsondict))
-            except ApiException as e:
+            except HTTPError as e:
                 logger.error(e)
 
         except:
@@ -182,7 +184,7 @@ def myVmVolEventHandler(event, pool, name, group, version, plural):
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             try:
                 update_custom_object(group, version, plural, name, body)
-            except ApiException as e:
+            except HTTPError as e:
                 logger.error(e)
         except:
             logger.error('Oops! ', exc_info=1)
@@ -439,8 +441,8 @@ def myVmSnapshotEventHandler(event, vm, name, group, version, plural):
             jsondict = updateJsonRemoveLifecycle(jsondict, {})
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             update_custom_object(group, version, plural, name, body)
-        except ApiException as e:
-            if e.reason == 'Not Found':
+        except HTTPError as e:
+            if str(e).find('Not Found'):
                 logger.debug('**VM snapshot %s already deleted, ignore this 404 error.' % name)
             else:
                 info = sys.exc_info()
@@ -458,8 +460,8 @@ def myVmSnapshotEventHandler(event, vm, name, group, version, plural):
         try:
             logger.debug('Delete vm snapshot %s, report to virtlet' % name)
             delete_custom_object(group, version, plural, name)
-        except ApiException as e:
-            if e.reason == 'Not Found':
+        except HTTPError as e:
+            if str(e).find('Not Found'):
                 logger.debug('**VM snapshot %s already deleted, ignore this 404 error.' % name)
             else:
                 info = sys.exc_info()
@@ -487,7 +489,7 @@ def myVmSnapshotEventHandler(event, vm, name, group, version, plural):
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             try:
                 create_custom_object(str(jsondict))
-            except ApiException as e:
+            except HTTPError as e:
                 logger.error(e)
 
         except:
@@ -530,7 +532,7 @@ class VmSnapshotEventHandler(FileSystemEventHandler):
             if file_type == '.xml':
                 try:
                     myVmSnapshotEventHandler('Create', vm, snap, self.group, self.version, self.plural)
-                except ApiException:
+                except HTTPError:
                     logger.error('Oops! ', exc_info=1)
 
     def on_created(self, event):
@@ -559,7 +561,7 @@ class VmSnapshotEventHandler(FileSystemEventHandler):
             if file_type == '.xml':
                 try:
                     myVmSnapshotEventHandler('Delete', vm, snap, self.group, self.version, self.plural)
-                except ApiException:
+                except HTTPError:
                     logger.error('Oops! ', exc_info=1)
 
     def on_modified(self, event):
@@ -731,8 +733,8 @@ def myVmLibvirtXmlEventHandler(event, name, xml_path, group, version, plural):
             try:
                 logger.debug("Create VM %s from back-end: %s" %(name, body))
                 create_custom_object(str(jsondict))
-            except ApiException as e:
-                if e.reason == 'Conflict':
+            except HTTPError as e:
+                if str(e).find('Conflict'):
                     _solve_conflict_in_VM(name, group, version, plural)
                 else:
                     logger.error(e)
@@ -843,7 +845,7 @@ class VmLibvirtXmlEventHandler(FileSystemEventHandler):
             if file_type == '.xml' and is_vm_exists(vm):
                 try:
                     myVmLibvirtXmlEventHandler('Create', vm, event.dest_path, self.group, self.version, self.plural)
-                except ApiException:
+                except HTTPError:
                     logger.error('Oops! ', exc_info=1)
 
     def on_created(self, event):
@@ -871,7 +873,7 @@ class VmLibvirtXmlEventHandler(FileSystemEventHandler):
             if file_type == '.xml' and not is_vm_exists(vm):
                 try:
                     myVmLibvirtXmlEventHandler('Delete', vm, event.src_path, self.group, self.version, self.plural)
-                except ApiException:
+                except HTTPError:
                     logger.error('Oops! ', exc_info=1)
 
     def on_modified(self, event):
@@ -885,7 +887,7 @@ class VmLibvirtXmlEventHandler(FileSystemEventHandler):
             if file_type == '.xml' and is_vm_exists(vm):
                 try:
                     myVmLibvirtXmlEventHandler('Modify', vm, event.src_path, self.group, self.version, self.plural)
-                except ApiException:
+                except HTTPError:
                     logger.error('Oops! ', exc_info=1)
 
 
@@ -910,7 +912,7 @@ def myVmdImageLibvirtXmlEventHandler(event, name, pool, xml_path, group, version
             body = addNodeName(jsondict)
             try:
                 create_custom_object(str(jsondict))
-            except ApiException as e:
+            except HTTPError as e:
                 logger.error(e)
 
         except:
@@ -935,7 +937,7 @@ def myVmdImageLibvirtXmlEventHandler(event, name, pool, xml_path, group, version
             jsondict = updateDomainStructureAndDeleteLifecycleInJson(jsondict, {})
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             update_custom_object(group, version, plural, name, body)
-        except ApiException as e:
+        except HTTPError as e:
             if e.reason == 'Not Found':
                 logger.debug('**VM disk image %s already deleted, ignore this 404 error.' % name)
             else:
@@ -957,7 +959,7 @@ def myVmdImageLibvirtXmlEventHandler(event, name, pool, xml_path, group, version
         #                 jsondict = updateDomainStructureAndDeleteLifecycleInJson(jsondict, vmd_json)
         #                 body = addExceptionMessage(jsondict, 'VirtletError', 'VM has been deleted in back-end.')
         #                 modifyStructure(name, body, group, version, plural)
-        except ApiException as e:
+        except HTTPError as e:
             if e.reason == 'Not Found':
                 logger.debug('**VM disk image %s already deleted, ignore this 404 error.' % name)
             else:
@@ -993,7 +995,7 @@ class VmdImageLibvirtXmlEventHandler(FileSystemEventHandler):
             try:
                 myVmdImageLibvirtXmlEventHandler('Create', vmdi, self.pool, event.dest_path, self.group, self.version,
                                                  self.plural)
-            except ApiException:
+            except HTTPError:
                 logger.error('Oops! ', exc_info=1)
 
     def on_created(self, event):
@@ -1005,7 +1007,7 @@ class VmdImageLibvirtXmlEventHandler(FileSystemEventHandler):
             try:
                 myVmdImageLibvirtXmlEventHandler('Create', vmdi, self.pool, event.src_path, self.group, self.version,
                                                  self.plural)
-            except ApiException:
+            except HTTPError:
                 logger.error('Oops! ', exc_info=1)
 
     def on_deleted(self, event):
@@ -1017,7 +1019,7 @@ class VmdImageLibvirtXmlEventHandler(FileSystemEventHandler):
             try:
                 myVmdImageLibvirtXmlEventHandler('Delete', vmdi, self.pool, event.src_path, self.group, self.version,
                                                  self.plural)
-            except ApiException:
+            except HTTPError:
                 logger.error('Oops! ', exc_info=1)
 
     def on_modified(self, event):
@@ -1054,7 +1056,7 @@ def myImageLibvirtXmlEventHandler(event, name, xml_path, group, version, plural)
             body = addNodeName(jsondict)
             try:
                 create_custom_object(str(jsondict))
-            except ApiException as e:
+            except HTTPError as e:
                 logger.error(e)
 
         except:
@@ -1099,7 +1101,7 @@ def myImageLibvirtXmlEventHandler(event, name, xml_path, group, version, plural)
             jsondict = updateDomainStructureAndDeleteLifecycleInJson(jsondict, {})
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             update_custom_object(group, version, plural, name, body)
-        except ApiException as e:
+        except HTTPError as e:
             if e.reason == 'Not Found':
                 logger.debug('**VM image %s already deleted, ignore this 404 error.' % name)
             else:
@@ -1121,8 +1123,8 @@ def myImageLibvirtXmlEventHandler(event, name, xml_path, group, version, plural)
         #                 jsondict = updateDomainStructureAndDeleteLifecycleInJson(jsondict, vm_json)
         #                 body = addExceptionMessage(jsondict, 'VirtletError', 'VM has been deleted in back-end.')
         #                 modifyStructure(name, body, group, version, plural)
-        except ApiException as e:
-            if e.reason == 'Not Found':
+        except HTTPError as e:
+            if str(e).find('Not Found'):
                 logger.debug('**VM image %s already deleted, ignore this 404 error.' % name)
             else:
                 info = sys.exc_info()
@@ -1158,7 +1160,7 @@ class ImageLibvirtXmlEventHandler(FileSystemEventHandler):
             if file_type == '.xml':
                 try:
                     myImageLibvirtXmlEventHandler('Create', vmi, event.dest_path, self.group, self.version, self.plural)
-                except ApiException:
+                except HTTPError:
                     logger.error('Oops! ', exc_info=1)
 
     def on_created(self, event):
@@ -1186,7 +1188,7 @@ class ImageLibvirtXmlEventHandler(FileSystemEventHandler):
             if file_type == '.xml':
                 try:
                     myImageLibvirtXmlEventHandler('Delete', vmi, event.src_path, self.group, self.version, self.plural)
-                except ApiException:
+                except HTTPError:
                     logger.error('Oops! ', exc_info=1)
 
     def on_modified(self, event):
@@ -1200,7 +1202,7 @@ class ImageLibvirtXmlEventHandler(FileSystemEventHandler):
             if file_type == '.xml':
                 try:
                     myImageLibvirtXmlEventHandler('Modify', vmi, event.src_path, self.group, self.version, self.plural)
-                except ApiException:
+                except HTTPError:
                     logger.error('Oops! ', exc_info=1)
 
 
