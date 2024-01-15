@@ -1582,8 +1582,8 @@ def push_node_label_value(node, label, value):
     """:type node: str:type label: str:type value: str"""
     client = KubernetesClient(config=TOKEN)
     jsonDict=client.getResource(kind='Node',name=node)
-    body = {"metadata": {"labels": {label: value}}}
-    jsonDict.update(body)
+    body = {label: value}
+    jsonDict['metadata']['labels'].update(body)
     if node in get_all_nodes_name():
         client.updateResource(jsonDict)
     else:
