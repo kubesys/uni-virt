@@ -11,13 +11,13 @@ from json import loads, load, dumps, dump
 
 try:
     from utils.libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
-    from utils.exception import InternalServerError, NotFound, Forbidden, BadRequest
+    from utils.exception import InternalServerError, NotFound, Forbidden, BadRequest,ExecuteException
     from utils import constants
     from kubesys.client import KubernetesClient
     from kubesys.exceptions import HTTPError
 except:
     from libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
-    from exception import InternalServerError, NotFound, Forbidden, BadRequest
+    from exception import InternalServerError, NotFound, Forbidden, BadRequest,ExecuteException
     import constants
     sys.path.append("..")
     sys.path.append('./core/')
@@ -1108,12 +1108,6 @@ def _userDefinedOperationInList(field, jsondict, alist):
                 tmp2 = '{}[\'{}\']'.format(tmp2, value)
         exec('%s = %s' % (tmp2, _addListToSpecificField(tmp)))
     return
-
-
-class ExecuteException(Exception):
-    def __init__(self, reason, message):
-        self.reason = reason
-        self.message = message
 
 
 class KubevmmException(Exception):
