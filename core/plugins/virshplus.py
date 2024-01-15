@@ -64,6 +64,7 @@ from utils.libvirt_util import create, destroy, check_pool_content_type, is_vm_d
 from utils.misc import get_IP, set_field_in_kubernetes_by_index, get_l2_network_info, get_address_set_info, get_l3_network_info, updateDomain, randomMAC, runCmd, get_rebase_backing_file_cmds, add_spec_in_volume, get_hostname_in_lower_case, DiskImageHelper, updateDescription, get_volume_snapshots, updateJsonRemoveLifecycle, addSnapshots, report_failure, addPowerStatusMessage, RotatingOperation, string_switch, deleteLifecycleInJson, get_field_in_kubernetes_by_index, write_config
 from utils import logger
 from utils.k8s import K8sHelper
+from kubesys.exceptions import HTTPError
 
 VM_PLURAL = constants.KUBERNETES_PLURAL_VM
 VMP_PLURAL = constants.KUBERNETES_PLURAL_VMP
@@ -564,8 +565,8 @@ def updateOS(params):
     try:
         client.CustomObjectsApi().replace_namespaced_custom_object(
             group=GROUP, version=VERSION, namespace='default', plural=VM_PLURAL, name=name, body=body)
-    except ApiException as e:
-        if e.reason == 'Conflict':
+    except HTTPError as e:
+        if str(e).find('Conflict'):
             logger.debug('**Other process updated %s, ignore this 409 error.' % name) 
         else:
             logger.error(e)
@@ -694,8 +695,8 @@ def create_disk_snapshot(params):
         try:
             client.CustomObjectsApi().replace_namespaced_custom_object(
                 group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol, body=body)
-        except ApiException as e:
-            if e.reason == 'Conflict':
+        except HTTPError as e:
+            if str(e).find('Conflict'):
                 logger.debug('**Other process updated %s, ignore this 409 error.' % vol) 
             else:
                 logger.error(e)
@@ -724,8 +725,8 @@ def delete_disk_snapshot(params):
         try:
             client.CustomObjectsApi().replace_namespaced_custom_object(
                 group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol, body=body)
-        except ApiException as e:
-            if e.reason == 'Conflict':
+        except HTTPError as e:
+            if str(e).find('Conflict'):
                 logger.debug('**Other process updated %s, ignore this 409 error.' % vol) 
             else:
                 logger.error(e)
@@ -754,8 +755,8 @@ def revert_disk_internal_snapshot(params):
         try:
             client.CustomObjectsApi().replace_namespaced_custom_object(
                 group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol, body=body)
-        except ApiException as e:
-            if e.reason == 'Conflict':
+        except HTTPError as e:
+            if str(e).find('Conflict'):
                 logger.debug('**Other process updated %s, ignore this 409 error.' % vol) 
             else:
                 logger.error(e)
@@ -882,8 +883,8 @@ def write_result_to_server(name, op, kind, plural, params):
         try:
             client.CustomObjectsApi().create_namespaced_custom_object(
                 group=GROUP, version=VERSION, namespace='default', plural=plural, body=body)
-        except ApiException as e:
-            if e.reason == 'Conflict':
+        except HTTPError as e:
+            if str(e).find('Conflict'):
                 logger.debug('**The %s %s already exists, update it.' % (kind, name))
                 jsondict = client.CustomObjectsApi().get_namespaced_custom_object(group=GROUP,
                                                                               version=VERSION,
@@ -911,8 +912,8 @@ def write_result_to_server(name, op, kind, plural, params):
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             client.CustomObjectsApi().replace_namespaced_custom_object(
                 group=GROUP, version=VERSION, namespace='default', plural=plural, name=name, body=body)
-        except ApiException as e:
-            if e.reason == 'Not Found':
+        except HTTPError as e:
+            if str(e).find('Not Found'):
                 logger.debug('**%s %s already deleted.' % (kind, name))
             else:
                 logger.error(e)
@@ -922,8 +923,8 @@ def write_result_to_server(name, op, kind, plural, params):
         try:
             client.CustomObjectsApi().delete_namespaced_custom_object(
                 group=GROUP, version=VERSION, namespace='default', plural=plural, name=name, body=V1DeleteOptions())
-        except ApiException as e:
-            if e.reason == 'Not Found':
+        except HTTPError as e:
+            if str(e).find('Not Found'):
                 logger.debug('**%s %s already deleted.' % (kind, name))
             else:
                 logger.error(e)
