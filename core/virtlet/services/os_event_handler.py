@@ -938,7 +938,7 @@ def myVmdImageLibvirtXmlEventHandler(event, name, pool, xml_path, group, version
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             update_custom_object(group, version, plural, name, body)
         except HTTPError as e:
-            if e.reason == 'Not Found':
+            if str(e).find('Not Found'):
                 logger.debug('**VM disk image %s already deleted, ignore this 404 error.' % name)
             else:
                 info = sys.exc_info()
@@ -960,7 +960,7 @@ def myVmdImageLibvirtXmlEventHandler(event, name, pool, xml_path, group, version
         #                 body = addExceptionMessage(jsondict, 'VirtletError', 'VM has been deleted in back-end.')
         #                 modifyStructure(name, body, group, version, plural)
         except HTTPError as e:
-            if e.reason == 'Not Found':
+            if str(e).find('Not Found'):
                 logger.debug('**VM disk image %s already deleted, ignore this 404 error.' % name)
             else:
                 info = sys.exc_info()
