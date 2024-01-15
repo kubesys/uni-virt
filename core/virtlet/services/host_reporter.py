@@ -91,7 +91,7 @@ def main():
             time.sleep(8)
         except Exception as e:
             logger.error('Oops! ', exc_info=1)
-            if repr(e).find('Network is unreachable') != -1 or repr(e).find('Connection timed out') != -1 or repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find('ApiException') != -1:
+            if repr(e).find('Network is unreachable') != -1 or repr(e).find('Connection timed out') != -1 or repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find('HTTPError') != -1:
 #                 master_ip = change_master_and_reload_config(fail_times)
                 fail_times += 1
                 logger.debug('retrying: %d' % (fail_times))
