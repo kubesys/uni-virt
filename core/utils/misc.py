@@ -14,6 +14,7 @@ try:
     from utils.exception import InternalServerError, NotFound, Forbidden, BadRequest
     from utils import constants
     from kubesys.client import KubernetesClient
+    from kubesys.exceptions import HTTPError
 except:
     from libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
     from exception import InternalServerError, NotFound, Forbidden, BadRequest
@@ -21,6 +22,7 @@ except:
     sys.path.append("..")
     sys.path.append('./core/')
     from kubesys.client import KubernetesClient
+    from kubesys.exceptions import HTTPError
 
 '''
 Import python libs
@@ -463,8 +465,8 @@ def list_objects_in_kubernetes(kind):
 def get_node_name_from_kubernetes(group, version, namespace, plural, metadata_name):
     try:
         jsonStr = get_custom_object(group, version, plural, metadata_name)
-    except ApiException as e:
-        if e.reason == 'Not Found':
+    except HTTPError as e:
+        if str(e).find('Not Found'):
             return None
         else:
             raise e
@@ -474,8 +476,8 @@ def get_node_name_from_kubernetes(group, version, namespace, plural, metadata_na
 def get_ha_from_kubernetes(group, version, namespace, plural, metadata_name):
     try:
         jsonStr = get_custom_object(group, version, plural, metadata_name)
-    except ApiException as e:
-        if e.reason == 'Not Found':
+    except HTTPError as e:
+        if str(e).find('Not Found'):
             return False
         else:
             raise e
