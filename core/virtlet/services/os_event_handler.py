@@ -1102,7 +1102,7 @@ def myImageLibvirtXmlEventHandler(event, name, xml_path, group, version, plural)
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             update_custom_object(group, version, plural, name, body)
         except HTTPError as e:
-            if e.reason == 'Not Found':
+            if str(e).find('Not Found'):
                 logger.debug('**VM image %s already deleted, ignore this 404 error.' % name)
             else:
                 info = sys.exc_info()
