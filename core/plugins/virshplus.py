@@ -47,8 +47,8 @@ Import third party libs
 # from kubernetes import client, config
 # from kubernetes.client.rest import ApiException
 
-from kubernetes import config, client
-from kubernetes.client import V1DeleteOptions
+# from kubernetes import config, client
+# from kubernetes.client import V1DeleteOptions
 sys.path.append('..')
 sys.path.append('/home/kubevmm/core/')
 sys.path.append('./core/')
