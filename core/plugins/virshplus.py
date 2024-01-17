@@ -44,8 +44,8 @@ import yaml
 '''
 Import third party libs
 '''
-from kubernetes import client, config
-from kubernetes.client.rest import ApiException
+# from kubernetes import client, config
+# from kubernetes.client.rest import ApiException
 
 from kubernetes import config, client
 from kubernetes.client import V1DeleteOptions
@@ -2058,7 +2058,7 @@ def main():
         sys.exit(1)
 
 if __name__ == '__main__':
-    config.load_kube_config(config_file=TOKEN)
+    # config.load_kube_config(config_file=TOKEN)
     #plug_disk(["--config", "--source", "/var/lib/libvirt/pooltest12/disktest-wyw1/disktest-wyw1", "--subdriver", "qcow2", "--target", "vdb", "--domain", "test-wyw"])
     #unplug_disk(["--config", "--target", "vdb", "--domain", "test-wyw"])
     main()
