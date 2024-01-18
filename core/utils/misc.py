@@ -12,12 +12,14 @@ from json import loads, load, dumps, dump
 try:
     from utils.libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
     from utils.exception import InternalServerError, NotFound, Forbidden, BadRequest,ExecuteException
+    from utils.k8s_handler import Event,InvolvedObject,Metadata
     from utils import constants
     from kubesys.client import KubernetesClient
     from kubesys.exceptions import HTTPError
 except:
     from libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
     from exception import InternalServerError, NotFound, Forbidden, BadRequest,ExecuteException
+    from k8s_handler import Event
     import constants
     sys.path.append("..")
     sys.path.append('./core/')
@@ -1618,26 +1620,34 @@ class UserDefinedEvent(object):
         More details please @See:
             https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/V1Event.md
         '''
-        involved_object = client.V1ObjectReference(name=self.involved_object_name, kind=self.involved_object_kind,
-                                                   namespace='default')
-        metadata = client.V1ObjectMeta(name=self.event_metadata_name, namespace='default')
-        body = client.CoreV1Event(first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
-                                  involved_object=involved_object, message=self.message, reason=self.reason,
-                                  type=self.event_type)
-        client.CoreV1Api().replace_namespaced_event(self.event_metadata_name, 'default', body, pretty='true')
+        # involved_object = client.V1ObjectReference(name=self.involved_object_name, kind=self.involved_object_kind,
+        #                                            namespace='default')
+        # metadata = client.V1ObjectMeta(name=self.event_metadata_name, namespace='default')
+        # body = client.CoreV1Event(first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
+        #                           involved_object=involved_object, message=self.message, reason=self.reason,
+        #                           type=self.event_type)
+        # client.CoreV1Api().replace_namespaced_event(self.event_metadata_name, 'default', body, pretty='true')
+        involved_object=InvolvedObject(name=self.involved_object_name, kind=self.involved_object_kind,namespace='default')
+        metadata=Metadata(name=self.event_metadata_name, namespace='default')
+        body=Event(first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
+                   involved_object=involved_object, message=self.message, reason=self.reason,
+                   type=self.event_type).to_json()
+        KubernetesClient(config=TOKEN).updateResource(body.to_json(),pretty=True)
+
 
     def updateKubernetesEvent(self):
         '''
         More details please @See:
             https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/V1Event.md
         '''
-        involved_object = client.V1ObjectReference(name=self.involved_object_name, kind=self.involved_object_kind,
-                                                   namespace='default')
-        metadata = client.V1ObjectMeta(name=self.event_metadata_name, namespace='default')
-        body = client.CoreV1Event(first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
-                                  involved_object=involved_object, message=self.message, reason=self.reason,
-                                  type=self.event_type)
-        client.CoreV1Api().replace_namespaced_event(self.event_metadata_name, 'default', body, pretty='true')
+        # involved_object = client.V1ObjectReference(name=self.involved_object_name, kind=self.involved_object_kind,
+        #                                            namespace='default')
+        # metadata = client.V1ObjectMeta(name=self.event_metadata_name, namespace='default')
+        # body = client.CoreV1Event(first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
+        #                           involved_object=involved_object, message=self.message, reason=self.reason,
+        #                           type=self.event_type)
+        # client.CoreV1Api().replace_namespaced_event(self.event_metadata_name, 'default', body, pretty='true')
+        self.registerKubernetesEvent()
 
     def get_event_metadata_name(self):
         return self.__event_metadata_name
@@ -1923,7 +1933,7 @@ class CDaemon:
 
 
 if __name__ == '__main__':
-    config.load_kube_config(config_file=TOKEN)
+    # config.load_kube_config(config_file=TOKEN)
     #     print(get_update_description_command('cloudinit1', 'fe540007a50c', 'switch2', '192.168.0.1', '--config'))
     #     pprint.pprint(list_objects_in_kubernetes('cloudplus.io', 'v1alpha3', 'virtualmachinepools'))
     #     print(get_field_in_kubernetes_by_index('cloudinit', 'cloudplus.io', 'v1alpha3', 'virtualmachines', ['metadata', 'labels']))
