@@ -627,7 +627,7 @@ def create_disk(params):
     params_dict = _get_params(params)
     vol, pool, capacity, format, type = params_dict.get('vol'), params_dict.get('pool'), params_dict.get('capacity'), \
                     params_dict.get('format'), params_dict.get('type')
-    pool_path = get_field_in_kubernetes_by_index(pool, GROUP, VERSION, VMP_PLURAL, ['spec','pool','url'])
+    pool_path = get_field_in_kubernetes_by_index(pool, VMP_KIND, ['spec','pool','url'])
     if not os.path.isdir(pool_path):
         raise BadRequest('can not get pool path: %s.' % pool_path)
     # create disk dir and create disk in dir.
