@@ -7,6 +7,7 @@ SDN for Kubernetes network
 - wuheng@otcaix.iscas.ac.cn
 - wuyuewen@otcaix.iscas.ac.cn
 - zhujianxing21@otcaix.iscas.ac.cn
+- liujiexin@otcaix.iscas.ac.cn
 
 # Features
 
