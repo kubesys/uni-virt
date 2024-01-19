@@ -19,7 +19,7 @@ try:
 except:
     from libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
     from exception import InternalServerError, NotFound, Forbidden, BadRequest,ExecuteException
-    from k8s_handler import Event
+    from k8s_handler import Event,InvolvedObject,Metadata
     import constants
     sys.path.append("..")
     sys.path.append('./core/')
