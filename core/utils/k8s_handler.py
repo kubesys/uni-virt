@@ -1,4 +1,4 @@
-from typing import Literal
+# from typing import Literal
 
 
 class InvolvedObject:
@@ -31,7 +31,7 @@ class Metadata:
 
 class Event:
     def __init__(self,first_timestamp=None, involved_object:InvolvedObject=None, last_timestamp=None,
-                 message=None, metadata:Metadata=None, reason=None, type:Literal['Warning','Normal']=None):
+                 message=None, metadata:Metadata=None, reason=None, type:str=None):
         self.first_timestamp=first_timestamp
         self.last_timestamp=last_timestamp
         self.metadata=metadata.__dict__
