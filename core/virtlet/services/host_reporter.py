@@ -23,27 +23,29 @@ import contextlib
 '''
 Import third party libs
 '''
-from kubernetes import client, config
-# from kubernetes.client.rest import ApiException
-from kubernetes.client.models.v1_node_status import V1NodeStatus
-from kubernetes.client.models.v1_node_condition import V1NodeCondition
-from kubernetes.client.models.v1_node_daemon_endpoints import V1NodeDaemonEndpoints
-from kubernetes.client.models.v1_node_system_info import V1NodeSystemInfo
-from kubernetes.client.models.v1_node import V1Node
-from kubernetes.client.models.v1_node_spec import V1NodeSpec
-from kubernetes.client.models.v1_object_meta import V1ObjectMeta
-from kubernetes.client.models.v1_node_address import V1NodeAddress
+# from kubernetes import client, config
+# # from kubernetes.client.rest import ApiException
+# from kubernetes.client.models.v1_node_status import V1NodeStatus
+# from kubernetes.client.models.v1_node_condition import V1NodeCondition
+# from kubernetes.client.models.v1_node_daemon_endpoints import V1NodeDaemonEndpoints
+# from kubernetes.client.models.v1_node_system_info import V1NodeSystemInfo
+# from kubernetes.client.models.v1_node import V1Node
+# from kubernetes.client.models.v1_node_spec import V1NodeSpec
+# from kubernetes.client.models.v1_object_meta import V1ObjectMeta
+# from kubernetes.client.models.v1_node_address import V1NodeAddress
 
 '''
 Import local libs
 '''
 # sys.path.append('%s/utils/libvirt_util.py' % (os.path.dirname(os.path.realpath(__file__))))
-from utils import constants
+from utils import constants,logger
 from utils.libvirt_util import is_vm_exists, __get_conn, get_xml, vm_state, freecpu, freemem, node_info, list_active_vms, list_vms, destroy, undefine, is_vm_active, start
 from utils.misc import push_node_label_value, get_custom_object, update_custom_object, delete_custom_object, change_master_and_reload_config, updateDescription, addPowerStatusMessage, updateDomain, CDaemon, runCmd, get_field_in_kubernetes_by_index, get_hostname_in_lower_case, get_node_name_from_kubernetes, get_ha_from_kubernetes
-from utils import logger
+from utils.k8s_handler import Node,Metadata
 
 from kubesys.exceptions import HTTPError
+from kubesys.client import KubernetesClient
+
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 TOKEN_ORIGIN = constants.KUBERNETES_TOKEN_FILE_ORIGIN
 HOSTNAME = get_hostname_in_lower_case()
@@ -62,17 +64,19 @@ def main():
 #     restart_virtctl = False
     while True:
         try:
-            host = client.CoreV1Api().read_node_status(name=HOSTNAME)
-            node_watcher = HostCycler()
-            host.status = node_watcher.get_node_status()
+            # host = client.CoreV1Api().read_node_status(name=HOSTNAME)
+            # client=KubernetesClient(config=TOKEN)
+            # host=client.getResourceStatus(kind="Node",name=HOSTNAME)
+            # node_watcher = HostCycler()
+            # host['status'] = node_watcher.get_node_status()
             if ha_check:
                 for vm in list_vms():
-                    _check_vm_by_hosting_node(GROUP, VERSION, PLURAL, vm)
+                    _check_vm_by_hosting_node(KIND, vm)
                     try:
-                        _check_ha_and_autostart_vm(GROUP, VERSION, PLURAL, vm)
+                        _check_ha_and_autostart_vm(KIND, vm)
                     except RetryError:
                         pass
-                    _check_vm_power_state(GROUP, VERSION, PLURAL, vm)
+                    _check_vm_power_state(KIND, vm)
                 ha_check = False
             _patch_node_status()
             if ha_enable:
@@ -104,7 +108,7 @@ def main():
                 if libvirt_watcher_id:
                     logger.debug('libvirt error occurred, restart container %s' % libvirt_watcher_id)
                     runCmd('docker stop %s' % libvirt_watcher_id)
-            config.load_kube_config(config_file=TOKEN)
+            # config.load_kube_config(config_file=TOKEN)
             time.sleep(3)
 #             restart_service = True
             continue
@@ -115,17 +119,18 @@ def main():
        before_sleep=before_sleep_log(logger,logging.WARNING,True),
        reraise=True)
 def _patch_node_status():
-    host = client.CoreV1Api().read_node_status(name=HOSTNAME)
+    client=KubernetesClient(config=TOKEN)
+    host=client.getResourceStatus(kind='Node',name=HOSTNAME)
     node_watcher = HostCycler()
-    host.status = node_watcher.get_node_status()
-    client.CoreV1Api().patch_node_status(name=HOSTNAME, body=host)
+    host['status'] = node_watcher.get_node_status()
+    client.updateResourceStatus(host)
     return
 
 
-def _check_vm_by_hosting_node(group, version, plural, metadata_name):
+def _check_vm_by_hosting_node(kind, metadata_name):
     try:
         logger.debug('1.Doing hosting node verification for VM: %s' % metadata_name)
-        node_name = get_node_name_from_kubernetes(group, version, 'default', plural, metadata_name)
+        node_name = get_node_name_from_kubernetes(kind, metadata_name)
         if node_name == 'UNKNOWN':
             logger.debug('Unknown host name.')
             return
@@ -138,7 +143,7 @@ def _check_vm_by_hosting_node(group, version, plural, metadata_name):
                 undefine(metadata_name)    
         elif node_name != get_hostname_in_lower_case():
             logger.debug('Delete VM %s because it is now hosting by another node %s.' % (metadata_name, node_name))
-            _backup_json_to_file(group, version, 'default', plural, metadata_name)
+            _backup_json_to_file(kind, metadata_name)
             if is_vm_exists(metadata_name):
                 if is_vm_active(metadata_name):
                     _destroy_vm_retries(metadata_name)
@@ -160,9 +165,9 @@ def _destroy_vm_retries(metadata_name):
 @retry(stop=stop_after_attempt(3),
        wait=wait_random(min=8,max=15),
        before_sleep=before_sleep_log(logger,logging.WARNING,True))
-def _check_ha_and_autostart_vm(group, version, plural, metadata_name):
+def _check_ha_and_autostart_vm(kind, metadata_name):
     logger.debug('2.Doing HA verification for VM: %s' % metadata_name)
-    ha = get_ha_from_kubernetes(group, version, 'default', plural, metadata_name)
+    ha = get_ha_from_kubernetes(kind, metadata_name)
     if ha:
         if is_vm_exists(metadata_name) and not is_vm_active(metadata_name):
             logger.debug('Autostart HA VM: %s.' % (metadata_name))
@@ -173,10 +178,10 @@ def _check_and_enable_HA():
 #     runCmd("kubectl label node --kubeconfig=%s %s nodeHA-" % (TOKEN_ORIGIN,HOSTNAME))
 
 
-def _check_vm_power_state(group, version, plural, metadata_name):
+def _check_vm_power_state(kind, metadata_name):
     try:
         logger.debug('3.Check the power state of VM: %s' % metadata_name)
-        jsondict = get_custom_object(group, version, plural, metadata_name)
+        jsondict = get_custom_object(kind, metadata_name)
     except HTTPError as e:
         if str(e).find('Not Found'):
             logger.debug('**VM %s already deleted, ignore this 404 error.' % metadata_name)
@@ -192,7 +197,7 @@ def _check_vm_power_state(group, version, plural, metadata_name):
         jsondict = updateDomainStructureAndDeleteLifecycleInJson(jsondict, vm_json)
         body = addPowerStatusMessage(jsondict, vm_power_state, 'The VM is %s' % vm_power_state)
         try:
-            update_custom_object(group, version, plural, metadata_name, body)
+            update_custom_object(body)
         except HTTPError as e:
             if str(e).find('Not Found'):
                 logger.debug('**VM %s already deleted, ignore this 404.' % metadata_name)
@@ -204,9 +209,9 @@ def _check_vm_power_state(group, version, plural, metadata_name):
             logger.error('Oops! ', exc_info=1)
     
 
-def _backup_json_to_file(group, version, namespace, plural, metadata_name):
+def _backup_json_to_file(kind, metadata_name):
     try:
-        jsonStr = get_custom_object(group, version, plural, metadata_name)
+        jsonStr = get_custom_object(kind, metadata_name)
     except HTTPError as e:
         if str(e).find('Not Found'):
             logger.debug('**VM %s already deleted.' % metadata_name)
@@ -258,41 +263,34 @@ def updateDomainStructureAndDeleteLifecycleInJson(jsondict, body):
     return jsondict
 
 class HostCycler:
-    
-#     def __init__(self):
-#         self.node_status = V1NodeStatus(addresses=self.get_status_address(), allocatable=self.get_status_allocatable(), 
-#                             capacity=self.get_status_capacity(), conditions=self.get_status_condition(),
-#                             daemon_endpoints=self.get_status_daemon_endpoints(), node_info=self.get_status_node_info())
-#         self.node = V1Node(api_version='v1', kind='Node', metadata=self.get_object_metadata(), spec=self.get_node_spec(), status=self.node_status)
-#         self.__node = self.node
-#         self.__node_status = self.node_status
 
     def get_node(self):
-        return V1Node(api_version='v1', kind='Node', metadata=self.get_object_metadata(), spec=self.get_node_spec(), status=self.node_status)
+        return Node(metadata=self.get_object_metadata(), spec=self.get_node_spec(), status=self.get_node_status())
 
     def get_node_status(self):
-        return V1NodeStatus(allocatable=self.get_status_allocatable(),
-                            capacity=self.get_status_capacity())
+        return Node.Status(allocatable=self.get_status_allocatable(),
+                           capacity=self.get_status_capacity())
 
     def _format_mem_to_Mi(self, mem):
         return int(round(int(mem))) if int(round(int(mem))) > 0 else 0
     
     def get_node_spec(self):
-        return V1NodeSpec()
-    
+        return Node.Spec()
+
     def get_object_metadata(self):
-        return V1ObjectMeta(annotations=[], name=HOSTNAME, uid='', labels=[], resource_version='', self_link='')
+        return Metadata(annotations=[], name=HOSTNAME, uid='', labels=[], resourceVersion='', selfLink='')
     
-    def get_status_address(self):
-        ip = self._get_node_ip_from_k8s()
-        node_status_address1 = V1NodeAddress(address=ip, type='InternalIP')
-        node_status_address2 = V1NodeAddress(address=HOSTNAME, type='Hostname')
-        return [node_status_address1, node_status_address2]
+    # def get_status_address(self):
+    #     ip = self._get_node_ip_from_k8s()
+    #     node_status_address1 = V1NodeAddress(address=ip, type='InternalIP')
+    #     node_status_address2 = V1NodeAddress(address=HOSTNAME, type='Hostname')
+    #     return [node_status_address1, node_status_address2]
     
     def _get_node_ip_from_k8s(self):
         try:
-            node = client.CoreV1Api().read_node(name=HOSTNAME)
-            node_dict = node.to_dict()
+            # node = client.CoreV1Api().read_node(name=HOSTNAME)
+            # node_dict = node.to_dict()
+            node_dict=self.get_node()
             return node_dict['metadata']['annotations']['THISIP']
         except:
             return socket.gethostbyname(socket.gethostname())
@@ -327,20 +325,21 @@ class HostCycler:
             return {'doslab.io/cpu': 0, 'doslab.io/memory': '0', 'doslab.io/vms': '40'}
     
     def get_status_daemon_endpoints(self):
-        return V1NodeDaemonEndpoints(kubelet_endpoint={'port':0})
+        return Node.DaemonEndpoint(kubeletEndpoint={'port':0})
 
     def get_status_condition(self):
         time_zone = gettz('Asia/Shanghai')
         now = datetime.datetime.now(tz=time_zone)
-#         now = datetime.datetime
-        condition1 = V1NodeCondition(last_heartbeat_time=now, last_transition_time=now, message="virtlet has sufficient memory available", \
+        condition1=Node.Condition(last_heartbeat_time=now, last_transition_time=now, message="virtlet has sufficient memory available", \
                             reason="VirtletHasSufficientMemory", status="False", type="MemoryPressure")
-        condition2 = V1NodeCondition(last_heartbeat_time=now, last_transition_time=now, message="virtlet has no disk pressure", \
-                            reason="VirtletHasNoDiskPressure", status="False", type="DiskPressure")
-        condition3 = V1NodeCondition(last_heartbeat_time=now, last_transition_time=now, message="virtlet has sufficient PID available", \
+        condition2 = Node.Condition(last_heartbeat_time=now, last_transition_time=now,
+                                     message="virtlet has no disk pressure", \
+                                        reason="VirtletHasNoDiskPressure", status="False", type="DiskPressure")
+        condition3=Node.Condition(last_heartbeat_time=now, last_transition_time=now, message="virtlet has sufficient PID available", \
                             reason="VirtletHasSufficientPID", status="False", type="PIDPressure")
-        condition4 = V1NodeCondition(last_heartbeat_time=now, last_transition_time=now, message="virtlet is posting ready status", \
-                            reason="VirtletReady", status="True", type="Ready")    
+        condition4 = Node.Condition(last_heartbeat_time=now, last_transition_time=now,
+                                     message="virtlet is posting ready status", \
+                                        reason="VirtletReady", status="True", type="Ready")
         return [condition1, condition2, condition3, condition4]
     
 #         node_status = V1NodeStatus(conditions=[condition1, condition2, condition3, condition4], daemon_endpoints=daemon_endpoints, \
@@ -348,24 +347,24 @@ class HostCycler:
 #         self.node.status = node_status
 #         client.CoreV1Api().replace_node_status(name="node11", body=self.node)
         
-    def get_status_node_info(self):
-        ARCHITECTURE = runCmd('uname -m')
-        BOOT_ID = runCmd('cat /sys/class/dmi/id/product_uuid')
-        RUNTIME_VERSION = 'QEMU-KVM://%s' % (runCmd('/usr/bin/qemu-img --version | awk \'NR==1 {print $3}\''))
-        KERNEL_VERSION = runCmd('cat /proc/sys/kernel/osrelease')
-        try:
-            KUBE_PROXY_VERSION = runCmd('kubelet --version | awk \'{print $2}\'')
-        except:
-            KUBE_PROXY_VERSION = 'v1.23.6'
-        KUBELET_VERSION = KUBE_PROXY_VERSION
-        MACHINE_ID = BOOT_ID
-        OPERATING_SYSTEM = runCmd('cat /proc/sys/kernel/ostype')
-        OS_IMAGE = runCmd('cat /etc/os-release | grep PRETTY_NAME | awk -F"\\"" \'{print$2}\'')
-        SYSTEM_UUID = BOOT_ID
-        return V1NodeSystemInfo(architecture=ARCHITECTURE, boot_id=BOOT_ID, container_runtime_version=RUNTIME_VERSION, \
-                     kernel_version=KERNEL_VERSION, kube_proxy_version=KUBE_PROXY_VERSION, kubelet_version=KUBELET_VERSION, \
-                     machine_id=MACHINE_ID, operating_system=OPERATING_SYSTEM, os_image=OS_IMAGE, system_uuid=SYSTEM_UUID)
+    # def get_status_node_info(self):
+    #     ARCHITECTURE = runCmd('uname -m')
+    #     BOOT_ID = runCmd('cat /sys/class/dmi/id/product_uuid')
+    #     RUNTIME_VERSION = 'QEMU-KVM://%s' % (runCmd('/usr/bin/qemu-img --version | awk \'NR==1 {print $3}\''))
+    #     KERNEL_VERSION = runCmd('cat /proc/sys/kernel/osrelease')
+    #     try:
+    #         KUBE_PROXY_VERSION = runCmd('kubelet --version | awk \'{print $2}\'')
+    #     except:
+    #         KUBE_PROXY_VERSION = 'v1.23.6'
+    #     KUBELET_VERSION = KUBE_PROXY_VERSION
+    #     MACHINE_ID = BOOT_ID
+    #     OPERATING_SYSTEM = runCmd('cat /proc/sys/kernel/ostype')
+    #     OS_IMAGE = runCmd('cat /etc/os-release | grep PRETTY_NAME | awk -F"\\"" \'{print$2}\'')
+    #     SYSTEM_UUID = BOOT_ID
+    #     return V1NodeSystemInfo(architecture=ARCHITECTURE, boot_id=BOOT_ID, container_runtime_version=RUNTIME_VERSION, \
+    #                  kernel_version=KERNEL_VERSION, kube_proxy_version=KUBE_PROXY_VERSION, kubelet_version=KUBELET_VERSION, \
+    #                  machine_id=MACHINE_ID, operating_system=OPERATING_SYSTEM, os_image=OS_IMAGE, system_uuid=SYSTEM_UUID)
 
 if __name__ == "__main__":
-    config.load_kube_config(config_file=TOKEN)
+    # config.load_kube_config(config_file=TOKEN)
     main()

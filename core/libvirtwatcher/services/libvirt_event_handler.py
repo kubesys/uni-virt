@@ -149,7 +149,7 @@ class MyDomainEventHandler(threading.Thread):
 #                 jsondict_old = None
                 try:
                     # key point
-                    jsondict = get_custom_object(GROUP, VERSION, PLURAL, vm_name)
+                    jsondict = get_custom_object(KIND, vm_name)
 #                     jsondict_old = jsondict
                 except HTTPError as e:
                     if str(e).find('Not Found'):
@@ -191,7 +191,7 @@ class MyDomainEventHandler(threading.Thread):
                         if body:
                             try:
                                 logger.debug('update %s in kubernetes' % vm_name)
-                                update_custom_object(GROUP, VERSION, PLURAL, vm_name, body)
+                                update_custom_object(body)
                             except HTTPError as e:
                                 if str(e).find('Not Found'):
                                     logger.debug('**VM %s already deleted, ignore this 404 error.' % vm_name)
@@ -207,7 +207,7 @@ class MyDomainEventHandler(threading.Thread):
                         logger.error('Oops! ', exc_info=1)
                         info=sys.exc_info()
                         try:
-                            report_failure(vm_name, jsondict, 'VirtletError', str(info[1]), GROUP, VERSION, PLURAL)
+                            report_failure(vm_name, 'VirtletError', str(info[1]), KIND)
                         except:
                             logger.warning('Oops! ', exc_info=1)
                 if 'event' in self.kwargs.keys() and str(DOM_EVENTS[self.kwargs['event']]) == "Stopped":
@@ -215,7 +215,7 @@ class MyDomainEventHandler(threading.Thread):
                         logger.debug('Callback domain shutdown to virtlet')
                         if str(DOM_EVENTS[self.kwargs['event']][self.kwargs['detail']]) == 'Migrated':
                             logger.debug('VM %s has been migrated, ignore its stop signal.' % vm_name)
-                        elif get_ha_from_kubernetes(GROUP, VERSION, 'default', PLURAL, vm_name) and \
+                        elif get_ha_from_kubernetes(KIND, vm_name) and \
                             jsondict['metadata']['labels']['host'] == HOSTNAME:
         #                     autostart_vms = list_autostart_vms()
         #                     if vm_name in autostart_vms:
@@ -274,7 +274,7 @@ class MyDomainEventHandler(threading.Thread):
                         logger.error('Oops! ', exc_info=1)
                         info=sys.exc_info()
                         try:
-                            report_failure(vm_name, jsondict, 'VirtletError', str(info[1]), GROUP, VERSION, PLURAL)
+                            report_failure(vm_name, 'VirtletError', str(info[1]), KIND)
                         except:
                             logger.warning('Oops! ', exc_info=1)
                 if step1_done and 'event' in self.kwargs.keys() and str(DOM_EVENTS[self.kwargs['event']]) == "Started":
@@ -321,7 +321,7 @@ class MyDomainEventHandler(threading.Thread):
                         logger.error('Oops! ', exc_info=1)
                         info=sys.exc_info()
                         try:
-                            report_failure(vm_name, jsondict, 'VirtletError', str(info[1]), GROUP, VERSION, PLURAL)
+                            report_failure(vm_name, 'VirtletError', str(info[1]), KIND)
                         except:
                             logger.warning('Oops! ', exc_info=1)
         except:

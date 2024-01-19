@@ -6,9 +6,8 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 @author: wuheng@otcaix.iscas.ac.cn
 '''
 import os
-import time
 from tenacity import retry,stop_after_attempt,wait_random
-from kubernetes import client, config
+# from kubernetes import client, config
 try:
     from utils import logger
     from utils.misc import randomUUID, now_to_datetime, UserDefinedEvent
@@ -41,7 +40,7 @@ class KubernetesEvent:
         event = UserDefinedEvent(self.event_metadata_name, self.time_start, time_end,
                                  self.involved_object_name, self.involved_object_kind,
                                  message, self.involved_cmd_key, event_type)
-        config.load_kube_config(config_file=TOKEN)
+        # config.load_kube_config(config_file=TOKEN)
         return event
 
     @retry(stop=stop_after_attempt(10),wait=wait_random(min=1,max=3),reraise=True)

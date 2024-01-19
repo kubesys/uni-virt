@@ -13,7 +13,7 @@ sys.path.append("..")
 '''
 Import third party libs
 '''
-from kubernetes import config
+# from kubernetes import config
 
 '''
 Import local libs
@@ -37,7 +37,7 @@ class ClientDaemon(CDaemon):
     def run(self, output_fn, **kwargs):
         '''virtctl程序启动器，运行在宿主机的守护进程里
         '''
-        config.load_kube_config(config_file=constants.KUBERNETES_TOKEN_FILE)
+        # config.load_kube_config(config_file=constants.KUBERNETES_TOKEN_FILE)
         try:
             watcher.main()
         except:

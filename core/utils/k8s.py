@@ -4,17 +4,16 @@ import traceback
 import operator
 from json import dumps
 
-import os, sys
+import os
+import re
 from sys import exit
 
-from kubernetes import client, config
-from kubernetes.client import V1DeleteOptions
-from kubernetes.client.rest import ApiException
 import logging
 import logging.handlers
-from kubernetes import config,client
-
-from kubernetes.client import V1DeleteOptions
+# sys.path.append("..")
+# from kubernetes import config,client
+#
+# from kubernetes.client import V1DeleteOptions
 from kubesys.client import KubernetesClient
 from kubesys.exceptions import HTTPError
 try:
@@ -45,6 +44,7 @@ GROUP = constants.KUBERNETES_GROUP
 LOG = '/var/log/virtctl.log'
 
 RETRY_TIMES = 5
+WAIT=1
 
 
 def set_logger(header, fn):
@@ -83,41 +83,41 @@ for kind,plural in kind_plural.items():
     resource['plural'] = plural
     resources[kind] = resource
 
-
-def get(name, kind):
-    jsondict = client.CustomObjectsApi().get_namespaced_custom_object(group=resources[kind]['group'],
-                                                                      version=resources[kind]['version'],
-                                                                      namespace='default',
-                                                                      plural=resources[kind]['plural'],
-                                                                      name=name)
-    return jsondict
-
-
-def create(name, data, kind):
-    hostname = get_hostname_in_lower_case()
-    jsondict = {'spec': {'volume': {}, 'nodeName': hostname, 'status': {}},
-                'kind': kind, 'metadata': {'labels': {'host': hostname}, 'name': name},
-                'apiVersion': '%s/%s' % (resources[kind]['group'], resources[kind]['version'])}
-
-    jsondict = updateJsonRemoveLifecycle(jsondict, data)
-    body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
-
-    return client.CustomObjectsApi().create_namespaced_custom_object(
-        group=resources[kind]['group'], version=resources[kind]['version'], namespace='default',
-        plural=resources[kind]['plural'], body=body)
-
-
-def update(name, data, kind):
-    return client.CustomObjectsApi().replace_namespaced_custom_object(
-        group=resources[kind]['group'], version=resources[kind]['version'], namespace='default',
-        plural=resources[kind]['plural'], name=name, body=data)
-
-
-def delete(name, data, kind):
-    k8s_logger.debug('deleteVMBackupdebug %s' % name)
-    return client.CustomObjectsApi().delete_namespaced_custom_object(
-        group=resources[kind]['group'], version=resources[kind]['version'], namespace='default',
-        plural=resources[kind]['plural'], name=name, body=data)
+#
+# def get(name, kind):
+#     jsondict = client.CustomObjectsApi().get_namespaced_custom_object(group=resources[kind]['group'],
+#                                                                       version=resources[kind]['version'],
+#                                                                       namespace='default',
+#                                                                       plural=resources[kind]['plural'],
+#                                                                       name=name)
+#     return jsondict
+#
+#
+# def create(name, data, kind):
+#     hostname = get_hostname_in_lower_case()
+#     jsondict = {'spec': {'volume': {}, 'nodeName': hostname, 'status': {}},
+#                 'kind': kind, 'metadata': {'labels': {'host': hostname}, 'name': name},
+#                 'apiVersion': '%s/%s' % (resources[kind]['group'], resources[kind]['version'])}
+#
+#     jsondict = updateJsonRemoveLifecycle(jsondict, data)
+#     body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
+#
+#     return client.CustomObjectsApi().create_namespaced_custom_object(
+#         group=resources[kind]['group'], version=resources[kind]['version'], namespace='default',
+#         plural=resources[kind]['plural'], body=body)
+#
+#
+# def update(name, data, kind):
+#     return client.CustomObjectsApi().replace_namespaced_custom_object(
+#         group=resources[kind]['group'], version=resources[kind]['version'], namespace='default',
+#         plural=resources[kind]['plural'], name=name, body=data)
+#
+#
+# def delete(name, data, kind):
+#     k8s_logger.debug('deleteVMBackupdebug %s' % name)
+#     return client.CustomObjectsApi().delete_namespaced_custom_object(
+#         group=resources[kind]['group'], version=resources[kind]['version'], namespace='default',
+#         plural=resources[kind]['plural'], name=name, body=data)
 
 
 def addPowerStatusMessage(jsondict, reason, message):
@@ -221,25 +221,27 @@ def replaceData(jsondict):
     return current
 
 
-def get_node_name(jsondict):
-    if jsondict:
-        return jsondict['metadata']['labels']['host']
-    return None
+# def get_node_name(jsondict):
+#     if jsondict:
+#         return jsondict['metadata']['labels']['host']
+#     return None
 
-def list_node():
-    for i in range(RETRY_TIMES):
-        try:
-            config.load_kube_config(TOKEN)
-            jsondict = client.CoreV1Api().list_node().to_dict()
-            return jsondict
-        except HTTPError as e:
-            if str(e).find('Not Found'):
-                return False
-        finally:
-            k8s_logger.debug(traceback.format_exc())
-            k8s_logger.debug("sleep 1 sec")
-            time.sleep(1)
-    raise BadRequest('can not get node info from k8s.')
+# def list_node():
+#     for i in range(RETRY_TIMES):
+#         try:
+#             # config.load_kube_config(TOKEN)
+#             # nonlocal client
+#             client=KubernetesClient(config=TOKEN)
+#             jsondict = client.listResources(kind='Node',namespace='')
+#             return jsondict
+#         except HTTPError as e:
+#             if str(e).find('Not Found'):
+#                 return False
+#         finally:
+#             k8s_logger.debug(traceback.format_exc())
+#             k8s_logger.debug("sleep 1 sec")
+#             time.sleep(1)
+#     raise BadRequest('can not get node info from k8s.')
 
 
 class K8sHelper(object):

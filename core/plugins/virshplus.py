@@ -581,7 +581,7 @@ def updateOS(params):
 def delete_disk(params):
     params_dict = _get_params(params)
     vol, pool, type = params_dict.get('vol'), params_dict.get('pool'), params_dict.get('type')
-    pool_path = get_field_in_kubernetes_by_index(pool, GROUP, VERSION, VMP_PLURAL, ['spec','pool','url'])
+    pool_path = get_field_in_kubernetes_by_index(pool, VMP_KIND, ['spec','pool','url'])
     if not os.path.isdir(pool_path):
         raise BadRequest('can not get pool path: %s.' % pool_path)
     disk_dir = "%s/%s" % (pool_path, vol)
@@ -713,7 +713,7 @@ def create_disk_snapshot(params):
     except:
         logger.error('Oops! ', exc_info=1)
         info=sys.exc_info()
-        report_failure(vol, jsondict, 'VirtletError', str(info[1]), GROUP, VERSION, VMD_PLURAL)
+        report_failure(vol, 'VirtletError', str(info[1]), VMD_KIND)
 
 def delete_disk_snapshot(params):
     vol, pool, snapshot = _get_param('--name', params), _get_param('--pool', params),
@@ -746,7 +746,7 @@ def delete_disk_snapshot(params):
     except:
         logger.error('Oops! ', exc_info=1)
         info=sys.exc_info()
-        report_failure(vol, jsondict, 'VirtletError', str(info[1]), GROUP, VERSION, VMD_PLURAL)
+        report_failure(vol, 'VirtletError', str(info[1]), VMD_KIND)
 
 def revert_disk_internal_snapshot(params):
     vol, pool, snapshot = _get_param('--name', params), _get_param('--pool', params),
@@ -779,7 +779,8 @@ def revert_disk_internal_snapshot(params):
     except:
         logger.error('Oops! ', exc_info=1)
         info=sys.exc_info()
-        report_failure(vol, jsondict, 'VirtletError', str(info[1]), GROUP, VERSION, VMD_PLURAL)
+        report_failure(vol, 'VirtletError', str(info[1]), VMD_KIND)
+
         
 def revert_disk_external_snapshot(params):
 #     jsondict = client.CustomObjectsApi().get_namespaced_custom_object(
@@ -1189,7 +1190,7 @@ def delete_network(params):
     return
 
 def _update_vmdisk_used_by_which_vm_in_k8s(vmdisk,vm):
-    return set_field_in_kubernetes_by_index(vmdisk, constants.KUBERNETES_GROUP,constants.KUBERNETES_API_VERSION, constants.KUBERNETES_PLURAL_VMD, ['spec','volume','vm'], vm)
+    return set_field_in_kubernetes_by_index(vmdisk, VMD_KIND, ['spec','volume','vm'], vm)
     
 def _runOperationQueue(operation_queue, interval = 1, raise_it = True):
     for operation in operation_queue:

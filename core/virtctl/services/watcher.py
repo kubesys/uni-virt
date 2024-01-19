@@ -19,9 +19,9 @@ from json import loads
 '''
 Import third party libs
 '''
-from kubernetes import client, config, watch
-from kubernetes.client.rest import ApiException
-from kubernetes.client import V1DeleteOptions
+# from kubernetes import client, config, watch
+# from kubernetes.client.rest import ApiException
+# from kubernetes.client import V1DeleteOptions
 from kubesys.client import KubernetesClient
 from kubesys.watch_handler import WatchHandler
 from kubesys.exceptions import HTTPError
@@ -111,7 +111,6 @@ def main():
     except:
         logger.error('Oops! ', exc_info=1)
 
-
 def doWatch(plural, k8s_object_kind):
     '''监听器的请求处理逻辑，请求封装在{'spec': {'lifecycle': {...}}}里。\
     lifecycle通过解析器convertor解析，并与constatns里的配置项匹配，转化成invoke cmd和query cmd。\
@@ -149,10 +148,10 @@ def doWatch(plural, k8s_object_kind):
 #                 i.join()
         except Exception as e:
             #             master_ip = change_master_and_reload_config(fail_times)
-            config.load_kube_config(config_file=TOKEN)
+            # config.load_kube_config(config_file=TOKEN)
             #             fail_times += 1
             #             logger.debug('retrying another master %s, retry times: %d' % (master_ip, fail_times))
-            info = sys.exc_info()
+            # info = sys.exc_info()
             logger.warning('Oops! ', exc_info=1)
             #             vMWatcher(group=GROUP_VM, version=VERSION_VM, plural=PLURAL_VM)
             time.sleep(3)
@@ -197,22 +196,6 @@ def doExecutor(plural, k8s_object_kind, jsondict):
 
     # acquire lock
     if the_cmd_key:
-#         '''考虑到apiserver高可用场景，当接收到相同eventId的请求时，忽略。
-#         '''
-#         if not is_valid_uuid(_getEventId(jsondict)):
-#             raise BadRequest('Event ID: %s is not valid uuid!' % _getEventId(jsondict))
-#         global current_event_id
-#         if current_event_id.get("{}.{}".format(k8s_object_kind, _getMetadataName(jsondict))) == _getEventId(jsondict):
-#             logger.warning('Same event id %s for %s, ignore it...' % (_getEventId(jsondict),_getMetadataName(jsondict)))
-#             return
-#         else:
-#             current_event_id["{}.{}".format(k8s_object_kind, _getMetadataName(jsondict))] = _getEventId(jsondict)
-#         if last_operation.get("{}.{}".format(k8s_object_kind, _getMetadataName(jsondict))) == the_cmd_key and the_cmd_key in conflict_operations:
-#             logger.warning('Conflict operation %s for %s, ignore it...' % (the_cmd_key,_getMetadataName(jsondict)))
-#             return
-#         else:
-#             logger.debug(last_operation)
-#             last_operation["{}.{}".format(k8s_object_kind, _getMetadataName(jsondict))] = the_cmd_key
         _acquire_mutex_lock(the_cmd_key)
     try:
         # if the_cmd_key and operation_type != 'DELETED':
@@ -240,8 +223,7 @@ def doExecutor(plural, k8s_object_kind, jsondict):
                 logger.error('Oops! ', exc_info=1)
                 info = sys.exc_info()
                 try:
-                    report_failure(metadata_name, jsondict, 'LibvirtError', str(info[1]), constants.KUBERNETES_GROUP,
-                                   constants.KUBERNETES_API_VERSION, plural)
+                    report_failure(metadata_name, 'LibvirtError', str(info[1]), k8s_object_kind)
                 except:
                     logger.warning('Oops! ', exc_info=1)
                 event.update_evet(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_ERROR)
@@ -249,12 +231,7 @@ def doExecutor(plural, k8s_object_kind, jsondict):
                 logger.error('Oops! ', exc_info=1)
                 info = sys.exc_info()
                 try:
-                    if hasattr(e, 'reason'):
-                        report_failure(metadata_name, jsondict, e.reason, e.message, constants.KUBERNETES_GROUP,
-                                       constants.KUBERNETES_API_VERSION, plural)
-                    else:
-                        report_failure(metadata_name, jsondict, 'Exception', str(info[1]), constants.KUBERNETES_GROUP,
-                                       constants.KUBERNETES_API_VERSION, plural)
+                    report_failure(metadata_name, 'Exception', str(info[1]),  k8s_object_kind)
                 except:
                     logger.warning('Oops! ', exc_info=1)
                 event.update_evet(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_ERROR)
@@ -266,12 +243,7 @@ def doExecutor(plural, k8s_object_kind, jsondict):
         logger.error('Oops! ', exc_info=1)
         info = sys.exc_info()
         try:
-            if hasattr(e, 'reason'):
-                report_failure(metadata_name, jsondict, e.reason, e.message, constants.KUBERNETES_GROUP,
-                               constants.KUBERNETES_API_VERSION, plural)
-            else:
-                report_failure(metadata_name, jsondict, 'Exception', str(info[1]), constants.KUBERNETES_GROUP,
-                               constants.KUBERNETES_API_VERSION, plural)
+            report_failure(metadata_name, 'Exception', str(info[1]), k8s_object_kind)
         except:
             logger.warning('Oops! ', exc_info=1)
 
@@ -346,7 +318,7 @@ def write_result_to_kubernetes(kind, name, data):
     并且符合{'spec':{...}}规范，如果传{'spec':{}}则代表从Kubernetes中删除该对象。
     '''
     logger.debug('write back to kubernetes')
-    jsonDict = None
+    # jsonDict = None
     try:
         client = KubernetesClient(config=TOKEN)
         # involved_object_name actually is nodeerror occurred during processing json data from apiserver

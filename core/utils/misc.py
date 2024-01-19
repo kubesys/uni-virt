@@ -50,9 +50,9 @@ from collections import namedtuple
 '''
 Import third party libs
 '''
-from kubernetes import client, config
-from kubernetes.client import V1DeleteOptions
-from kubernetes.client.rest import ApiException
+# from kubernetes import client, config
+# # from kubernetes.client import V1DeleteOptions
+# # from kubernetes.client.rest import ApiException
 from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_message,retry_if_result
 
 TOKEN = constants.KUBERNETES_TOKEN_FILE
@@ -91,11 +91,10 @@ def create_custom_object(jsonStr):
        retry=retry_if_exception_message(match='Not Found'),
        wait=wait_random(min=0, max=3),
        reraise=True)
-def get_custom_object(group, version, plural, metadata_name):
-    config.load_kube_config(config_file=TOKEN)
-    jsonStr = client.CustomObjectsApi().get_namespaced_custom_object(
-        group=group, version=version, namespace='default', plural=plural, name=metadata_name)
-    return jsonStr
+def get_custom_object(kind, metadata_name)->dict:
+    client = KubernetesClient(config=TOKEN)
+    jsonDict = client.getResource(kind=kind, name=metadata_name, namespace='default')
+    return jsonDict
 
 
 @retry(stop=stop_after_attempt(3),
@@ -112,11 +111,10 @@ def list_custom_object(kind,namespace):
        retry=retry_if_exception_message(match='Not Found'),
        wait=wait_random(min=0, max=3),
        reraise=True)
-def update_custom_object(group, version, plural, metadata_name, body):
-    config.load_kube_config(config_file=TOKEN)
+def update_custom_object(body):
+    client=KubernetesClient(config=TOKEN)
     body = updateDescription(body)
-    retv = client.CustomObjectsApi().replace_namespaced_custom_object(
-        group=group, version=version, namespace='default', plural=plural, name=metadata_name, body=body)
+    retv=client.updateResource(body)
     return retv
 
 
@@ -429,23 +427,23 @@ def write_config(vol, dir, current, pool):
         dump(config, f)
 
 
-def get_field_in_kubernetes_by_index(name, group, version, plural, index):
+def get_field_in_kubernetes_by_index(name,kind, index):
     try:
         if not index or not list(index):
             return None
-        jsondict = get_custom_object(group, version, plural, name)
+        jsondict = get_custom_object(kind, name)
         return get_field(jsondict, index)
     except:
         return None
 
 
-def set_field_in_kubernetes_by_index(name, group, version, plural, index, value):
+def set_field_in_kubernetes_by_index(name, kind,index, value):
     try:
         if not index or not list(index):
             return None
-        jsondict = get_custom_object(group, version, plural, name)
+        jsondict = get_custom_object(kind, name)
         contents = set_field(jsondict, index, value)
-        return update_custom_object(group, version, plural, name, contents)
+        return update_custom_object(contents)
     except:
         return None
 
@@ -462,9 +460,9 @@ def list_objects_in_kubernetes(kind):
         return None
 
 
-def get_node_name_from_kubernetes(group, version, namespace, plural, metadata_name):
+def get_node_name_from_kubernetes(kind, metadata_name):
     try:
-        jsonStr = get_custom_object(group, version, plural, metadata_name)
+        jsonStr = get_custom_object(kind, metadata_name)
     except HTTPError as e:
         if str(e).find('Not Found'):
             return None
@@ -473,9 +471,9 @@ def get_node_name_from_kubernetes(group, version, namespace, plural, metadata_na
     return jsonStr['metadata']['labels']['host']
 
 
-def get_ha_from_kubernetes(group, version, namespace, plural, metadata_name):
+def get_ha_from_kubernetes(kind, metadata_name):
     try:
-        jsonStr = get_custom_object(group, version, plural, metadata_name)
+        jsonStr = get_custom_object(kind, metadata_name)
     except HTTPError as e:
         if str(e).find('Not Found'):
             return False
@@ -859,22 +857,22 @@ class TimeoutError(Exception):
     pass
 
 
-def report_failure(name, jsondict, error_reason, error_message, group, version, plural):
-    jsondict = get_custom_object(group, version, plural, name)
+def report_failure(name, error_reason, error_message, kind):
+    jsondict = get_custom_object(kind, name)
     jsondict = deleteLifecycleInJson(jsondict)
     jsondict = updateDescription(jsondict)
     body = addExceptionMessage(jsondict, error_reason, error_message)
-    retv = update_custom_object(group, version, plural, name, body)
+    retv = update_custom_object(body)
     return retv
 
 
-def report_success(name, jsondict, success_reason, success_message, group, version, plural):
-    jsondict = get_custom_object(group, version, plural, name)
-    jsondict = deleteLifecycleInJson(jsondict)
-    jsondict = updateDescription(jsondict)
-    body = addPowerStatusMessage(jsondict, success_reason, success_message)
-    retv = update_custom_object(group, version, plural, name, body)
-    return retv
+# def report_success(name, jsondict, success_reason, success_message, group, version, plural):
+#     jsondict = get_custom_object(group, version, plural, name)
+#     jsondict = deleteLifecycleInJson(jsondict)
+#     jsondict = updateDescription(jsondict)
+#     body = addPowerStatusMessage(jsondict, success_reason, success_message)
+#     retv = update_custom_object(group, version, plural, name, body)
+#     return retv
 
 
 def get_spec(jsondict):
@@ -1631,8 +1629,8 @@ class UserDefinedEvent(object):
         metadata=Metadata(name=self.event_metadata_name, namespace='default')
         body=Event(first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
                    involved_object=involved_object, message=self.message, reason=self.reason,
-                   type=self.event_type).to_json()
-        KubernetesClient(config=TOKEN).updateResource(body.to_json(),pretty=True)
+                   type=self.event_type)
+        KubernetesClient(config=TOKEN).updateResource(body.__dict__,pretty=True)
 
 
     def updateKubernetesEvent(self):
@@ -1938,8 +1936,7 @@ if __name__ == '__main__':
     #     pprint.pprint(list_objects_in_kubernetes('cloudplus.io', 'v1alpha3', 'virtualmachinepools'))
     #     print(get_field_in_kubernetes_by_index('cloudinit', 'cloudplus.io', 'v1alpha3', 'virtualmachines', ['metadata', 'labels']))
     #     tmp=get_custom_object(constants.KUBERNETES_GROUP,constants.KUBERNETES_API_VERSION, constants.KUBERNETES_PLURAL_VMD,"disktest")
-    print(set_field_in_kubernetes_by_index('disktest-wyw', constants.KUBERNETES_GROUP, constants.KUBERNETES_API_VERSION,
-                                           constants.KUBERNETES_PLURAL_VMD, ['spec', 'volume', 'vm'], 'test-wyw'))
+    print(set_field_in_kubernetes_by_index('disktest-wyw', constants.KUBERNETES_KIND_VMD, ['spec', 'volume', 'vm'], 'test-wyw'))
 #     print(tmp)
 # pprint.pprint(change_master_ip('192.168.66.102'))
 #     check_vdiskfs_by_disk_path('/var/lib/libvirt/cstor/3eebd453b21c4b8fad84a60955598195/3eebd453b21c4b8fad84a60955598195/77a5b25d34be4bcdbaeb9f5929661f8f/77a5b25d34be4bcdbaeb9f5929661f8f --disk /var/lib/libvirt/cstor/076fe6aa813842d3ba141f172e3f8eb6/076fe6aa813842d3ba141f172e3f8eb6/4a2b67b44f4c4fca87e7a811e9fd545c.iso,device=cdrom,perms=ro')
