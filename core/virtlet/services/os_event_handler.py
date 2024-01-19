@@ -165,7 +165,7 @@ def myVmVolEventHandler(event, pool, name, group, version, plural):
             jsondict = updateJsonRemoveLifecycle(jsondict, vol_json)
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             try:
-                create_custom_object(str(jsondict))
+                create_custom_object(body)
             except HTTPError as e:
                 logger.error(e)
 
@@ -325,7 +325,7 @@ def myVmSnapshotEventHandler(event, vm, name, group, version, plural):
             jsondict = updateJsonRemoveLifecycle(jsondict, snap_json)
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             try:
-                create_custom_object(str(jsondict))
+                create_custom_object(body)
             except HTTPError as e:
                 logger.error(e)
 
@@ -564,7 +564,7 @@ def myVmLibvirtXmlEventHandler(event, name, xml_path, group, version, plural):
             body = addNodeName(jsondict)
             try:
                 logger.debug("Create VM %s from back-end: %s" %(name, body))
-                create_custom_object(str(jsondict))
+                create_custom_object(body)
             except HTTPError as e:
                 if str(e).find('Conflict'):
                     _solve_conflict_in_VM(name)
@@ -742,7 +742,7 @@ def myVmdImageLibvirtXmlEventHandler(event, name, pool, xml_path, group, version
             jsondict = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             body = addNodeName(jsondict)
             try:
-                create_custom_object(str(jsondict))
+                create_custom_object(body)
             except HTTPError as e:
                 logger.error(e)
 
@@ -885,7 +885,7 @@ def myImageLibvirtXmlEventHandler(event, name, xml_path, group, version, plural)
             jsondict = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             body = addNodeName(jsondict)
             try:
-                create_custom_object(str(jsondict))
+                create_custom_object(body)
             except HTTPError as e:
                 logger.error(e)
 
