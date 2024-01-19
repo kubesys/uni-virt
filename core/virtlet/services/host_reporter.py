@@ -122,7 +122,7 @@ def _patch_node_status():
     client=KubernetesClient(config=TOKEN)
     host=client.getResourceStatus(kind='Node',name=HOSTNAME)
     node_watcher = HostCycler()
-    host['status'] = node_watcher.get_node_status()
+    host['status'] = node_watcher.get_node_status().__dict__
     client.updateResourceStatus(host)
     return
 
