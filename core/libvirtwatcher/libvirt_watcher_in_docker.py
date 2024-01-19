@@ -27,7 +27,7 @@ sys.path.append("..")
 '''
 Import third party libs
 '''
-from kubernetes import config
+# from kubernetes import config
 
 '''
 Import local libs
@@ -55,7 +55,7 @@ def main():
     # logger.debug("---------------------------------------------------------------------------------")
     
     if os.path.exists(TOKEN):
-        config.load_kube_config(config_file=TOKEN)
+        # config.load_kube_config(config_file=TOKEN)
         try:
 #             thread_1 = Process(target=get_libvirt_event_handler())
 #             thread_1.daemon = True
@@ -69,7 +69,7 @@ def main():
 #             thread_1.join()
             libvirt_event_handler.main()
         except:
-            config.load_kube_config(config_file=TOKEN)
+            # config.load_kube_config(config_file=TOKEN)
             logger.error('Oops! ', exc_info=1)
             
 def is_kubernetes_master():
