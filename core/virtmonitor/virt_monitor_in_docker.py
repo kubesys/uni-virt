@@ -1,3 +1,19 @@
+'''
+ * Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ '''
+
 import subprocess
 
 import prometheus_client
@@ -9,7 +25,7 @@ import threading
 import concurrent.futures
 from prometheus_client.core import CollectorRegistry
 from prometheus_client import Gauge, start_http_server, Counter
-from kubernetes import config
+# from kubernetes import config
 from json import loads, dumps
 
 sys.path.append("..")
@@ -25,6 +41,7 @@ logger = logger.set_logger(os.path.basename(__file__), LOG)
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 PLURAL = constants.KUBERNETES_PLURAL_VM
 VERSION = constants.KUBERNETES_API_VERSION
+KIND=constants.KUBERNETES_KIND_VM
 GROUP = constants.KUBERNETES_GROUP
 PLURAL_VMP = constants.KUBERNETES_PLURAL_VMP
 VERSION_VMP = constants.KUBERNETES_API_VERSION
@@ -397,8 +414,8 @@ def get_vm_metrics(vm, zone):
         global LAST_RESOURCE_UTILIZATION
         #     delete_duplicated_data = False
         #     tags = {}
-        config.load_kube_config(config_file=TOKEN)
-        labels = get_field_in_kubernetes_by_index(vm, GROUP, VERSION, PLURAL, ['metadata', 'labels'])
+        # config.load_kube_config(config_file=TOKEN)
+        labels = get_field_in_kubernetes_by_index(vm, KIND, ['metadata', 'labels'])
         this_tags = {'zone': zone, 'host': HOSTNAME, 'owner': labels.get('owner'),
                      "router": labels.get('router'), "autoscalinggroup": labels.get('autoscalinggroup'),
                      "cluster": labels.get('cluster')}
@@ -727,8 +744,8 @@ def delete_vm_metrics(vm, zone):
 
 
 def zero_vm_metrics(vm, zone):
-    config.load_kube_config(config_file=TOKEN)
-    labels = get_field_in_kubernetes_by_index(vm, GROUP, VERSION, PLURAL, ['metadata', 'labels'])
+    # config.load_kube_config(config_file=TOKEN)
+    labels = get_field_in_kubernetes_by_index(vm, KIND, ['metadata', 'labels'])
     #     labels_str = dumps(labels)
     resource_utilization = {'vm': vm, 'cpu_metrics': {}, 'mem_metrics': {},
                             'disks_metrics': [], 'networks_metrics': [], 'cluster': labels.get('cluster'),
@@ -861,11 +878,11 @@ def main():
     if os.path.exists(TOKEN):
         start_http_server(19998)
     #         registry = CollectorRegistry(auto_describe=False)
-        config.load_kube_config(config_file=TOKEN)
+    #     config.load_kube_config(config_file=TOKEN)
         zone = get_field_in_kubernetes_node(HOSTNAME, ['metadata', 'labels', 'zone'])
         while True:
     #             init(registry)
-            config.load_kube_config(config_file=TOKEN)
+    #         config.load_kube_config(config_file=TOKEN)
             collect_vm_metrics(zone)
     #             collect_storage_metrics(zone)
             time.sleep(10)

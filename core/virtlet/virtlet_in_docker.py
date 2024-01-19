@@ -4,6 +4,19 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 
 @author: wuyuewen@otcaix.iscas.ac.cn
 @author: wuheng@otcaix.iscas.ac.cn
+@author: liujiexin@otcaix.iscas.ac.cn
+
+* Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
 
 '''
  
@@ -33,14 +46,14 @@ logger = logger.set_logger(os.path.basename(__file__), constants.KUBEVMM_VIRTLET
 def main():
     '''virtlet进程，运行在docker容器里
     '''
-    logger.debug("---------------------------------------------------------------------------------")
-    logger.debug("------------------------Welcome to Virtlet Daemon.-------------------------------")
-    logger.debug("------Copyright (2024, ) Institute of Software, Chinese Academy of Sciences------")
-    logger.debug("---------author: wuyuewen@otcaix.iscas.ac.cn, wuheng@otcaix.iscas.ac.cn----------")
-    logger.debug("---------------------------------------------------------------------------------")
+    logger.debug("--------------------------------------------------------------------------------------------")
+    logger.debug("------------------------------Welcome to Virtlet Daemon.------------------------------------")
+    logger.debug("------------Copyright (2024, ) Institute of Software, Chinese Academy of Sciences-----------")
+    logger.debug("author: wuyuewen@otcaix.iscas.ac.cn, wuheng@otcaix.iscas.ac.cn, liujiexin@otcaix.iscas.ac.cn")
+    logger.debug("--------------------------------------------------------------------------------------------")
     
     if os.path.exists(constants.KUBERNETES_TOKEN_FILE):
-        config.load_kube_config(config_file=constants.KUBERNETES_TOKEN_FILE)
+        # config.load_kube_config(config_file=constants.KUBERNETES_TOKEN_FILE)
         try:
 #             thread_1 = Thread(target=libvirt_event_handler)
 #             thread_1.daemon = True

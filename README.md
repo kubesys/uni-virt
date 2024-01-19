@@ -110,6 +110,9 @@
 ```shell
 cd /root
 git clone https://github.com/kubesys/uniVirt
+cd uniVirt
+git clone --recursive https://github.com/kubesys/client_python.git
+
 ```
 
 ### 步骤2: 准备Ansible安装
@@ -395,15 +398,15 @@ bash scripts/shells/service-adm.sh
 
 ### uniVirt相关
 
-| 文件名                         | 说明        | 包含                  |
-|-----------------------------|-----------|---------------------|
-| uniVirt.tar.gz              | 项目代码      | 全部项目代码、可执行文件以及部署脚本等 |
-| python-package.tar.gz       | python软件包 |                     |
-| rpm-package.tar.gz          | rpm包      |                     |
-| go1.19.1.linux-amd64.tar.gz | go语言包     |                     |
-| command.tar.gz              | 可执行文件包    |                     |
-| image.tar.gz                | 所需全部镜像    |                     |
-| install-centos7-offline.sh  | 部署脚本      |                     |
+| 文件名                         | 说明        | 包含                                    |
+|-----------------------------|-----------|---------------------------------------|
+| uniVirt.tar.gz              | 项目代码      | 全部项目代码、client_python最新代码、可执行文件以及部署脚本等 |
+| python-package.tar.gz       | python软件包 |                                       |
+| rpm-package.tar.gz          | rpm包      |                                       |
+| go1.19.1.linux-amd64.tar.gz | go语言包     |                                       |
+| command.tar.gz              | 可执行文件包    |                                       |
+| image.tar.gz                | 所需全部镜像    |                                       |
+| install-centos7-offline.sh  | 部署脚本      |                                       |
 
 ### kube-ovn相关
 - base.sh - 安装脚本
