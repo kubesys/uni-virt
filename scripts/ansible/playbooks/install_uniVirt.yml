@@ -5,7 +5,6 @@
   vars:
     ver: "v1.0.0"
     yaml_directory: "/root/uniVirt/scripts/yamls"
-    offline:
 
   tasks:
     - name: Copy virt-tool-centos.yaml.tmp to virt-tool-centos.yaml
