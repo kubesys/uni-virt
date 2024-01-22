@@ -1642,7 +1642,7 @@ class UserDefinedEvent(object):
         body=Event(first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
                    involved_object=involved_object, message=self.message, reason=self.reason,
                    type=self.event_type)
-        KubernetesClient(config=TOKEN).updateResource(body.__dict__,pretty=True)
+        KubernetesClient(config=TOKEN).updateResource(body.to_json(),pretty=True)
 
 
     def updateKubernetesEvent(self):

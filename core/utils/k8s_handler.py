@@ -48,10 +48,10 @@ class Metadata:
 class Event:
     def __init__(self,first_timestamp:datetime=None, involved_object:InvolvedObject=None, last_timestamp:datetime=None,
                  message=None, metadata:Metadata=None, reason=None, type:str=None):
-        self.first_timestamp=time.mktime(first_timestamp.timetuple())
-        self.last_timestamp=time.mktime(last_timestamp.timetuple())
+        self.firstTimestamp=time.mktime(first_timestamp.timetuple())
+        self.lastTimestamp=time.mktime(last_timestamp.timetuple())
         self.metadata=metadata.__dict__
-        self.involved_object=involved_object.__dict__
+        self.involvedObject=involved_object.__dict__
         self.message=message
         self.reason=reason
         self.type=type
