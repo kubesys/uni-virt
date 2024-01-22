@@ -126,9 +126,11 @@ def list_custom_object(kind,namespace):
 def update_custom_object(body):
     client=KubernetesClient(config=TOKEN)
     body = updateDescription(body)
-    retv=client.updateResource(body)
+    retv=client.updateResource(dictToJsonString(body))
     return retv
 
+def dictToJsonString(dict_obj) -> str:
+    return json.dumps(dict_obj, indent=4, separators=(',', ': '))
 
 @retry(stop=stop_after_attempt(3),
        retry=retry_if_exception_message(match='Not Found'),
