@@ -362,7 +362,7 @@ Get event id.
 def _getEventId(jsondict):
     metadata = jsondict.get('metadata')
     if not metadata:
-        metadata = jsondict['raw_object'].get('metadata')
+        metadata = jsondict.get('metadata')
     labels = metadata.get('labels')
     logger.debug(labels)
     return labels.get('eventId') if labels.get('eventId') else '-1'

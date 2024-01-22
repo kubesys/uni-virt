@@ -145,6 +145,7 @@ def doWatch(plural, k8s_object_kind):
                                  modify_func=lambda jsondict: doExecutor(plural, k8s_object_kind, jsondict),
                                  delete_func=lambda jsondict: doExecutor(plural, k8s_object_kind, jsondict))
             watcher=client.watchResources(kind=k8s_object_kind,namespace='default',watcherhandler=handler)
+            time.sleep(int(constants.KUBERNETES_WATCHER_TIME_OUT))
 #             for jsondict in watcher.stream(client.CustomObjectsApi().list_cluster_custom_object,
 #                                            group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION,
 #                                            plural=plural, **kwargs):
@@ -186,23 +187,23 @@ def doExecutor(plural, k8s_object_kind, jsondict):
     if operation_type == 'DELETED':
         # delete type特殊处理: kubectl delete vmp pooltest
         if  k8s_object_kind==constants.KUBERNETES_KIND_VMP:
-            jsondict["raw_object"]["spec"]['lifecycle']={"deletePool":dict()}
+            jsondict["spec"]['lifecycle']={"deletePool":dict()}
         elif k8s_object_kind==constants.KUBERNETES_KIND_VMD:
-            poolName=jsondict["raw_object"]["spec"]['volume']['pool']
+            poolName=jsondict["spec"]['volume']['pool']
             logger.debug('vmd poolName: %s' % poolName)
-            jsondict["raw_object"]["spec"]['lifecycle'] = {"deleteDisk": {"pool": poolName}}
+            jsondict["spec"]['lifecycle'] = {"deleteDisk": {"pool": poolName}}
         elif k8s_object_kind==constants.KUBERNETES_KIND_VMDI:
-            poolName = jsondict["raw_object"]["spec"]['volume']['pool']
+            poolName = jsondict["spec"]['volume']['pool']
             logger.debug('vmdi poolName: %s' % poolName)
-            jsondict["raw_object"]["spec"]['lifecycle'] = {"deleteDiskImage": {"pool": poolName}}
+            jsondict["spec"]['lifecycle'] = {"deleteDiskImage": {"pool": poolName}}
         elif k8s_object_kind==constants.KUBERNETES_KIND_VMDSN:
-            volumeDict = jsondict["raw_object"]["spec"]['volume']
+            volumeDict = jsondict["spec"]['volume']
             poolName = volumeDict['pool']
             logger.debug('vmdsn poolName: %s' % poolName)
             domain=""
             if "domain" in volumeDict.keys():
                 domain=volumeDict["domain"]
-            jsondict["raw_object"]["spec"]['lifecycle'] = {"deleteDiskExternalSnapshot": {"pool": poolName,"source":volumeDict["disk"],"domain":domain}}
+            jsondict["spec"]['lifecycle'] = {"deleteDiskExternalSnapshot": {"pool": poolName,"source":volumeDict["disk"],"domain":domain}}
     # 在此处检查lifecycle，只有带lifecycle的才继续处理
     (policy, the_cmd_key, prepare_cmd, invoke_cmd, query_cmd) = toCmds(jsondict)
     logger.debug(toCmds(jsondict))
@@ -267,7 +268,7 @@ def _getMetadataName(jsondict):
         str: metadata name in Kubernetes
 
     '''
-    metadata = jsondict['raw_object']['metadata']
+    metadata = jsondict['metadata']
     metadata_name = metadata.get('name')
     if metadata_name:
         return metadata_name

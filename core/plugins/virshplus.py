@@ -1745,17 +1745,17 @@ def _unplugDeviceFromXmlCmd(metadata_name, device_type, data, args):
     return 'virsh detach-device --domain %s --file %s %s' % (metadata_name, file_path, args)
 
 def _createNICFromXml(metadata_name, jsondict, the_cmd_key):
-    spec = jsondict['raw_object'].get('spec')
+    spec = jsondict.get('spec')
     lifecycle = spec.get('lifecycle')
     if not lifecycle:
         return
     '''
     Read parameters from lifecycle, add default value to some parameters.
     '''
-    mac = jsondict['raw_object']['spec']['lifecycle'][the_cmd_key].get('mac')
-    source = jsondict['raw_object']['spec']['lifecycle'][the_cmd_key].get('source')
-    model = jsondict['raw_object']['spec']['lifecycle'][the_cmd_key].get('model')
-#     target = jsondict['raw_object']['spec']['lifecycle'][the_cmd_key].get('target')
+    mac = jsondict['spec']['lifecycle'][the_cmd_key].get('mac')
+    source = jsondict['spec']['lifecycle'][the_cmd_key].get('source')
+    model = jsondict['spec']['lifecycle'][the_cmd_key].get('model')
+#     target = jsondict['spec']['lifecycle'][the_cmd_key].get('target')
     if not source:
         raise BadRequest('Execute plugNIC error: missing parameter "source"!')
     if not mac:
@@ -1771,27 +1771,27 @@ def _createNICFromXml(metadata_name, jsondict, the_cmd_key):
     
     file_path = _createNICXml(metadata_name, lines)
 
-    del jsondict['raw_object']['spec']['lifecycle'][the_cmd_key]
+    del jsondict['spec']['lifecycle'][the_cmd_key]
     new_cmd_key = 'plugDevice'
-    jsondict['raw_object']['spec']['lifecycle'][new_cmd_key] = {'file': file_path}
+    jsondict['spec']['lifecycle'][new_cmd_key] = {'file': file_path}
     return(jsondict, new_cmd_key, file_path)
 
 def _deleteNICFromXml(metadata_name, jsondict, the_cmd_key):
-    spec = jsondict['raw_object'].get('spec')
+    spec = jsondict.get('spec')
     lifecycle = spec.get('lifecycle')
     if not lifecycle:
         return
     '''
     Read parameters from lifecycle, add default value to some parameters.
     '''
-    mac = jsondict['raw_object']['spec']['lifecycle'][the_cmd_key].get('mac')
+    mac = jsondict['spec']['lifecycle'][the_cmd_key].get('mac')
     if not mac:
         raise BadRequest('Execute plugNIC error: missing parameter "mac"!')
     
     file_path = '%s/%s-nic-%s.xml' % (constants.KUBEVMM_VM_DEVICES_DIR, metadata_name, mac.replace(':', ''))
-    del jsondict['raw_object']['spec']['lifecycle'][the_cmd_key]
+    del jsondict['spec']['lifecycle'][the_cmd_key]
     new_cmd_key = 'unplugDevice'
-    jsondict['raw_object']['spec']['lifecycle'][new_cmd_key] = {'file': file_path}
+    jsondict['spec']['lifecycle'][new_cmd_key] = {'file': file_path}
     return (jsondict, new_cmd_key, file_path)
 
 def mvNICXmlToTmpDir(file_path):
