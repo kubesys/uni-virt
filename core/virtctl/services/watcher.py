@@ -280,7 +280,7 @@ def _getEventId(jsondict):
     Returns:
         str: event id
     '''
-    metadata = jsondict['raw_object'].get('metadata')
+    metadata = jsondict.get('metadata')
     labels = metadata.get('labels')
     logger.debug(labels)
     return labels.get('eventId') if labels.get('eventId') else '-1'
@@ -407,13 +407,14 @@ def delete_lifecycle_in_kubernetes(kind, name):
         # logger.debug(dumps(jsonStr))
         #         logger.debug("node name is: " + name)
         jsonDict = jsonStr.copy()
-        if jsonDict['spec'].get('lifecycle'):
-            del jsonDict['spec']['lifecycle']
+        if jsonDict.get('spec'):
+            if jsonDict['spec'].get('lifecycle'):
+                del jsonDict['spec']['lifecycle']
         #         jsonDict = updateDescription(jsonDict)
         # client.CustomObjectsApi().replace_namespaced_custom_object(
         #     group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION, namespace='default',
         #     plural=plural, name=name, body=jsonDict)
-        client.updateResource(jsonDict)
+                client.updateResource(jsonDict)
     except:
         logger.error('Oops! ', exc_info=1)
         info = sys.exc_info()
