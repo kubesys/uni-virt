@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  '''
-# from typing import Literal
-
+import datetime
+import json
 
 class InvolvedObject:
     def __init__(self,name:str,kind:str,namespace:str=''):
@@ -45,10 +45,10 @@ class Metadata:
         return json.dumps(self.__dict__)
 
 class Event:
-    def __init__(self,first_timestamp=None, involved_object:InvolvedObject=None, last_timestamp=None,
+    def __init__(self,first_timestamp:datetime=None, involved_object:InvolvedObject=None, last_timestamp:datetime=None,
                  message=None, metadata:Metadata=None, reason=None, type:str=None):
-        self.first_timestamp=first_timestamp
-        self.last_timestamp=last_timestamp
+        self.first_timestamp=time.mktime(first_timestamp.timetuple())
+        self.last_timestamp=time.mktime(last_timestamp.timetuple())
         self.metadata=metadata.__dict__
         self.involved_object=involved_object.__dict__
         self.message=message
