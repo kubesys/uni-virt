@@ -55,6 +55,10 @@ ENV LC_ALL zh_CN.UTF-8
 # pip
 COPY pip.conf  /root/.pip/pip.conf
 
+WORKDIR /home
+
+ADD sdsctl-install.sh /home
+
 # [Docker -- 使用Docker构建基于centos7镜像的python3.x环境](https://blog.csdn.net/Aeve_imp/article/details/101461488)
 RUN yum install epel-release -y && \
     yum install centos-release-openstack-rocky.noarch -y && \
