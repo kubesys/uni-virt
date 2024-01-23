@@ -31,7 +31,9 @@ RUN set -ex \
     #&& mv /usr/bin/pip /usr/bin/pip-python27 \
     # 配置默认为python3
     && ln -s /usr/local/python3/bin/python3 /usr/bin/python \
-    && ln -s /usr/local/python3/bin/pip3 /usr/bin/pip
+    && ln -s /usr/local/python3/bin/pip3 /usr/bin/pip \
+    && ln -s /usr/local/python3/bin/python3 /usr/bin/python3 \
+    && ln -s /usr/local/python3/bin/pip3 /usr/bin/pip3
 # 修复因修改python版本导致yum失效问题
 RUN set -ex \
     && sed -i "s#/usr/bin/python#/usr/bin/python27#" /usr/bin/yum \
