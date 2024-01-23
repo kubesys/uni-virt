@@ -14,7 +14,9 @@ import (
 
 func GetVMHostName() string {
 	name, _ := os.Hostname()
-	return fmt.Sprintf("vm.%s", strings.ToLower(name))
+	//return fmt.Sprintf("vm.%s", strings.ToLower(name))
+	// TODO fix vm.node
+	return fmt.Sprintf("%s", strings.ToLower(name))
 }
 
 func GetIPByNodeName(nodeName string) (string, error) {

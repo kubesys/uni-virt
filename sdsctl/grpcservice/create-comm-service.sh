@@ -4,11 +4,7 @@ CURRENT_DIR=$(cd "$(dirname "$0")";pwd)
 
 # add command
 systemctl stop kubestack-commctl
-if [ ! -n "$1" ] ;then
-
-    go build -o $CURRENT_DIR/../cmd/commctl/commctl $CURRENT_DIR/../cmd/commctl/main.go
-fi
-
+go build -o $CURRENT_DIR/../cmd/commctl/commctl $CURRENT_DIR/../cmd/commctl/main.go
 cp -rf $CURRENT_DIR/../cmd/commctl/commctl /usr/bin/commctl
 chmod +x /usr/bin/commctl
 
