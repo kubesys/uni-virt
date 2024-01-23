@@ -16,7 +16,7 @@
 
     - name: Copy necessary files to target hosts
       ansible.builtin.synchronize:
-        src: "/root/uniVirt/sdsctl/"
+        src: "{{ lookup('env', 'PWD') }}/sdsctl/"
         dest: "/etc/uniVirt/sdsctl/"
         recursive: yes
         delete: yes

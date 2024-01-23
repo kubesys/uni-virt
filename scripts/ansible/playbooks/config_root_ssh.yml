@@ -1,38 +1,37 @@
----
 - name: Configure SSH key for passwordless login
   hosts: master:worker
   become: true
   tasks:
-    - name: set env #关闭关闭公钥认证
+    - name: set env # Disable public key authentication
       lineinfile: dest=/etc/profile insertafter="{{item.position}}" line="{{item.value}}" state=present
       with_items:
       - {position: EOF, value: "\n"}
       - {position: EOF, value: "export ANSIBLE_HOST_KEY_CHECKING=False"}
       run_once: true
 
-    - name: enforce env #刷新环境变量
+    - name: enforce env # Refresh environment variables
       shell: source /etc/profile
       run_once: true
 
-    - name: close ssh check #关闭初次ssh询问
+    - name: close ssh check # Disable initial ssh prompt
       shell: sed -i "s/^.*StrictHostKeyChecking.*$/   StrictHostKeyChecking no/g" /etc/ssh/ssh_config
 
-    - name: delete /root/.ssh/ #删除历史公钥
+    - name: delete /root/.ssh/ # Delete historical public keys
       file: path=/root/.ssh/ state=absent
 
-    - name: generating public/private rsa key pair #使用ssh-key产生公钥和私钥
+    - name: generating public/private rsa key pair # Generate public and private keys using ssh-keygen
       shell: ssh-keygen -t rsa -b 2048 -N '' -f /root/.ssh/id_rsa
 
-    - name: delete /tmp/ssh/ #删除临时公钥目录
+    - name: delete /tmp/ssh/ # Delete temporary public key directory
       file: path=/tmp/ssh/ state=absent
       run_once: true
 
-    - name: fetch copy #将其它机器公钥拷贝到本机
+    - name: fetch copy # Copy public keys from other machines to local machine
       fetch: src=/root/.ssh/id_rsa.pub dest=/tmp/ssh/
 
-    - name: append file authorized_keys.log #公钥拼接成一个文件
+    - name: append file authorized_keys.log # Concatenate public keys into a single file
       shell: find /tmp/ssh/* -type f -exec sh -c 'cat {}>>/tmp/ssh/authorized_keys.log' \;
       run_once: true
 
-    - name: copy authorized_keys #将处理好的公钥分发给各个机器上
+    - name: copy authorized_keys # Distribute processed public keys to various machines
       copy: src=/tmp/ssh/authorized_keys.log dest=/root/.ssh/authorized_keys mode=0600

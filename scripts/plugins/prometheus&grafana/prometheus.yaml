@@ -951,8 +951,6 @@ spec:
         chart: prometheus-15.8.5
         heritage: Helm
     spec:
-      nodeSelector:
-        node-role.kubernetes.io/control-plane: ""
       tolerations:
         - key: node-role.kubernetes.io/control-plane
           effect: NoSchedule

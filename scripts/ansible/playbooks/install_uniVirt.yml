@@ -4,7 +4,7 @@
 
   vars:
     ver: "v1.0.0"
-    yaml_directory: "/root/uniVirt/scripts/yamls"
+    yaml_directory: "{{ lookup('env', 'PWD') }}/scripts/yamls"
     offline:
 
   tasks:
