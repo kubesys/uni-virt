@@ -52,7 +52,7 @@ from utils.kubernetes_event_utils import KubernetesEvent
 from services.executor import Executor
 from services.convertor import toCmds
 
-from utils.misc import is_valid_uuid, get_label_selector, report_failure,get_field_in_kubernetes_by_index,get_custom_object
+from utils.misc import is_valid_uuid, get_label_selector, report_failure,dictToJsonString
 
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 logger = logger.set_logger(os.path.basename(__file__), constants.KUBEVMM_VIRTCTL_LOG)
@@ -359,7 +359,7 @@ def write_result_to_kubernetes(kind, name, data):
                     # client.CustomObjectsApi().replace_namespaced_custom_object(
                     #     group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION, namespace='default',
                     #     plural=plural, name=name, body=jsonDict)
-                    client.updateResource(jsonDict)
+                    client.updateResource(dictToJsonString(jsonDict))
                 except HTTPError as e:
                     if str(e).find('Conflict'):
                         logger.debug('**Other process updated %s, ignore this 409 message.' % name)
@@ -414,7 +414,7 @@ def delete_lifecycle_in_kubernetes(kind, name):
         # client.CustomObjectsApi().replace_namespaced_custom_object(
         #     group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION, namespace='default',
         #     plural=plural, name=name, body=jsonDict)
-                client.updateResource(jsonDict)
+                client.updateResource(dictToJsonString(jsonDict))
     except:
         logger.error('Oops! ', exc_info=1)
         info = sys.exc_info()
