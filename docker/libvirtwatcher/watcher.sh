@@ -11,4 +11,11 @@ echo "Now starting libvirt watcher service..."
 SHELL_FOLDER=$(dirname $(readlink -f "$0"))
 cd ${SHELL_FOLDER}
 cd ./libvirtwatcher
-python3 libvirt_watcher_in_docker.py
+python3_path="/usr/local/python3/bin/python3"
+script_path="libvirt_watcher_in_docker.py"
+
+if [ -e "$python3_path" ]; then
+  "$python3_path" "$script_path"
+else
+  /usr/bin/python3 "$script_path"
+fi

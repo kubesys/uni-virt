@@ -12,7 +12,7 @@ metadata:
     app.kubernetes.io/instance: prometheus
     app.kubernetes.io/version: "2.4.1"
   name: prometheus-kube-state-metrics
-  namespace: kube-mlops
+  namespace: kube-system
 imagePullSecrets:
   []
 ---
@@ -27,7 +27,7 @@ metadata:
     chart: prometheus-15.8.5
     heritage: Helm
   name: prometheus-alertmanager
-  namespace: kube-mlops
+  namespace: kube-system
   annotations:
     {}
 ---
@@ -42,7 +42,7 @@ metadata:
     chart: prometheus-15.8.5
     heritage: Helm
   name: prometheus-node-exporter
-  namespace: kube-mlops
+  namespace: kube-system
   annotations:
     {}
 ---
@@ -57,7 +57,7 @@ metadata:
     chart: prometheus-15.8.5
     heritage: Helm
   name: prometheus-pushgateway
-  namespace: kube-mlops
+  namespace: kube-system
   annotations:
     {}
 ---
@@ -72,7 +72,7 @@ metadata:
     chart: prometheus-15.8.5
     heritage: Helm
   name: prometheus-server
-  namespace: kube-mlops
+  namespace: kube-system
   annotations:
     {}
 ---
@@ -87,7 +87,7 @@ metadata:
     chart: prometheus-15.8.5
     heritage: Helm
   name: prometheus-alertmanager
-  namespace: kube-mlops
+  namespace: kube-system
 data:
   alertmanager.yml: |
     global: {}
@@ -110,7 +110,7 @@ metadata:
     chart: prometheus-15.8.5
     heritage: Helm
   name: prometheus-server
-  namespace: kube-mlops
+  namespace: kube-system
 data:
   alerting_rules.yml: |
     {}
@@ -450,44 +450,6 @@ data:
   rules: |
     {}
 ---
-# Source: prometheus/templates/alertmanager/pvc.yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    component: "alertmanager"
-    app: prometheus
-    release: prometheus
-    chart: prometheus-15.8.5
-    heritage: Helm
-  name: prometheus-alertmanager
-  namespace: kube-mlops
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: "2Gi"
----
-# Source: prometheus/templates/server/pvc.yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    component: "server"
-    app: prometheus
-    release: prometheus
-    chart: prometheus-15.8.5
-    heritage: Helm
-  name: prometheus-server
-  namespace: kube-mlops
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: "8Gi"
----
 # Source: prometheus/charts/kube-state-metrics/templates/role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -728,7 +690,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: prometheus-kube-state-metrics
-  namespace: kube-mlops
+  namespace: kube-system
 ---
 # Source: prometheus/templates/alertmanager/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -744,7 +706,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: prometheus-alertmanager
-    namespace: kube-mlops
+    namespace: kube-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -764,7 +726,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: prometheus-pushgateway
-    namespace: kube-mlops
+    namespace: kube-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -784,7 +746,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: prometheus-server
-    namespace: kube-mlops
+    namespace: kube-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -795,7 +757,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: prometheus-kube-state-metrics
-  namespace: kube-mlops
+  namespace: kube-system
   labels:
     helm.sh/chart: kube-state-metrics-4.7.0
     app.kubernetes.io/managed-by: Helm
@@ -829,7 +791,7 @@ metadata:
     chart: prometheus-15.8.5
     heritage: Helm
   name: prometheus-alertmanager
-  namespace: kube-mlops
+  namespace: kube-system
 spec:
   ports:
     - name: http
@@ -856,7 +818,7 @@ metadata:
     chart: prometheus-15.8.5
     heritage: Helm
   name: prometheus-node-exporter
-  namespace: kube-mlops
+  namespace: kube-system
 spec:
   clusterIP: None
   ports:
@@ -883,7 +845,7 @@ metadata:
     chart: prometheus-15.8.5
     heritage: Helm
   name: prometheus-pushgateway
-  namespace: kube-mlops
+  namespace: kube-system
 spec:
   ports:
     - name: http
@@ -907,7 +869,7 @@ metadata:
     chart: prometheus-15.8.5
     heritage: Helm
   name: prometheus-server
-  namespace: kube-mlops
+  namespace: kube-system
 spec:
   ports:
     - name: http
@@ -933,7 +895,7 @@ metadata:
     chart: prometheus-15.8.5
     heritage: Helm
   name: prometheus-node-exporter
-  namespace: kube-mlops
+  namespace: kube-system
 spec:
   selector:
     matchLabels:
@@ -1008,7 +970,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prometheus-kube-state-metrics
-  namespace: kube-mlops
+  namespace: kube-system
   labels:
     helm.sh/chart: kube-state-metrics-4.7.0
     app.kubernetes.io/managed-by: Helm
@@ -1082,7 +1044,7 @@ metadata:
     chart: prometheus-15.8.5
     heritage: Helm
   name: prometheus-alertmanager
-  namespace: kube-mlops
+  namespace: kube-system
 spec:
   selector:
     matchLabels:
@@ -1175,7 +1137,7 @@ metadata:
     chart: prometheus-15.8.5
     heritage: Helm
   name: prometheus-pushgateway
-  namespace: kube-mlops
+  namespace: kube-system
 spec:
   selector:
     matchLabels:
@@ -1236,7 +1198,7 @@ metadata:
     chart: prometheus-15.8.5
     heritage: Helm
   name: prometheus-server
-  namespace: kube-mlops
+  namespace: kube-system
 spec:
   selector:
     matchLabels:
