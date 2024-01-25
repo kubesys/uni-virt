@@ -50,6 +50,7 @@ class Event:
                  message=None, metadata:Metadata=None, reason=None, type:str=None):
         self.firstTimestamp=time.mktime(first_timestamp.timetuple())
         self.lastTimestamp=time.mktime(last_timestamp.timetuple())
+        self.eventTime=last_timestamp.isoformat()
         self.metadata=metadata.__dict__
         self.involvedObject=involved_object.__dict__
         self.message=message
