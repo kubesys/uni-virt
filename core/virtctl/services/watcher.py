@@ -220,8 +220,9 @@ def doExecutor(plural, k8s_object_kind, jsondict):
             delete_lifecycle_in_kubernetes(k8s_object_kind, metadata_name)
             '''create Kubernetes event'''
             event_id = _getEventId(jsondict)
-            event = KubernetesEvent(metadata_name, the_cmd_key, k8s_object_kind, event_id)
-            event.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DOING, constants.KUBEVMM_EVENT_TYPE_NORMAL)
+            event_doing = KubernetesEvent(metadata_name, the_cmd_key, k8s_object_kind, event_id)
+            event_doing.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DOING, constants.KUBEVMM_EVENT_TYPE_NORMAL)
+            event_done = KubernetesEvent(metadata_name, the_cmd_key, k8s_object_kind, event_id)
             try:
                 data = {}
                 if invoke_cmd:
@@ -232,7 +233,7 @@ def doExecutor(plural, k8s_object_kind, jsondict):
                 if the_cmd_key != 'migrateVM':
                     write_result_to_kubernetes(k8s_object_kind, metadata_name, data)
                 '''update Kubernetes event'''
-                event.update_evet(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_NORMAL)
+                event_done.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_NORMAL)
             except libvirtError:
                 logger.error('Oops! ', exc_info=1)
                 info = sys.exc_info()
@@ -240,7 +241,7 @@ def doExecutor(plural, k8s_object_kind, jsondict):
                     report_failure(metadata_name, 'LibvirtError', str(info[1]), k8s_object_kind)
                 except:
                     logger.warning('Oops! ', exc_info=1)
-                event.update_evet(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_ERROR)
+                event_done.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_ERROR)
             except Exception as e:
                 logger.error('Oops! ', exc_info=1)
                 info = sys.exc_info()
@@ -248,7 +249,7 @@ def doExecutor(plural, k8s_object_kind, jsondict):
                     report_failure(metadata_name, 'Exception', str(info[1]),  k8s_object_kind)
                 except:
                     logger.warning('Oops! ', exc_info=1)
-                event.update_evet(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_ERROR)
+                event_done.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_ERROR)
             finally:
                 # 释放锁
                 if the_cmd_key:
