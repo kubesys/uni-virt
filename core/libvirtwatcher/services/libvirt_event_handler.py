@@ -244,7 +244,11 @@ class MyDomainEventHandler(threading.Thread):
                                 time_end = time_now
                                 operation_name = 'startVMbyHA'
                                 message = 'type:%s, name:%s, operation:%s, status:%s, reporter:%s, eventId:%s, duration:%f' % (involved_object_kind, involved_object_name, operation_name, status, reporter, event_id, (time_end - time_start).total_seconds())
-                                event = UserDefinedEvent(event_metadata_name, time_start, time_end, involved_object_name, involved_object_kind, message, operation_name, event_type)
+                                event = UserDefinedEvent(
+                                    action=operation_name,controller=reporter,event_metadata_name=event_metadata_name,
+                                    time_start=time_start, time_end=time_end,involved_object_name=involved_object_name,
+                                    involved_object_kind=involved_object_kind, message=message,
+                                    reason='Stopped', event_type=event_type)
                                 try:
                                     event.registerKubernetesEvent()
                                 except:

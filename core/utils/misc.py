@@ -1616,8 +1616,10 @@ class UserDefinedEvent(object):
         'event_type': 'str'
     }
 
-    def __init__(self, event_metadata_name, time_start, time_end, involved_object_name, involved_object_kind, message,
+    def __init__(self, action,controller,event_metadata_name, time_start, time_end, involved_object_name, involved_object_kind, message,
                  reason, event_type):
+        self.action=action
+        self.controller=controller
         self.event_metadata_name = event_metadata_name
         self.time_start = time_start
         self.time_end = time_end
@@ -1641,10 +1643,10 @@ class UserDefinedEvent(object):
         # client.CoreV1Api().replace_namespaced_event(self.event_metadata_name, 'default', body, pretty='true')
         involved_object=InvolvedObject(name=self.involved_object_name, kind=self.involved_object_kind,namespace='default')
         metadata=Metadata(name=self.event_metadata_name, namespace='default')
-        body=Event(first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
+        body=Event(action=self.action,controller=self.controller,first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
                    involved_object=involved_object, message=self.message, reason=self.reason,
                    type=self.event_type)
-        KubernetesClient(config=TOKEN).updateResource(body.to_json(),pretty=True)
+        KubernetesClient(config=TOKEN).updateResource(body.__dict__,pretty=True)
 
 
     def updateKubernetesEvent(self):

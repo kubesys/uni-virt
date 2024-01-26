@@ -302,8 +302,8 @@ class HostCycler:
         try:
             # node = client.CoreV1Api().read_node(name=HOSTNAME)
             # node_dict = node.to_dict()
-            node_dict=self.get_node()
-            return node_dict['metadata']['annotations']['THISIP']
+            metadata=self.get_object_metadata()
+            return metadata.annotations.get('THISIP')
         except:
             return socket.gethostbyname(socket.gethostname())
     
@@ -322,7 +322,7 @@ class HostCycler:
             active_vms = list_active_vms()
         except:
             active_vms = []
-        return {'doslab.io/cpu': str(cpu_allocatable), 'doslab.io/memory': mem_allocatable, 'doslab.io/vms': str(40 - len(active_vms)) if 40 - len(active_vms) >= 0 else 0}
+        return {'doslab.io/cpu': str(cpu_allocatable), 'doslab.io/memory': str(mem_allocatable), 'doslab.io/vms': str(40 - len(active_vms)) if 40 - len(active_vms) >= 0 else '0'}
     
     def get_status_capacity(self):
         try:
@@ -334,7 +334,7 @@ class HostCycler:
             mem_capacity = self._format_mem_to_Mi(node_info_dict.get('phymemory'))
             return {'doslab.io/cpu': str(cpu_capacity), 'doslab.io/memory': str(mem_capacity), 'doslab.io/vms': '40'}
         else:
-            return {'doslab.io/cpu': 0, 'doslab.io/memory': '0', 'doslab.io/vms': '40'}
+            return {'doslab.io/cpu': '0', 'doslab.io/memory': '0', 'doslab.io/vms': '40'}
     
     def get_status_daemon_endpoints(self):
         return Node.DaemonEndpoint(kubeletEndpoint={'port':0})

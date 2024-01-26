@@ -46,13 +46,16 @@ class Metadata:
         return json.dumps(self.__dict__)
 
 class Event:
-    def __init__(self,first_timestamp:datetime=None, involved_object:InvolvedObject=None, last_timestamp:datetime=None,
+    def __init__(self,action='',controller='',first_timestamp:datetime=None, involved_object:InvolvedObject=None, last_timestamp:datetime=None,
                  message=None, metadata:Metadata=None, reason=None, type:str=None):
-        self.firstTimestamp=time.mktime(first_timestamp.timetuple())
-        self.lastTimestamp=time.mktime(last_timestamp.timetuple())
+        self.firstTimestamp=first_timestamp.isoformat()
+        self.action=action
+        self.lastTimestamp=last_timestamp.isoformat()
         self.eventTime=last_timestamp.isoformat()
         self.metadata=metadata.__dict__
         self.involvedObject=involved_object.__dict__
+        self.reportingController=controller
+        self.reportingInstance=self.reportingController+'-'+metadata.name
         self.message=message
         self.reason=reason
         self.type=type

@@ -49,9 +49,11 @@ class KubernetesEvent:
         message = 'type:%s, name:%s, operation:%s, status:%s, reporter:%s, eventId:%s, duration:%f' \
                   % (self.involved_object_kind, self.involved_object_name, self.involved_cmd_key, status,
                      self.reporter, self.event_id, (time_end - self.time_start).total_seconds())
-        event = UserDefinedEvent(self.event_metadata_name, self.time_start, time_end,
-                                 self.involved_object_name, self.involved_object_kind,
-                                 message, self.involved_cmd_key, event_type)
+        event = UserDefinedEvent(
+            action=self.involved_cmd_key,controller=self.reporter,event_metadata_name=self.event_metadata_name,
+            time_start=self.time_start, time_end=time_end,involved_object_name=self.involved_object_name,
+            involved_object_kind=self.involved_object_kind,message=message, reason=self.involved_cmd_key,
+            event_type=event_type)
         # config.load_kube_config(config_file=TOKEN)
         return event
 
