@@ -39,7 +39,7 @@ KUBEVMM_VIRTLET_DOCKER_LOCK        = "/var/run/virtlet_in_docker.pid"
 KUBEVMM_EVENT_LIFECYCLE_DOING      = "Doing"
 KUBEVMM_EVENT_LIFECYCLE_DONE       = "Done"
 
-KUBEVMM_EVENT_TYPE_ERROR           = "Error"
+KUBEVMM_EVENT_TYPE_ERROR           = "Warning"
 KUBEVMM_EVENT_TYPE_NORMAL          = "Normal"
 
 KUBEVMM_VM_DEVICES_DIR             = "/var/lib/libvirt/devices"
