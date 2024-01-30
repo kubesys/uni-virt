@@ -368,13 +368,13 @@ def _parse_pci_info(device_id):
             in_use = vm
 
     info_dict['inUse'] = in_use
-    logger.debug(info_dict)
+    # logger.debug(info_dict)
     if info_dict.get('kernelDriverInUse') == 'vfio-pci':
         info_dict['useMode'] = "passthrough"
     else:
         info_dict['useMode'] = "share"
 
-    gpu_name = '%s-host-%s-id-%s' % (info_dict['type'].replace(' ', '-'), get_hostname_in_lower_case(), bus_id)
+    gpu_name = '%s-host-%s-id-%s'.lower() % (info_dict['type'].replace(' ', '-'), HOSTNAME, bus_id)
 
     # Modify the dictionary to include the desired keys and values
     gpu_info = {
