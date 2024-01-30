@@ -311,7 +311,7 @@ def _parse_pci_info(device_id):
     # Execute the command to get the output
     command = f"lspci -vs {device_id}"
     info = runCmdRaiseException(command)
-    # logger.debug(info)
+    logger.debug(info)
 
     # Define a regular expression pattern for the controller information
     pattern = re.compile(r'(\w+:\w+\.\w+) VGA compatible controller: (.+)', re.DOTALL)
@@ -394,7 +394,7 @@ def _parse_pci_info(device_id):
         },
         "nodeName": HOSTNAME
     }
-    # logger.debug(gpu_info)
+    logger.debug(gpu_info)
 
     return gpu_name, gpu_info
 
