@@ -295,6 +295,7 @@ def _create_or_update_vmgpus(group, version, plural, metadata_name, gpu_info):
 def _list_gpus():
     command = f"lspci -nn | grep -i nvidia"
     info_lines = runCmdRaiseException(command)
+    logger.debug(info_lines)
     # Parse the lines and create key-value pairs
     result = []
     for line in info_lines:
