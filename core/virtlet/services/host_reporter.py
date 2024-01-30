@@ -360,7 +360,8 @@ def _parse_pci_info(device_id):
             in_use = vm
 
     info_dict['inUse'] = in_use
-    if info_dict['kernelDriverInUse'] == 'vfio-pci':
+    logger.debug(info_dict)
+    if info_dict.get('kernelDriverInUse') == 'vfio-pci':
         info_dict['useMode'] = "passthrough"
     else:
         info_dict['useMode'] = "share"
