@@ -290,9 +290,7 @@ def _create_or_update_vmgpus(group, version, plural, metadata_name, gpu_info):
 
 def _list_gpus():
     command = f"lspci -nn | grep -i nvidia"
-    info = runCmdRaiseException(command)
-    # Define a regular expression pattern for the controller information
-    info_lines = [line.strip() for line in info.split('\n') if line.strip()]
+    info_lines = runCmdRaiseException(command)
     # Parse the lines and create key-value pairs
     result = []
     for line in info_lines:
@@ -308,29 +306,8 @@ def _list_gpus():
 def _parse_pci_info(device_id):
     # Execute the command to get the output
     command = f"lspci -vs {device_id}"
-    info = runCmdRaiseException(command)
+    info_lines = runCmdRaiseException(command)
 
-    # Define a regular expression pattern for the controller information
-    pattern = re.compile(r'(\d+:\d+\.\d+) VGA compatible controller: (.+)', re.DOTALL)
-
-    pattern1 = re.compile(r'Kernel driver in use', re.DOTALL)
-
-    # Find the matches in the input information
-    matches = pattern.findall(info)
-    matches1 = pattern1.findall(info)
-
-    # Iterate through matches and replace them with a standardized key
-    for match in matches:
-        id_value, controller_value = match
-        info = info.replace(f'{id_value} VGA compatible controller: {controller_value}',
-                            f'id: {id_value} \n type: {controller_value}')
-
-    for match in matches1:
-        key = "kernelDriverInUse"
-        info = info.replace(match, f'{key}: {match}')
-
-    # Split the input by lines and remove empty lines
-    info_lines = [line.strip() for line in info.split('\n') if line.strip()]
 
     # Create a dictionary to store the information
     info_dict = {}
@@ -339,6 +316,24 @@ def _parse_pci_info(device_id):
     current_key = ""
     for line in info_lines:
         if ':' in line:
+            # Define a regular expression pattern for the controller information
+            pattern = re.compile(r'(\d+:\d+\.\d+) VGA compatible controller: (.+)', re.DOTALL)
+
+            pattern1 = re.compile(r'Kernel driver in use', re.DOTALL)
+
+            # Find the matches in the input information
+            matches = pattern.findall(line)
+            matches1 = pattern1.findall(line)
+
+            # Iterate through matches and replace them with a standardized key
+            for match in matches:
+                id_value, controller_value = match
+                line = line.replace(f'{id_value} VGA compatible controller: {controller_value}',
+                                    f'id: {id_value} \n type: {controller_value}')
+
+            for match in matches1:
+                key = "kernelDriverInUse"
+                line = line.replace(match, f'{key}: {match}')
             key, value = line.split(':', 1)
             # Use regular expressions for matching and replacement
             pattern = re.compile(r'\[([^\]]+)\]')
