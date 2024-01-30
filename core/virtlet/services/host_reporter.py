@@ -364,7 +364,8 @@ def _parse_pci_info(device_id):
         vm_xml = get_xml(vm)
         vm_json_string = dumps(toKubeJson(xmlToJson(vm_xml)))
         data_without_spaces = vm_json_string.replace("\n", "").replace(" ", "")
-        # logger.debug(f"\"_bus\":\"0x{bus_id}\"")
+        logger.debug(data_without_spaces)
+        logger.debug(f"\"_bus\":\"0x{bus_id}\"")
         if f"\"_bus\":\"0x{bus_id}\"" in data_without_spaces:
             # logger.debug("inhere")
             in_use = vm
