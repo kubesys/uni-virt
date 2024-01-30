@@ -319,7 +319,7 @@ def _parse_pci_info(device_id):
             # Define a regular expression pattern for the controller information
             pattern = re.compile(r'(\d+:\d+\.\d+) VGA compatible controller: (.+)', re.DOTALL)
 
-            pattern1 = re.compile(r'Kernel driver in use', re.DOTALL)
+            pattern1 = re.compile(r'(Kernel driver in use)', re.DOTALL)
 
             # Find the matches in the input information
             matches = pattern.findall(line)
@@ -329,7 +329,7 @@ def _parse_pci_info(device_id):
             for match in matches:
                 id_value, controller_value = match
                 line = line.replace(f'{id_value} VGA compatible controller: {controller_value}',
-                                    f'id: {id_value} \n type: {controller_value}')
+                                    f'id: {id_value}, \n type: {controller_value}')
 
             for match in matches1:
                 key = "kernelDriverInUse"
