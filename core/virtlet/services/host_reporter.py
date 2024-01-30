@@ -300,10 +300,10 @@ def _list_gpus():
     result = []
     for line in info_lines:
         print(line)
-        pattern = re.compile(r'(\w+:\w+\.\w+) VGA compatible controller (.+)', re.DOTALL)
+        pattern = re.compile(r'(\w+:\w+\.\w+)\w+controller\w+', re.DOTALL)
         matches = pattern.findall(line)
         for match in matches:
-            id_value, controller_value = match
+            id_value = match
             result.append(id_value)
     return result
 
@@ -315,7 +315,7 @@ def _parse_pci_info(device_id):
     logger.debug(info)
 
     # Define a regular expression pattern for the controller information
-    pattern = re.compile(r'(\w+:\w+\.\w+) VGA compatible controller: (.+)', re.DOTALL)
+    pattern = re.compile(r'(\w+:\w+\.\w+)\w+controller: (.+)', re.DOTALL)
 
     pattern1 = re.compile(r'Kernel driver in use: (.+)', re.DOTALL)
 
@@ -326,7 +326,7 @@ def _parse_pci_info(device_id):
     # Replace matches with a standardized key
     for match in matches:
         id_value, controller_value = match
-        info = [line.replace(f'{id_value} VGA compatible controller: {controller_value}',
+        info = [line.replace(f'{id_value} controller: {controller_value}',
                              f'id: {id_value} \n type: {controller_value}') for line in info]
 
     for match in matches1:
