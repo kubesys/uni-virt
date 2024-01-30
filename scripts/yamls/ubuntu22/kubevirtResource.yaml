@@ -380,6 +380,56 @@ kind: CustomResourceDefinition
 metadata:
   labels:
     doslab.io: ""
+  name: virtualmachinegpus.doslab.io
+spec:
+  group: doslab.io
+  names:
+    kind: VirtualMachineGPU
+    plural: virtualmachinegpus
+    shortNames:
+    - vmgpu
+    - vmgpus
+    singular: virtualmachinegpu
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+    additionalPrinterColumns:
+    - jsonPath: .spec.gpu.type
+      name: TYPE
+      type: string
+    - jsonPath: .spec.gpu.id
+      name: ID
+      type: string
+    - jsonPath: .spec.gpu.inUse
+      name: USER
+      type: string
+    - jsonPath: .spec.gpu.useMode
+      name: MODE
+      type: string
+    - jsonPath: .spec.gpu.kernelDriverInUse
+      name: DRIVER
+      type: string
+    - jsonPath: .spec.nodeName
+      name: NODE
+      type: string
+    - jsonPath: .spec.gpu.kernelModules
+      name: MODULES
+      type: string
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    doslab.io: ""
   name: virtualmachinespecs.doslab.io
 spec:
   group: doslab.io
