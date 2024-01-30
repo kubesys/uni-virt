@@ -299,8 +299,7 @@ def _list_gpus():
     # Parse the lines and create key-value pairs
     result = []
     for line in info_lines:
-        print(line)
-        pattern = re.compile(r'(\w+:\w+\.\w+)\w+controller\w+', re.DOTALL)
+        pattern = re.compile(r'(\w+:\w+\.\w+)[\w\s]+controller[\w\s]+', re.DOTALL)
         matches = pattern.findall(line)
         for match in matches:
             id_value = match
@@ -315,7 +314,7 @@ def _parse_pci_info(device_id):
     logger.debug(info)
 
     # Define a regular expression pattern for the controller information
-    pattern = re.compile(r'(\w+:\w+\.\w+)\w+controller: (.+)', re.DOTALL)
+    pattern = re.compile(r'(\w+:\w+\.\w+)[\w\s]+controller: (.+)', re.DOTALL)
 
     pattern1 = re.compile(r'Kernel driver in use: (.+)', re.DOTALL)
 
