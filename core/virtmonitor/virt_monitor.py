@@ -403,7 +403,7 @@ def get_vm_metrics(vm, zone):
         if vm in CPU_UTILIZATION.keys() and cpu_number == CPU_UTILIZATION[vm].get('cpu_number'):
             interval = time.time() - CPU_UTILIZATION[vm].get('time')
             cpu_util = (cpu_time - float(CPU_UTILIZATION[vm].get('cpu_time')))/ cpu_number / interval
-            logger.debug(CPU_UTILIZATION[vm], cpu_number, cpu_time, interval)
+            # logger.debug(CPU_UTILIZATION[vm], cpu_number, cpu_time, interval)
             CPU_UTILIZATION[vm] = {'cpu_time': cpu_time,
                                     'time': time.time(), 'cpu_number': cpu_number}
         else:
