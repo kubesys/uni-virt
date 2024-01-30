@@ -358,7 +358,7 @@ def _parse_pci_info(device_id):
     logger.debug(info_dict)
 
     in_use = None
-    bus_id = device_id.split(":")[0]
+    bus_id = device_id.split(":")[0] if ":" in device_id else device_id.lower()
     for vm in list_active_vms():
         vm_xml = get_xml(vm)
         vm_json_string = dumps(toKubeJson(xmlToJson(vm_xml)))
@@ -375,7 +375,7 @@ def _parse_pci_info(device_id):
     else:
         info_dict['useMode'] = "share"
 
-    gpu_name = 'host-%s-type-%s-id-%s'.lower() % (HOSTNAME, info_dict.get('type', 'unknown').replace(' ', '-'), bus_id)
+    gpu_name = 'host-%s-type-%s-id-%s' % (HOSTNAME.lower(), info_dict.get('type', 'unknown').replace(' ', '-').lower(), bus_id.lower())
 
     # Modify the dictionary to include the desired keys and values
     gpu_info = {
