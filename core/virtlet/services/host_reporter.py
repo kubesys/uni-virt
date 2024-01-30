@@ -375,7 +375,7 @@ def _parse_pci_info(device_id):
     else:
         info_dict['useMode'] = "share"
 
-    gpu_name = '%s-host-%s-id-%s'.lower() % (info_dict['type'].replace(' ', '-'), HOSTNAME, bus_id)
+    gpu_name = 'host-%s-type-%s-id-%s'.lower() % (HOSTNAME, info_dict['type'].replace(' ', '-'), bus_id)
 
     # Modify the dictionary to include the desired keys and values
     gpu_info = {
