@@ -264,9 +264,10 @@ def updateDomainStructureAndDeleteLifecycleInJson(jsondict, body):
 
 
 def _create_or_update_vmgpus(group, version, plural, metadata_name, gpu_info):
+    jsondict = {}
     try:
         logger.debug('create or update vmgpus: %s' % metadata_name)
-        get_custom_object(group, version, plural, metadata_name)
+        jsondict = get_custom_object(group, version, plural, metadata_name)
     except ApiException as e:
         if e.reason == 'Not Found':
             jsondict = {'spec': gpu_info, 'kind': KIND_VMGPU,
@@ -280,6 +281,7 @@ def _create_or_update_vmgpus(group, version, plural, metadata_name, gpu_info):
         return
 
     try:
+        jsondict['spec'] = gpu_info
         update_custom_object(group, version, plural, metadata_name, gpu_info)
     except ApiException as e:
         if e.reason == 'Conflict':
