@@ -309,6 +309,28 @@ def _parse_pci_info(device_id):
     info_lines = runCmdRaiseException(command)
     logger.debug(info_lines)
 
+    # Define a regular expression pattern for the controller information
+    pattern = re.compile(r'(\d+:\d+\.\d+) VGA compatible controller: (.+)', re.DOTALL)
+
+    pattern1 = re.compile(r'Kernel driver in use: (.+)', re.DOTALL)
+
+    # Find the matches in the input information
+    matches = pattern.findall('\n'.join(info))
+    matches1 = pattern1.findall('\n'.join(info))
+
+    # Replace matches with a standardized key
+    for match in matches:
+        id_value, controller_value = match
+        info = [line.replace(f'{id_value} VGA compatible controller: {controller_value}',
+                             f'id: {id_value} \n type: {controller_value}') for line in info]
+
+    for match in matches1:
+        key = "kernelDriverInUse"
+        info = [line.replace(match, f'{key}: {match}') for line in info]
+
+    # Split the input by lines and remove empty lines
+    info_lines = [line.strip() for line in info if line.strip()]
+
     # Create a dictionary to store the information
     info_dict = {}
 
@@ -316,47 +338,31 @@ def _parse_pci_info(device_id):
     current_key = ""
     for line in info_lines:
         if ':' in line:
-            # Define a regular expression pattern for the controller information
-            pattern = re.compile(r'(\d+:\d+\.\d+) VGA compatible controller: (.+)', re.DOTALL)
-
-            pattern1 = re.compile(r'(Kernel driver in use)', re.DOTALL)
-
-            # Find the matches in the input information
-            matches = pattern.findall(line)
-            matches1 = pattern1.findall(line)
-
-            # Iterate through matches and replace them with a standardized key
-            for match in matches:
-                id_value, controller_value = match
-                line = line.replace(f'{id_value} VGA compatible controller: {controller_value}',
-                                    f'id: {id_value}, \n type: {controller_value}')
-
-            for match in matches1:
-                key = "kernelDriverInUse"
-                line = line.replace(match, f'{key}: {match}')
             key, value = line.split(':', 1)
             # Use regular expressions for matching and replacement
             pattern = re.compile(r'\[([^\]]+)\]')
-            # Remove spaces and convert to title case
+            # Check if words list is not empty before accessing indices
             words = key.split()
-            current_key = words[0].lower() + ''.join(word.capitalize() for word in words[1:])
-            # print(current_key)
-            if current_key == 'type' and isinstance(value, str):
-                match = re.search(pattern, value)
-                if match:
-                    extracted_value = match.group(1)
-                    value = extracted_value
+            current_key = words[0].lower() + ''.join(word.capitalize() for word in words[1:]) if words else ""
             info_dict[current_key] = value.strip()
-        elif current_key:
-            # If current_key is set, append the line to the current key's value
-            info_dict[current_key] += " " + line.strip()
+
+    # Extract 'id' and 'type' values from the first line
+    id_match = re.match(r'(\d+:\d+\.\d+)', info_lines[0])
+    type_match = re.search(r'\[([^\]]+)\]', info_lines[0])
+
+    # Update the dictionary with 'id' and 'type' values
+    info_dict['id'] = id_match.group(1) if id_match else ''
+    info_dict['type'] = type_match.group(1) if type_match else ''
+    logger.debug(info_dict)
 
     in_use = None
     bus_id = device_id.split(":")[0]
     for vm in list_active_vms():
         vm_xml = get_xml(vm)
         vm_json_string = dumps(toKubeJson(xmlToJson(vm_xml)))
+        logger.debug(vm_json_string)
         if f"bus='0x{bus_id}'" in vm_json_string:
+            logger.debug("inhere")
             in_use = vm
 
     info_dict['inUse'] = in_use
@@ -369,6 +375,7 @@ def _parse_pci_info(device_id):
     gpu_name = '%s-host-%s-id-%s' % (info_dict['type'].replace(' ', '-'), get_hostname_in_lower_case(), bus_id)
 
     gpu_info = {"gpu": info_dict, "nodeName": get_hostname_in_lower_case()}
+    logger.debug(gpu_info)
 
     return gpu_name, gpu_info
 
