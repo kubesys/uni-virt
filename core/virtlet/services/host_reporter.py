@@ -349,7 +349,7 @@ def _parse_pci_info(device_id):
             info_dict[current_key] = value.strip()
 
     # Extract 'id' and 'type' values from the first line
-    id_match = re.match(r'(\d+:\d+\.\d+)', info_lines[0])
+    id_match = re.match(r'(\w+:\w+\.\w+)', info_lines[0])
     type_match = re.search(r'\[([^\]]+)\]', info_lines[0])
 
     # Update the dictionary with 'id' and 'type' values
