@@ -50,6 +50,7 @@ DEFAULT_JSON_BACKUP_DIR = constants.KUBEVMM_DEFAULT_JSON_BACKUP_DIR
 GROUP = constants.KUBERNETES_GROUP
 VERSION = constants.KUBERNETES_API_VERSION
 PLURAL = constants.KUBERNETES_PLURAL_VM
+PLURAL_VMGPU = constants.KUBERNETES_PLURAL_VMGPU
 
 logger = logger.set_logger(os.path.basename(__file__), constants.KUBEVMM_VIRTLET_LOG)
 
@@ -75,7 +76,7 @@ def main():
                 ha_check = False
             for gpu in _list_gpus():
                 (gpu_name, gpu_info) = _parse_pci_info(gpu)
-                _create_or_update_vmgpus(GROUP, VERSION, PLURAL, gpu_name, gpu_info)
+                _create_or_update_vmgpus(GROUP, VERSION, PLURAL_VMGPU, gpu_name, gpu_info)
             _patch_node_status()
             if ha_enable:
                 _check_and_enable_HA()

@@ -63,6 +63,8 @@ KUBERNETES_KIND_VMN                = "VirtualMachineNetwork"
 KUBERNETES_KIND_VMSN               = "VirtualMachineSnapshot"
 KUBERNETES_KIND_VMDEV              = 'VirtualMahcineBlockDevUit'
 KUBERNETES_KIND_VMI                = 'VirtualMachineImage'
+KUBERNETES_KIND_VMGPU              = "VirtualMachineGPU"
+KUBERNETES_PLURAL_VMGPU            = "virtualmachinegpus"
 
 '''Virtual Machine supported commands'''
 CREATE_AND_START_VM_FROM_ISO_CMD   = "default,name,none,virshplus create_and_start_vm_from_iso,virshplus dumpxml"
