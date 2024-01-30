@@ -266,7 +266,7 @@ def updateDomainStructureAndDeleteLifecycleInJson(jsondict, body):
 def _create_or_update_vmgpus(group, version, plural, metadata_name, gpu_info):
     jsondict = {}
     try:
-        logger.debug('create or update vmgpus: %s' % metadata_name)
+        # logger.debug('create or update vmgpus: %s' % metadata_name)
         jsondict = get_custom_object(group, version, plural, metadata_name)
     except ApiException as e:
         if e.reason == 'Not Found':
@@ -311,7 +311,7 @@ def _parse_pci_info(device_id):
     # Execute the command to get the output
     command = f"lspci -vs {device_id}"
     info = runCmdRaiseException(command)
-    logger.debug(info)
+    # logger.debug(info)
 
     # Define a regular expression pattern for the controller information
     pattern = re.compile(r'(\w+:\w+\.\w+) VGA compatible controller: (.+)', re.DOTALL)
@@ -339,7 +339,6 @@ def _parse_pci_info(device_id):
     info_dict = {}
 
     # Parse the lines and create key-value pairs
-    current_key = ""
     for line in info_lines:
         if ':' in line:
             key, value = line.split(':', 1)
@@ -357,7 +356,7 @@ def _parse_pci_info(device_id):
     # Update the dictionary with 'id' and 'type' values
     info_dict['id'] = id_match.group(1) if id_match else ''
     info_dict['type'] = type_match.group(1) if type_match else ''
-    logger.debug(info_dict)
+    # logger.debug(info_dict)
 
     in_use = None
     bus_id = device_id.split(":")[0] if ":" in device_id else device_id.lower()
@@ -365,8 +364,8 @@ def _parse_pci_info(device_id):
         vm_xml = get_xml(vm)
         vm_json_string = dumps(toKubeJson(xmlToJson(vm_xml)))
         # logger.debug(vm_json)
-        logger.debug(f"bus=\'0x{bus_id}\'")
-        if f"bus=\'0x{bus_id}\'" in vm_json_string:
+        logger.debug(f"bus=\\\'0x{bus_id}\\\'")
+        if f"bus=\\\'0x{bus_id}\\\'" in vm_json_string:
             logger.debug("inhere")
             in_use = vm
 
