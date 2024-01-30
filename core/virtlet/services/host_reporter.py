@@ -282,7 +282,7 @@ def _create_or_update_vmgpus(group, version, plural, metadata_name, gpu_info):
 
     try:
         jsondict['spec'] = gpu_info
-        update_custom_object(group, version, plural, metadata_name, gpu_info)
+        update_custom_object(group, version, plural, metadata_name, jsondict)
     except ApiException as e:
         if e.reason == 'Conflict':
             logger.debug('**Other process updated %s, ignore this 409.' % metadata_name)
