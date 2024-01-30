@@ -312,7 +312,7 @@ def _parse_pci_info(device_id):
     logger.debug(info)
 
     # Define a regular expression pattern for the controller information
-    pattern = re.compile(r'(\d+:\d+\.\d+) VGA compatible controller: (.+)', re.DOTALL)
+    pattern = re.compile(r'(\w+:\w+\.\w+) VGA compatible controller: (.+)', re.DOTALL)
 
     pattern1 = re.compile(r'Kernel driver in use: (.+)', re.DOTALL)
 
