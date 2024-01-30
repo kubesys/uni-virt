@@ -307,7 +307,7 @@ def _parse_pci_info(device_id):
     # Execute the command to get the output
     command = f"lspci -vs {device_id}"
     info_lines = runCmdRaiseException(command)
-
+    logger.debug(info_lines)
 
     # Create a dictionary to store the information
     info_dict = {}
