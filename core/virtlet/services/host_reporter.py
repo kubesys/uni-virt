@@ -51,6 +51,7 @@ GROUP = constants.KUBERNETES_GROUP
 VERSION = constants.KUBERNETES_API_VERSION
 PLURAL = constants.KUBERNETES_PLURAL_VM
 PLURAL_VMGPU = constants.KUBERNETES_PLURAL_VMGPU
+KIND_VMGPU = constants.KUBERNETES_KIND_VMGPU
 
 logger = logger.set_logger(os.path.basename(__file__), constants.KUBEVMM_VIRTLET_LOG)
 
@@ -268,8 +269,11 @@ def _create_or_update_vmgpus(group, version, plural, metadata_name, gpu_info):
         jsondict = get_custom_object(group, version, plural, metadata_name)
     except ApiException as e:
         if e.reason == 'Not Found':
+            jsondict = {'spec': {'gpu': {}, 'nodeName': HOSTNAME},
+                        'kind': KIND_VMGPU, 'metadata': {'labels': {'host': HOSTNAME}, 'name': metadata_name},
+                        'apiVersion': '%s/%s' % (group, version)}
             # logger.debug('**VM %s already deleted, ignore this 404 error.' % metadata_name)
-            create_custom_object(group, version, plural, metadata_name, gpu_info)
+            create_custom_object(group, version, plural, gpu_info)
             return
     except Exception as e:
         logger.error('Oops! ', exc_info=1)
@@ -374,7 +378,19 @@ def _parse_pci_info(device_id):
 
     gpu_name = '%s-host-%s-id-%s' % (info_dict['type'].replace(' ', '-'), get_hostname_in_lower_case(), bus_id)
 
-    gpu_info = {"gpu": info_dict, "nodeName": get_hostname_in_lower_case()}
+    # Modify the dictionary to include the desired keys and values
+    gpu_info = {
+        "gpu": {
+            "id": info_dict.get("id", ""),
+            "type": info_dict.get("type", ""),
+            "subsystem": info_dict.get("subsystem", ""),
+            "flags": info_dict.get("flags", ""),
+            "capabilities": info_dict.get("capabilities", ""),
+            "kernelDriverInUse": info_dict.get("kernelDriverInUse", ""),
+            "kernelModules": info_dict.get("kernelModules", "")
+        },
+        "nodeName": HOSTNAME
+    }
     logger.debug(gpu_info)
 
     return gpu_name, gpu_info
