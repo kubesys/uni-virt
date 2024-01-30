@@ -363,7 +363,8 @@ def _parse_pci_info(device_id):
     for vm in list_active_vms():
         vm_xml = get_xml(vm)
         vm_json_string = dumps(toKubeJson(xmlToJson(vm_xml)))
-        # logger.debug(vm_json)
+        logger.debug(type(vm_json_string))
+        logger.debug(vm_json_string)
         logger.debug(f"bus=\\\'0x{bus_id}\\\'")
         if f"bus=\\\'0x{bus_id}\\\'" in vm_json_string:
             logger.debug("inhere")
