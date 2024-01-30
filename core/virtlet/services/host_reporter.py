@@ -266,30 +266,22 @@ def updateDomainStructureAndDeleteLifecycleInJson(jsondict, body):
 def _create_or_update_vmgpus(group, version, plural, metadata_name, gpu_info):
     try:
         logger.debug('create or update vmgpus: %s' % metadata_name)
-        jsondict = get_custom_object(group, version, plural, metadata_name)
-    except ApiException as e:
-        if e.reason == 'Not Found':
-            jsondict = {'spec': {'gpu': {}, 'nodeName': HOSTNAME},
-                        'kind': KIND_VMGPU, 'metadata': {'labels': {'host': HOSTNAME}, 'name': metadata_name},
-                        'apiVersion': '%s/%s' % (group, version)}
-            # logger.debug('**VM %s already deleted, ignore this 404 error.' % metadata_name)
-            create_custom_object(group, version, plural, gpu_info)
-            return
-    except Exception as e:
-        logger.error('Oops! ', exc_info=1)
-        return
-
-    try:
         update_custom_object(group, version, plural, metadata_name, gpu_info)
     except ApiException as e:
         if e.reason == 'Not Found':
-            logger.debug('**VMGPU %s already deleted, ignore this 404.' % metadata_name)
-        if e.reason == 'Conflict':
+            jsondict = {'spec': gpu_info, 'kind': KIND_VMGPU,
+                        'metadata': {'labels': {'host': HOSTNAME}, 'name': metadata_name},
+                        'apiVersion': '%s/%s' % (group, version)}
+            # logger.debug('**VM %s already deleted, ignore this 404 error.' % metadata_name)
+            create_custom_object(group, version, plural, jsondict)
+            return
+        elif e.reason == 'Conflict':
             logger.debug('**Other process updated %s, ignore this 409.' % metadata_name)
         else:
             logger.error('Oops! ', exc_info=1)
     except Exception as e:
         logger.error('Oops! ', exc_info=1)
+        return
 
 
 def _list_gpus():
@@ -387,7 +379,9 @@ def _parse_pci_info(device_id):
             "flags": info_dict.get("flags", ""),
             "capabilities": info_dict.get("capabilities", ""),
             "kernelDriverInUse": info_dict.get("kernelDriverInUse", ""),
-            "kernelModules": info_dict.get("kernelModules", "")
+            "kernelModules": info_dict.get("kernelModules", ""),
+            "inUse": info_dict.get("inUse", ""),
+            "useMode": info_dict.get("useMode", "")
         },
         "nodeName": HOSTNAME
     }
