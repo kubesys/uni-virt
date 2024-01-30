@@ -44,7 +44,7 @@ Import third party libs
 from kubernetes import client, config
 from kubernetes.client import V1DeleteOptions
 from kubernetes.client.rest import ApiException
-from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_type,retry_if_exception_message
+from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_type, retry_if_exception_message
 
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 TOKEN_ORIGIN = constants.KUBERNETES_TOKEN_FILE_ORIGIN
@@ -55,7 +55,7 @@ OVN_CONFIG_FILE = constants.KUBEVMM_OVN_FILE
 
 @retry(stop=stop_after_attempt(3),
        retry=retry_if_exception_type(ApiException),
-       wait=wait_random(min=0,max=3),
+       wait=wait_random(min=0, max=3),
        reraise=True)
 def create_custom_object(group, version, plural, body):
     config.load_kube_config(config_file=TOKEN)
@@ -67,7 +67,7 @@ def create_custom_object(group, version, plural, body):
 
 @retry(stop=stop_after_attempt(3),
        retry=retry_if_exception_message(match='Not Found'),
-       wait=wait_random(min=0,max=3),
+       wait=wait_random(min=0, max=3),
        reraise=True)
 def get_custom_object(group, version, plural, metadata_name):
     config.load_kube_config(config_file=TOKEN)
@@ -78,7 +78,7 @@ def get_custom_object(group, version, plural, metadata_name):
 
 @retry(stop=stop_after_attempt(3),
        retry=retry_if_exception_message(match='Not Found'),
-       wait=wait_random(min=0,max=3),
+       wait=wait_random(min=0, max=3),
        reraise=True)
 def list_custom_object(group, version, plural):
     config.load_kube_config(config_file=TOKEN)
@@ -89,7 +89,7 @@ def list_custom_object(group, version, plural):
 
 @retry(stop=stop_after_attempt(3),
        retry=retry_if_exception_message(match='Not Found'),
-       wait=wait_random(min=0,max=3),
+       wait=wait_random(min=0, max=3),
        reraise=True)
 def update_custom_object(group, version, plural, metadata_name, body):
     config.load_kube_config(config_file=TOKEN)
@@ -101,7 +101,7 @@ def update_custom_object(group, version, plural, metadata_name, body):
 
 @retry(stop=stop_after_attempt(3),
        retry=retry_if_exception_message(match='Not Found'),
-       wait=wait_random(min=0,max=3),
+       wait=wait_random(min=0, max=3),
        reraise=True)
 def delete_custom_object(group, version, plural, metadata_name):
     config.load_kube_config(config_file=TOKEN)
@@ -274,7 +274,8 @@ def get_l3_network_info(name):
     #     if not switchId:
     #         raise Exception('ovn-nbctl --db=tcp:%s:%s show %s error: no id found!' % (master_ip, nb_port, name))
     if switchId:
-        cmd = 'kubectl ko nbctl show --kubeconfig=%s %s | grep dhcpv4id | awk -F"dhcpv4id-%s-" \'{print$2}\'' % (TOKEN_ORIGIN, name, name)
+        cmd = 'kubectl ko nbctl show --kubeconfig=%s %s | grep dhcpv4id | awk -F"dhcpv4id-%s-" \'{print$2}\'' % (
+        TOKEN_ORIGIN, name, name)
         lines = runCmdRaiseException(cmd)
         #         if not lines:
         #             raise Exception('error occurred: ovn-nbctl --db=tcp:%s:%s list DHCP_Options  | grep -B 3 "%s"  | grep "_uuid" | awk -F":" \'{print$2}\'' % (master_ip, nb_port, switchId))
@@ -417,7 +418,8 @@ def get_field_in_kubernetes_by_index(name, group, version, plural, index):
         return get_field(jsondict, index)
     except:
         return None
-    
+
+
 def set_field_in_kubernetes_by_index(name, group, version, plural, index, value):
     try:
         if not index or not list(index):
@@ -428,11 +430,13 @@ def set_field_in_kubernetes_by_index(name, group, version, plural, index, value)
     except:
         return None
 
+
 def list_objects_in_kubernetes(group, version, plural):
     try:
         return list_custom_object(group, version, plural)
     except:
         return None
+
 
 def get_node_name_from_kubernetes(group, version, namespace, plural, metadata_name):
     try:
@@ -476,6 +480,7 @@ def get_field(jsondict, index):
             retv = v
     return retv
 
+
 def set_field(jsondict, index, value):
     for key, values in jsondict.items():
         if type(values) == list:
@@ -488,6 +493,7 @@ def set_field(jsondict, index, value):
         else:
             pass
     return jsondict
+
 
 def get_list(values):
     rustle = values[0]
@@ -724,7 +730,8 @@ def runCmd(cmd, raise_it=True):
         std_err = p.stderr.read().decode('utf-8')
         if std_err:
             if raise_it:
-                if std_err.find("InsecureRequestWarning") != -1 or std_err.find("Unable to register authentication agent") != -1:
+                if std_err.find("InsecureRequestWarning") != -1 or std_err.find(
+                        "Unable to register authentication agent") != -1:
                     pass
                 else:
                     raise BadRequest(std_err)
@@ -761,7 +768,7 @@ def runCmdRaiseException(cmd, head='VirtctlError', use_read=False):
                 for i in std_err_list:
                     std_err.append(i.decode('utf-8'))
         if std_err:
-            if std_err.find("InsecureRequestWarning") != -1:
+            if "InsecureRequestWarning" in std_err:
                 pass
             else:
                 raise BadRequest(std_err)
@@ -1090,6 +1097,7 @@ class KubevmmException(Exception):
         self.reason = reason
         self.message = message
 
+
 def is_valid_uuid(uuid_str):
     # 正则表达式模式，用于匹配UUID的格式
     uuid_pattern = re.compile(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
@@ -1099,6 +1107,7 @@ def is_valid_uuid(uuid_str):
         return True
     else:
         return False
+
 
 def randomUUID():
     u = [random.randint(0, 255) for ignore in range(0, 16)]
@@ -1251,7 +1260,7 @@ class Domain(object):
                     else:
                         continue
                 merge_snapshots_cmd += 'virsh blockpull --domain %s --path %s --base %s --wait;' % (
-                self.name, disk.file, base_disk)
+                    self.name, disk.file, base_disk)
         for disk_to_remove in disks_to_remove:
             self.verify_disk_write_lock(disk_to_remove)
             disks_to_remove_cmd += 'rm -f %s;' % disk_to_remove
@@ -1264,7 +1273,7 @@ class Domain(object):
                     continue
                 else:
                     snapshots_to_delete_cmd += 'virsh snapshot-delete --domain %s --snapshotname %s --metadata;' % (
-                    self.name, snapshot_name)
+                        self.name, snapshot_name)
             # remove old disk device files without current ones
         return (merge_snapshots_cmd, disks_to_remove_cmd, snapshots_to_delete_cmd)
 
@@ -1318,11 +1327,11 @@ class Domain(object):
                         continue
                 unplug_disks_cmd += 'virsh detach-disk --domain %s --target %s --config;' % (self.name, disk.file)
                 unplug_disks_rollback_cmd += 'virsh attach-disk --subdriver qcow2 --domain %s --source %s --target %s --config;' % (
-                self.name, disk.file, disk.device)
+                    self.name, disk.file, disk.device)
                 plug_disks_cmd += 'virsh attach-disk --subdriver qcow2 --domain %s --source %s --target %s --config;' % (
-                self.name, base_disk, base_disk_target)
+                    self.name, base_disk, base_disk_target)
                 plug_disks_rollback_cmd += 'virsh detach-disk --domain %s --target %s --config;' % (
-                self.name, base_disk)
+                    self.name, base_disk)
         for disk_to_remove in disks_to_remove:
             disks_to_remove_cmd += 'rm -f %s;' % disk_to_remove
             snapshot_name = os.path.basename(disk_to_remove)
@@ -1334,11 +1343,11 @@ class Domain(object):
                     continue
                 else:
                     snapshots_to_delete_cmd += 'virsh snapshot-delete --domain %s --snapshotname %s --metadata;' % (
-                    self.name, snapshot_name)
+                        self.name, snapshot_name)
             # remove old disk device files without current ones
         return (
-        unplug_disks_cmd, unplug_disks_rollback_cmd, plug_disks_cmd, plug_disks_rollback_cmd, disks_to_remove_cmd,
-        snapshots_to_delete_cmd)
+            unplug_disks_cmd, unplug_disks_rollback_cmd, plug_disks_cmd, plug_disks_rollback_cmd, disks_to_remove_cmd,
+            snapshots_to_delete_cmd)
 
 
 class DiskImageHelper(object):
@@ -1440,7 +1449,7 @@ def list_all_disks(path, disk_type='f'):
     try:
         return runCmdRaiseException(
             "timeout 10 find %s -type %s ! -name '*.json' ! -name '*.temp' ! -name 'content' ! -name '.*' ! -name '*.xml' ! -name '*.pem' | grep -v overlay2" % (
-            path, disk_type))
+                path, disk_type))
     except:
         return []
 
@@ -1483,6 +1492,7 @@ def get_del_description_command(vm, device, args):
     except:
         return ''
 
+
 def get_switch_and_ip_info_from_cfg_file(vm, device):
     try:
         net_cfg_file_path = '%s/%s-nic-%s.cfg' % \
@@ -1504,6 +1514,7 @@ def get_switch_and_ip_info_from_cfg_file(vm, device):
     except:
         return None, None
 
+
 def get_switch_and_ip_info(vm, device):
     try:
         desc = get_desc(vm)
@@ -1519,13 +1530,16 @@ def get_switch_and_ip_info(vm, device):
     except:
         return (None, None)
 
+
 def get_all_nodes():
     """:rtype: V1NodeList"""
     return client.CoreV1Api().list_node()
 
+
 def get_nodes_num():
     """:rtype: int"""
     return len(get_all_nodes().items)
+
 
 def get_all_nodes_name():
     """:rtype: list"""
@@ -1533,7 +1547,8 @@ def get_all_nodes_name():
     for item in get_all_nodes().items:
         names.append(item.metadata.name)
     return names
-    
+
+
 def get_node_label_value(nodes, label):
     """:type nodes: str:type label: str:rtype: str"""
     try:
@@ -1541,7 +1556,8 @@ def get_node_label_value(nodes, label):
         return get_all_nodes().items[i].metadata.labels[label]
     except ValueError:
         return None
-    
+
+
 def push_node_label_value(node, label, value):
     """:type node: str:type label: str:type value: str"""
     body = {"metadata": {"labels": {label: value}}}
@@ -1549,6 +1565,7 @@ def push_node_label_value(node, label, value):
         client.CoreV1Api().patch_node(node, body)
     else:
         raise BadRequest("node %s is not exist" % node)
+
 
 class UserDefinedEvent(object):
     swagger_types = {
@@ -1887,10 +1904,11 @@ if __name__ == '__main__':
     #     print(get_update_description_command('cloudinit1', 'fe540007a50c', 'switch2', '192.168.0.1', '--config'))
     #     pprint.pprint(list_objects_in_kubernetes('cloudplus.io', 'v1alpha3', 'virtualmachinepools'))
     #     print(get_field_in_kubernetes_by_index('cloudinit', 'cloudplus.io', 'v1alpha3', 'virtualmachines', ['metadata', 'labels']))
-#     tmp=get_custom_object(constants.KUBERNETES_GROUP,constants.KUBERNETES_API_VERSION, constants.KUBERNETES_PLURAL_VMD,"disktest")
-    print(set_field_in_kubernetes_by_index('disktest-wyw', constants.KUBERNETES_GROUP,constants.KUBERNETES_API_VERSION, constants.KUBERNETES_PLURAL_VMD, ['spec','volume','vm'], 'test-wyw'))
+    #     tmp=get_custom_object(constants.KUBERNETES_GROUP,constants.KUBERNETES_API_VERSION, constants.KUBERNETES_PLURAL_VMD,"disktest")
+    print(set_field_in_kubernetes_by_index('disktest-wyw', constants.KUBERNETES_GROUP, constants.KUBERNETES_API_VERSION,
+                                           constants.KUBERNETES_PLURAL_VMD, ['spec', 'volume', 'vm'], 'test-wyw'))
 #     print(tmp)
-    # pprint.pprint(change_master_ip('192.168.66.102'))
+# pprint.pprint(change_master_ip('192.168.66.102'))
 #     check_vdiskfs_by_disk_path('/var/lib/libvirt/cstor/3eebd453b21c4b8fad84a60955598195/3eebd453b21c4b8fad84a60955598195/77a5b25d34be4bcdbaeb9f5929661f8f/77a5b25d34be4bcdbaeb9f5929661f8f --disk /var/lib/libvirt/cstor/076fe6aa813842d3ba141f172e3f8eb6/076fe6aa813842d3ba141f172e3f8eb6/4a2b67b44f4c4fca87e7a811e9fd545c.iso,device=cdrom,perms=ro')
 #     pprint.pprint(get_l2_network_info("br-native"))
 #     from libvirt_util import _get_dom

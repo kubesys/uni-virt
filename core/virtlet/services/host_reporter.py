@@ -11,7 +11,7 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 Import python libs
 '''
 from dateutil.tz import gettz
-import os, sys, time, datetime, socket, subprocess, time, traceback
+import os, re, sys, time, datetime, socket, subprocess, time, traceback
 from json import dumps
 from json import loads
 from xml.etree.ElementTree import fromstring
@@ -40,7 +40,7 @@ Import local libs
 # sys.path.append('%s/utils/libvirt_util.py' % (os.path.dirname(os.path.realpath(__file__))))
 from utils import constants
 from utils.libvirt_util import is_vm_exists, __get_conn, get_xml, vm_state, freecpu, freemem, node_info, list_active_vms, list_vms, destroy, undefine, is_vm_active, start
-from utils.misc import push_node_label_value, get_custom_object, update_custom_object, delete_custom_object, change_master_and_reload_config, updateDescription, addPowerStatusMessage, updateDomain, CDaemon, runCmd, get_field_in_kubernetes_by_index, get_hostname_in_lower_case, get_node_name_from_kubernetes, get_ha_from_kubernetes
+from utils.misc import runCmdRaiseException, push_node_label_value, create_custom_object, get_custom_object, update_custom_object, delete_custom_object, change_master_and_reload_config, updateDescription, addPowerStatusMessage, updateDomain, CDaemon, runCmd, get_field_in_kubernetes_by_index, get_hostname_in_lower_case, get_node_name_from_kubernetes, get_ha_from_kubernetes
 from utils import logger
 
 TOKEN = constants.KUBERNETES_TOKEN_FILE
@@ -73,6 +73,9 @@ def main():
                         pass
                     _check_vm_power_state(GROUP, VERSION, PLURAL, vm)
                 ha_check = False
+            for gpu in _list_gpus():
+                (gpu_name, gpu_info) = _parse_pci_info(gpu)
+                _create_or_update_vmgpus(GROUP, VERSION, PLURAL, gpu_name, gpu_info)
             _patch_node_status()
             if ha_enable:
                 _check_and_enable_HA()
@@ -173,6 +176,7 @@ def _check_and_enable_HA():
 
 
 def _check_vm_power_state(group, version, plural, metadata_name):
+    jsondict = {}
     try:
         logger.debug('3.Check the power state of VM: %s' % metadata_name)
         jsondict = get_custom_object(group, version, plural, metadata_name)
@@ -255,6 +259,122 @@ def updateDomainStructureAndDeleteLifecycleInJson(jsondict, body):
                 del spec['lifecycle']
             spec.update(body)
     return jsondict
+
+
+def _create_or_update_vmgpus(group, version, plural, metadata_name, gpu_info):
+    try:
+        logger.debug('create or update vmgpus: %s' % metadata_name)
+        jsondict = get_custom_object(group, version, plural, metadata_name)
+    except ApiException as e:
+        if e.reason == 'Not Found':
+            # logger.debug('**VM %s already deleted, ignore this 404 error.' % metadata_name)
+            create_custom_object(group, version, plural, metadata_name, gpu_info)
+            return
+    except Exception as e:
+        logger.error('Oops! ', exc_info=1)
+        return
+
+    try:
+        update_custom_object(group, version, plural, metadata_name, gpu_info)
+    except ApiException as e:
+        if e.reason == 'Not Found':
+            logger.debug('**VMGPU %s already deleted, ignore this 404.' % metadata_name)
+        if e.reason == 'Conflict':
+            logger.debug('**Other process updated %s, ignore this 409.' % metadata_name)
+        else:
+            logger.error('Oops! ', exc_info=1)
+    except Exception as e:
+        logger.error('Oops! ', exc_info=1)
+
+
+def _list_gpus():
+    command = f"lspci -nn | grep -i nvidia"
+    info = runCmdRaiseException(command)
+    # Define a regular expression pattern for the controller information
+    info_lines = [line.strip() for line in info.split('\n') if line.strip()]
+    # Parse the lines and create key-value pairs
+    result = []
+    for line in info_lines:
+        print(line)
+        pattern = re.compile(r'(\w+:\w+\.\w+) VGA compatible controller (.+)', re.DOTALL)
+        matches = pattern.findall(line)
+        for match in matches:
+            id_value, controller_value = match
+            result.append(id_value)
+    return result
+
+
+def _parse_pci_info(device_id):
+    # Execute the command to get the output
+    command = f"lspci -vs {device_id}"
+    info = runCmdRaiseException(command)
+
+    # Define a regular expression pattern for the controller information
+    pattern = re.compile(r'(\d+:\d+\.\d+) VGA compatible controller: (.+)', re.DOTALL)
+
+    pattern1 = re.compile(r'Kernel driver in use', re.DOTALL)
+
+    # Find the matches in the input information
+    matches = pattern.findall(info)
+    matches1 = pattern1.findall(info)
+
+    # Iterate through matches and replace them with a standardized key
+    for match in matches:
+        id_value, controller_value = match
+        info = info.replace(f'{id_value} VGA compatible controller: {controller_value}',
+                            f'id: {id_value} \n type: {controller_value}')
+
+    for match in matches1:
+        key = "kernelDriverInUse"
+        info = info.replace(match, f'{key}: {match}')
+
+    # Split the input by lines and remove empty lines
+    info_lines = [line.strip() for line in info.split('\n') if line.strip()]
+
+    # Create a dictionary to store the information
+    info_dict = {}
+
+    # Parse the lines and create key-value pairs
+    current_key = ""
+    for line in info_lines:
+        if ':' in line:
+            key, value = line.split(':', 1)
+            # Use regular expressions for matching and replacement
+            pattern = re.compile(r'\[([^\]]+)\]')
+            # Remove spaces and convert to title case
+            words = key.split()
+            current_key = words[0].lower() + ''.join(word.capitalize() for word in words[1:])
+            # print(current_key)
+            if current_key == 'type' and isinstance(value, str):
+                match = re.search(pattern, value)
+                if match:
+                    extracted_value = match.group(1)
+                    value = extracted_value
+            info_dict[current_key] = value.strip()
+        elif current_key:
+            # If current_key is set, append the line to the current key's value
+            info_dict[current_key] += " " + line.strip()
+
+    in_use = None
+    bus_id = device_id.split(":")[0]
+    for vm in list_active_vms():
+        vm_xml = get_xml(vm)
+        vm_json_string = dumps(toKubeJson(xmlToJson(vm_xml)))
+        if f"bus='0x{bus_id}'" in vm_json_string:
+            in_use = vm
+
+    info_dict['inUse'] = in_use
+    if info_dict['kernelDriverInUse'] == 'vfio-pci':
+        info_dict['useMode'] = "passthrough"
+    else:
+        info_dict['useMode'] = "share"
+
+    gpu_name = '%s-host-%s-id-%s' % (info_dict['type'].replace(' ', '-'), get_hostname_in_lower_case(), bus_id)
+
+    gpu_info = {"gpu": info_dict, "nodeName": get_hostname_in_lower_case()}
+
+    return gpu_name, gpu_info
+
 
 class HostCycler:
     
