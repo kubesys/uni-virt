@@ -67,6 +67,7 @@ Import third party libs
 # # from kubernetes.client.rest import ApiException
 from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_message,retry_if_result
 
+
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 TOKEN_ORIGIN = constants.KUBERNETES_TOKEN_FILE_ORIGIN
 NOVNC_TOKEN_FILE = constants.KUBEVMM_NOVNC_TOKEN
@@ -804,7 +805,7 @@ def runCmdRaiseException(cmd, head='VirtctlError', use_read=False):
                 for i in std_err_list:
                     std_err.append(i.decode('utf-8'))
         if std_err:
-            if std_err.find("InsecureRequestWarning") != -1:
+            if "InsecureRequestWarning" in std_err:
                 pass
             else:
                 raise BadRequest(std_err)
@@ -1567,9 +1568,11 @@ def get_all_nodes():
     return client.listResources(kind='Node')
 
 
+
 def get_nodes_num():
     """:rtype: int"""
     return len(get_all_nodes().get('items'))
+
 
 
 def get_all_nodes_name():
@@ -1602,6 +1605,7 @@ def push_node_label_value(node, label, value):
         client.updateResource(jsonDict)
     else:
         raise BadRequest("node %s does not exist" % node)
+
 
 
 class UserDefinedEvent(object):
@@ -1952,7 +1956,9 @@ if __name__ == '__main__':
     #     pprint.pprint(list_objects_in_kubernetes('cloudplus.io', 'v1alpha3', 'virtualmachinepools'))
     #     print(get_field_in_kubernetes_by_index('cloudinit', 'cloudplus.io', 'v1alpha3', 'virtualmachines', ['metadata', 'labels']))
     #     tmp=get_custom_object(constants.KUBERNETES_GROUP,constants.KUBERNETES_API_VERSION, constants.KUBERNETES_PLURAL_VMD,"disktest")
+
     print(set_field_in_kubernetes_by_index('disktest-wyw', constants.KUBERNETES_KIND_VMD, ['spec', 'volume', 'vm'], 'test-wyw'))
+
 #     print(tmp)
 # pprint.pprint(change_master_ip('192.168.66.102'))
 #     check_vdiskfs_by_disk_path('/var/lib/libvirt/cstor/3eebd453b21c4b8fad84a60955598195/3eebd453b21c4b8fad84a60955598195/77a5b25d34be4bcdbaeb9f5929661f8f/77a5b25d34be4bcdbaeb9f5929661f8f --disk /var/lib/libvirt/cstor/076fe6aa813842d3ba141f172e3f8eb6/076fe6aa813842d3ba141f172e3f8eb6/4a2b67b44f4c4fca87e7a811e9fd545c.iso,device=cdrom,perms=ro')

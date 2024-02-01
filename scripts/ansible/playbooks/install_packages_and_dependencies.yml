@@ -158,6 +158,7 @@
           - psutil
           - pyinstaller
           - tenacity
+          - requests
         state: latest
         executable: pip3
       tags: 
