@@ -8,7 +8,6 @@ import (
 	"github.com/kube-stack/sdsctl/pkg/utils"
 	"github.com/kube-stack/sdsctl/pkg/virsh"
 	"github.com/urfave/cli/v2"
-	"strings"
 )
 
 func NewCreateDiskCommand() *cli.Command {
@@ -48,7 +47,11 @@ func backcreateDisk(ctx *cli.Context) error {
 	err := createDisk(ctx)
 	ksgvr := k8s.NewKsGvr(constant.VMDS_Kind)
 	//logger := utils.GetLogger()
-	if err != nil && !strings.Contains(err.Error(), "already exist") {
+	//if err != nil && !strings.Contains(err.Error(), "already exist") {
+	//	//logger.Errorf("err here1:%+v", err)
+	//	ksgvr.UpdateWithStatus(ctx.Context, constant.DefaultNamespace, ctx.String("vol"), constant.CRD_Volume_Key, nil, err.Error(), "400")
+	//}
+	if err != nil {
 		//logger.Errorf("err here1:%+v", err)
 		ksgvr.UpdateWithStatus(ctx.Context, constant.DefaultNamespace, ctx.String("vol"), constant.CRD_Volume_Key, nil, err.Error(), "400")
 	}
@@ -68,7 +71,7 @@ func createDisk(ctx *cli.Context) error {
 	}
 	exist := virsh.IsDiskExist(pool, ctx.String("vol"))
 	if exist {
-		return errors.New(fmt.Sprintf("the volume %+v is already exist", ctx.String("vol")))
+		return errors.New(fmt.Sprintf("the volume %+v is already exist or volume path is in use", ctx.String("vol")))
 	}
 
 	bytes, _ := virsh.ParseCapacity(ctx.String("capacity"))

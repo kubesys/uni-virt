@@ -1,6 +1,7 @@
 package image
 
 import (
+	"errors"
 	"fmt"
 	"github.com/kube-stack/sdsctl/pkg/constant"
 	"github.com/kube-stack/sdsctl/pkg/k8s"
@@ -47,7 +48,10 @@ func NewCreateDiskImageCommand() *cli.Command {
 func backcreateDiskImage(ctx *cli.Context) error {
 	err := createDiskImage(ctx)
 	ksgvr := k8s.NewKsGvr(constant.VMDIS_KINDS)
-	if err != nil && !strings.Contains(err.Error(), "already exist") {
+	//if err != nil && !strings.Contains(err.Error(), "already exist") {
+	//	ksgvr.UpdateWithStatus(ctx.Context, constant.DefaultNamespace, ctx.String("name"), constant.CRD_Volume_Key, nil, err.Error(), "400")
+	//}
+	if err != nil {
 		ksgvr.UpdateWithStatus(ctx.Context, constant.DefaultNamespace, ctx.String("name"), constant.CRD_Volume_Key, nil, err.Error(), "400")
 	}
 	return err
@@ -66,6 +70,8 @@ func createImage(ctx *cli.Context, sourceDiskPath, name, pool string) error {
 	targetImageDir, _ := virsh.ParseDiskDir(pool, name)
 	if !utils.Exists(targetImageDir) {
 		os.MkdirAll(targetImageDir, os.ModePerm)
+	} else {
+		return errors.New(fmt.Sprintf("the image %+v is already exist or image path is in use", ctx.String("vol")))
 	}
 	targetImagePath := filepath.Join(targetImageDir, name)
 	// cp source
