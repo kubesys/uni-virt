@@ -4,8 +4,21 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 
     @author: wuyuewen@otcaix.iscas.ac.cn
     @author: wuheng@otcaix.iscas.ac.cn
+    @author: liujiexin@otcaix.iscas.ac.cn
     
-    @since:  2019/09/28  
+    @since:  2019/09/28
+
+* Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
 
 '''
 
@@ -27,18 +40,18 @@ def toCmds(json):
     构造成完整的可执行命令invoke cmd和query cmd。
     '''
     
-    if json == None or json["raw_object"] == None or json["raw_object"]["metadata"] == None \
-            or json['raw_object']['metadata']['name'] == None or json["raw_object"]["spec"] == None \
-            or not json["raw_object"]["spec"].get('lifecycle'):
+    if json == None or json["metadata"] == None \
+            or json['metadata']['name'] == None or json["spec"] == None \
+            or not json["spec"].get('lifecycle'):
 
 #         logger.debug("Invalid Json format.")
         return (None, None, None, None, None)
     
-    name = json['raw_object']['metadata']['name']
+    name = json['metadata']['name']
     the_cmd_keys = []
 
     # lifecycle可能有多个命令，但是存在stop或是reset vm的命令，则放到列表第一位
-    for lifecycle in json["raw_object"]["spec"]["lifecycle"]:
+    for lifecycle in json["spec"]["lifecycle"]:
         if lifecycle == constants.STOP_VM_FORCE_CMD:
             the_cmd_keys.insert(0, lifecycle)
             break;
@@ -55,7 +68,7 @@ def toCmds(json):
         # "default,name,none,kubeovn-adm create-address,virshplus dump_l3_network_info"
         desc = UserDefinedParser().getCmds(the_cmd_key)
         (policy, object_name, prepare_cmd, invoke_cmd, query_cmd) = desc.split(",")
-        params = json["raw_object"]["spec"]["lifecycle"][the_cmd_key]
+        params = json["spec"]["lifecycle"][the_cmd_key]
         params[object_name] = name
     except Exception:
         logger.error('Oops! ', exc_info=1)

@@ -8,6 +8,8 @@ ADD *.sh /home/kubevmm/core/
 
 ADD virtmonitor /home/kubevmm/core/virtmonitor
 
+ADD kubesys /home/kubevmm/core/kubesys
+
 ADD utils /home/kubevmm/core/utils
 
 RUN rm -fr /tmp/*

@@ -1,18 +1,37 @@
+'''
+ * Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ '''
+
 import socket
 import time
 import traceback
 import operator
 from json import dumps
 
-import os, sys
+import os
+import re
 from sys import exit
 
-from kubernetes import client, config
-from kubernetes.client import V1DeleteOptions
-from kubernetes.client.rest import ApiException
 import logging
 import logging.handlers
-
+# sys.path.append("..")
+# from kubernetes import config,client
+#
+# from kubernetes.client import V1DeleteOptions
+from kubesys.client import KubernetesClient
+from kubesys.exceptions import HTTPError
 try:
     from utils import constants
     from utils.exception import BadRequest
@@ -41,6 +60,7 @@ GROUP = constants.KUBERNETES_GROUP
 LOG = '/var/log/virtctl.log'
 
 RETRY_TIMES = 5
+WAIT=1
 
 
 def set_logger(header, fn):
@@ -79,41 +99,41 @@ for kind,plural in kind_plural.items():
     resource['plural'] = plural
     resources[kind] = resource
 
-
-def get(name, kind):
-    jsondict = client.CustomObjectsApi().get_namespaced_custom_object(group=resources[kind]['group'],
-                                                                      version=resources[kind]['version'],
-                                                                      namespace='default',
-                                                                      plural=resources[kind]['plural'],
-                                                                      name=name)
-    return jsondict
-
-
-def create(name, data, kind):
-    hostname = get_hostname_in_lower_case()
-    jsondict = {'spec': {'volume': {}, 'nodeName': hostname, 'status': {}},
-                'kind': kind, 'metadata': {'labels': {'host': hostname}, 'name': name},
-                'apiVersion': '%s/%s' % (resources[kind]['group'], resources[kind]['version'])}
-
-    jsondict = updateJsonRemoveLifecycle(jsondict, data)
-    body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
-
-    return client.CustomObjectsApi().create_namespaced_custom_object(
-        group=resources[kind]['group'], version=resources[kind]['version'], namespace='default',
-        plural=resources[kind]['plural'], body=body)
-
-
-def update(name, data, kind):
-    return client.CustomObjectsApi().replace_namespaced_custom_object(
-        group=resources[kind]['group'], version=resources[kind]['version'], namespace='default',
-        plural=resources[kind]['plural'], name=name, body=data)
-
-
-def delete(name, data, kind):
-    k8s_logger.debug('deleteVMBackupdebug %s' % name)
-    return client.CustomObjectsApi().delete_namespaced_custom_object(
-        group=resources[kind]['group'], version=resources[kind]['version'], namespace='default',
-        plural=resources[kind]['plural'], name=name, body=data)
+#
+# def get(name, kind):
+#     jsondict = client.CustomObjectsApi().get_namespaced_custom_object(group=resources[kind]['group'],
+#                                                                       version=resources[kind]['version'],
+#                                                                       namespace='default',
+#                                                                       plural=resources[kind]['plural'],
+#                                                                       name=name)
+#     return jsondict
+#
+#
+# def create(name, data, kind):
+#     hostname = get_hostname_in_lower_case()
+#     jsondict = {'spec': {'volume': {}, 'nodeName': hostname, 'status': {}},
+#                 'kind': kind, 'metadata': {'labels': {'host': hostname}, 'name': name},
+#                 'apiVersion': '%s/%s' % (resources[kind]['group'], resources[kind]['version'])}
+#
+#     jsondict = updateJsonRemoveLifecycle(jsondict, data)
+#     body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
+#
+#     return client.CustomObjectsApi().create_namespaced_custom_object(
+#         group=resources[kind]['group'], version=resources[kind]['version'], namespace='default',
+#         plural=resources[kind]['plural'], body=body)
+#
+#
+# def update(name, data, kind):
+#     return client.CustomObjectsApi().replace_namespaced_custom_object(
+#         group=resources[kind]['group'], version=resources[kind]['version'], namespace='default',
+#         plural=resources[kind]['plural'], name=name, body=data)
+#
+#
+# def delete(name, data, kind):
+#     k8s_logger.debug('deleteVMBackupdebug %s' % name)
+#     return client.CustomObjectsApi().delete_namespaced_custom_object(
+#         group=resources[kind]['group'], version=resources[kind]['version'], namespace='default',
+#         plural=resources[kind]['plural'], name=name, body=data)
 
 
 def addPowerStatusMessage(jsondict, reason, message):
@@ -217,30 +237,27 @@ def replaceData(jsondict):
     return current
 
 
-def get_node_name(jsondict):
-    if jsondict:
-        return jsondict['metadata']['labels']['host']
-    return None
+# def get_node_name(jsondict):
+#     if jsondict:
+#         return jsondict['metadata']['labels']['host']
+#     return None
 
-def list_node():
-    for i in range(RETRY_TIMES):
-        try:
-            config.load_kube_config(TOKEN)
-            jsondict = client.CoreV1Api().list_node().to_dict()
-            return jsondict
-        except ApiException as e:
-            if e.reason == 'Not Found':
-                return False
-            else:
-                time.sleep(1)
-        except Exception as e:
-            if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                    'ApiException') != -1:
-                config.load_kube_config(TOKEN)
-            k8s_logger.debug(traceback.format_exc())
-            k8s_logger.debug("sleep 3 sec")
-            time.sleep(1)
-    raise BadRequest('can not get node info from k8s.')
+# def list_node():
+#     for i in range(RETRY_TIMES):
+#         try:
+#             # config.load_kube_config(TOKEN)
+#             # nonlocal client
+#             client=KubernetesClient(config=TOKEN)
+#             jsondict = client.listResources(kind='Node',namespace='')
+#             return jsondict
+#         except HTTPError as e:
+#             if str(e).find('Not Found'):
+#                 return False
+#         finally:
+#             k8s_logger.debug(traceback.format_exc())
+#             k8s_logger.debug("sleep 1 sec")
+#             time.sleep(1)
+#     raise BadRequest('can not get node info from k8s.')
 
 
 class K8sHelper(object):
@@ -250,45 +267,27 @@ class K8sHelper(object):
     def exist(self, name):
         for i in range(RETRY_TIMES):
             try:
-                config.load_kube_config(TOKEN)
-                jsondict = client.CustomObjectsApi().get_namespaced_custom_object(group=resources[self.kind]['group'],
-                                                                                  version=resources[self.kind][
-                                                                                      'version'],
-                                                                                  namespace='default',
-                                                                                  plural=resources[self.kind]['plural'],
-                                                                                  name=name)
+                client=KubernetesClient(config=TOKEN)
+                client.getResource(kind=self.kind,namespace='default',name=name)
                 return True
-            except ApiException as e:
-                if e.reason == 'Not Found':
+            except HTTPError as e:
+                if str(e).find('Not Found'):
                     return False
-                else:
-                    time.sleep(1)
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+            finally:
                 k8s_logger.debug(traceback.format_exc())
-                k8s_logger.debug("sleep 3 sec")
+                k8s_logger.debug("sleep 1 sec")
                 time.sleep(1)
         raise BadRequest('can not get %s %s response from k8s.' % (self.kind, name))
 
     def get(self, name):
         for i in range(RETRY_TIMES):
             try:
-                config.load_kube_config(TOKEN)
-                jsondict = client.CustomObjectsApi().get_namespaced_custom_object(group=resources[self.kind]['group'],
-                                                                                  version=resources[self.kind][
-                                                                                      'version'],
-                                                                                  namespace='default',
-                                                                                  plural=resources[self.kind]['plural'],
-                                                                                  name=name)
-                return jsondict
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+                client = KubernetesClient(config=TOKEN)
+                response= client.getResource(kind=self.kind, namespace='default', name=name)
+                return response
+            except:
                 k8s_logger.debug(traceback.format_exc())
-                k8s_logger.debug("sleep 3 sec")
+                k8s_logger.debug("sleep 1 sec")
                 time.sleep(1)
 
         raise BadRequest('can not get %s %s on k8s.' % (self.kind, name))
@@ -296,27 +295,26 @@ class K8sHelper(object):
     def get_data(self, name, key):
         for i in range(RETRY_TIMES):
             try:
-                config.load_kube_config(TOKEN)
-                jsondict = client.CustomObjectsApi().get_namespaced_custom_object(group=resources[self.kind]['group'],
-                                                                                  version=resources[self.kind][
-                                                                                      'version'],
-                                                                                  namespace='default',
-                                                                                  plural=resources[self.kind]['plural'],
-                                                                                  name=name)
+                # config.load_kube_config(TOKEN)
+                # jsondict = client.CustomObjectsApi().get_namespaced_custom_object(group=resources[self.kind]['group'],
+                #                                                                   version=resources[self.kind][
+                #                                                                       'version'],
+                #                                                                   namespace='default',
+                #                                                                   plural=resources[self.kind]['plural'],
+                #                                                                   name=name)
+                client = KubernetesClient(config=TOKEN)
+                jsondict=client.getResource(kind=self.kind,name=name,namespace='default')
                 if 'spec' in jsondict.keys() and isinstance(jsondict['spec'], dict) and key in jsondict['spec'].keys():
                     return jsondict['spec'][key]
                 return None
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+            except:
                 time.sleep(1)
         raise BadRequest('can not get %s %s on k8s.' % (self.kind, name))
 
     def get_create_jsondict(self, name, key, data):
         for i in range(RETRY_TIMES):
             try:
-                config.load_kube_config(TOKEN)
+                # config.load_kube_config(TOKEN)
                 hostname = get_hostname_in_lower_case()
                 jsondict = {'spec': {'volume': {}, 'nodeName': hostname, 'status': {}},
                             'kind': self.kind, 'metadata': {'labels': {'host': hostname}, 'name': name},
@@ -325,17 +323,15 @@ class K8sHelper(object):
                 jsondict = updateJsonRemoveLifecycle(jsondict, {key: data})
                 body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
                 return body
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+            except:
                 time.sleep(1)
         raise BadRequest('can not get %s %s data on k8s.' % (self.kind, name))
 
     def create(self, name, key, data):
         for i in range(RETRY_TIMES):
             try:
-                config.load_kube_config(TOKEN)
+                # config.load_kube_config(TOKEN)
+                client = KubernetesClient(config=TOKEN)
                 if self.exist(name):
                     return
                 hostname = get_hostname_in_lower_case()
@@ -345,14 +341,11 @@ class K8sHelper(object):
 
                 jsondict = updateJsonRemoveLifecycle(jsondict, {key: data})
                 body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
-
-                return client.CustomObjectsApi().create_namespaced_custom_object(
-                    group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
-                    plural=resources[self.kind]['plural'], body=body)
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+                return client.createResource(body)
+                # return client.CustomObjectsApi().create_namespaced_custom_object(
+                #     group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
+                #     plural=resources[self.kind]['plural'], body=body)
+            except:
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
                 time.sleep(1)
@@ -361,20 +354,18 @@ class K8sHelper(object):
     def add_label(self, name, domain):
         for i in range(RETRY_TIMES):
             try:
-                config.load_kube_config(TOKEN)
+                client = KubernetesClient(config=TOKEN)
                 if not self.exist(name):
                     return
                 jsondict = self.get(name)
                 jsondict['metadata']['labels']['domain'] = domain
                 # jsondict = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
                 # jsondict = updateJsonRemoveLifecycle(jsondict, {key: data})
-                return client.CustomObjectsApi().replace_namespaced_custom_object(
-                    group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
-                    plural=resources[self.kind]['plural'], name=name, body=jsondict)
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+                # return client.CustomObjectsApi().replace_namespaced_custom_object(
+                #     group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
+                #     plural=resources[self.kind]['plural'], name=name, body=jsondict)
+                return client.updateResource(jsondict)
+            except:
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
                 time.sleep(1)
@@ -383,7 +374,8 @@ class K8sHelper(object):
     def update(self, name, key, data):
         for i in range(RETRY_TIMES):
             try:
-                config.load_kube_config(TOKEN)
+                # config.load_kube_config(TOKEN)
+                client = KubernetesClient(config=TOKEN)
                 if not self.exist(name):
                     return
                 jsondict = self.get(name)
@@ -392,13 +384,11 @@ class K8sHelper(object):
                     return
                 jsondict = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
                 jsondict = updateJsonRemoveLifecycle(jsondict, {key: data})
-                return client.CustomObjectsApi().replace_namespaced_custom_object(
-                    group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
-                    plural=resources[self.kind]['plural'], name=name, body=jsondict)
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+                # return client.CustomObjectsApi().replace_namespaced_custom_object(
+                #     group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
+                #     plural=resources[self.kind]['plural'], name=name, body=jsondict)
+                return client.updateResource(jsondict)
+            except:
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
                 time.sleep(1)
@@ -407,18 +397,17 @@ class K8sHelper(object):
     def updateAll(self, name, jsondict):
         for i in range(RETRY_TIMES):
             try:
-                config.load_kube_config(TOKEN)
+                # config.load_kube_config(TOKEN)
+                client = KubernetesClient(config=TOKEN)
                 if not self.exist(name):
                     return
                 jsondict = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
                 jsondict = deleteLifecycleInJson(jsondict)
-                return client.CustomObjectsApi().replace_namespaced_custom_object(
-                    group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
-                    plural=resources[self.kind]['plural'], name=name, body=jsondict)
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+                # return client.CustomObjectsApi().replace_namespaced_custom_object(
+                #     group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
+                #     plural=resources[self.kind]['plural'], name=name, body=jsondict)
+                return client.updateResource(jsondict)
+            except:
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
                 time.sleep(1)
@@ -427,18 +416,16 @@ class K8sHelper(object):
     def createAll(self, name, jsondict):
         for i in range(RETRY_TIMES):
             try:
-                config.load_kube_config(TOKEN)
+                client = KubernetesClient(config=TOKEN)
                 if self.exist(name):
                     return
                 jsondict = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
                 jsondict = deleteLifecycleInJson(jsondict)
-                return client.CustomObjectsApi().create_namespaced_custom_object(
-                    group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
-                    plural=resources[self.kind]['plural'], body=jsondict)
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+                # return client.CustomObjectsApi().create_namespaced_custom_object(
+                #     group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
+                #     plural=resources[self.kind]['plural'], body=jsondict)
+                return client.createResource(jsondict)
+            except:
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
                 time.sleep(1)
@@ -447,20 +434,15 @@ class K8sHelper(object):
     def delete(self, name):
         for i in range(RETRY_TIMES):
             try:
-                config.load_kube_config(TOKEN)
-                return client.CustomObjectsApi().delete_namespaced_custom_object(
-                    group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
-                    plural=resources[self.kind]['plural'], name=name, body=V1DeleteOptions())
-            except ApiException as e:
-                if e.reason == 'Not Found':
+                client = KubernetesClient(config=TOKEN)
+                # return client.CustomObjectsApi().delete_namespaced_custom_object(
+                #     group=resources[self.kind]['group'], version=resources[self.kind]['version'], namespace='default',
+                #     plural=resources[self.kind]['plural'], name=name, body=V1DeleteOptions())
+                return client.deleteResource(kind=self.kind,namespace='default',name=name)
+            except HTTPError as e:
+                if str(e).find('Not Found'):
                     return
-                else:
-                    time.sleep(1)
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
-
+            finally:
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
                 time.sleep(1)
@@ -469,23 +451,21 @@ class K8sHelper(object):
     def delete_lifecycle(self, name):
         for i in range(RETRY_TIMES):
             try:
-                config.load_kube_config(TOKEN)
+                client=KubernetesClient(config=TOKEN)
                 if not self.exist(name):
                     return
                 jsondict = self.get(name)
                 if hasLifeCycle(jsondict):
                     jsondict = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
                     jsondict = removeLifecycle(jsondict)
-                    return client.CustomObjectsApi().replace_namespaced_custom_object(
-                        group=resources[self.kind]['group'], version=resources[self.kind]['version'],
-                        namespace='default',
-                        plural=resources[self.kind]['plural'], name=name, body=jsondict)
+                    # return client.CustomObjectsApi().replace_namespaced_custom_object(
+                    #     group=resources[self.kind]['group'], version=resources[self.kind]['version'],
+                    #     namespace='default',
+                    #     plural=resources[self.kind]['plural'], name=name, body=jsondict)
+                    return client.updateResource(jsondict)
                 else:
                     return
-            except Exception as e:
-                if repr(e).find('Connection refused') != -1 or repr(e).find('No route to host') != -1 or repr(e).find(
-                        'ApiException') != -1:
-                    config.load_kube_config(TOKEN)
+            except:
                 k8s_logger.debug(traceback.format_exc())
                 k8s_logger.debug("sleep 3 sec")
                 time.sleep(1)
@@ -520,7 +500,7 @@ if __name__ == '__main__':
     #     'domain': 'cloudinit',
     #     'pool': 'migratepoolnodepool22'
     # }
-    config.load_kube_config(config_file=TOKEN)
+    # config.load_kube_config(config_file=TOKEN)
     helper = K8sHelper(VMP_KIND)
     # backup_helper.create('backup1', 'backup', data)
 #     print(backup_helper.add_label('vmbackup2', 'cloudinit'))

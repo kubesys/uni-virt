@@ -52,6 +52,8 @@ rm -f ./core/plugins/device-passthrough~
 cp -f ./core/utils/arraylist.cfg ./dist/centos7
 cp -rf ./scripts/yamls ./dist/centos7
 cp -rf ./scripts/plugins ./dist/centos7
+cp -rf ./client_python/kubesys ./dist/centos7
+cp -rf ./client_python/kubesys ./core
 #if [ ! -d "./dist/ansible/playbooks" ]; then
 #	mkdir -p ./dist/ansible/playbooks
 #fi
@@ -76,7 +78,7 @@ else
     echo "    Success compile <kubevmm-adm>."
 fi
 cp -f ./dist/centos7/kubevmm-adm ../../dist/centos7
-pyinstaller --distpath ./dist/centos7/ -F virshplus.py --hidden-import tenacity --clean
+pyinstaller --distpath ./dist/centos7/ -F virshplus.py --hidden-import urllib3 --hidden-import requests --hidden-import kubernetes --hidden-import tenacity  --add-data ../utils/*:utils --add-data ../utils/*:. --add-data ../kubesys/*:kubesys --clean
 if [ $? -ne 0 ]; then
     echo "    Failed to compile <virshplus>!"
     exit 1
@@ -159,6 +161,22 @@ fi
 if [ ! -d "../docker/virtmonitor/centos7/utils" ]; then
 	mkdir -p ../docker/virtmonitor/centos7/utils
 fi
+if [ ! -d "../docker/virtctl/centos7/kubesys" ]; then
+	mkdir -p ../docker/virtctl/centos7/kubesys
+fi
+if [ ! -d "../docker/virtlet/centos7/kubesys" ]; then
+	mkdir -p ../docker/virtlet/centos7/kubesys
+fi
+if [ ! -d "../docker/libvirtwatcher/centos7/kubesys" ]; then
+	mkdir -p ../docker/libvirtwatcher/centos7/kubesys
+fi
+if [ ! -d "../docker/virtmonitor/centos7/kubesys" ]; then
+	mkdir -p ../docker/virtmonitor/centos7/kubesys
+fi
+cp -rf kubesys/*.py ../docker/virtctl/centos7/kubesys
+cp -rf kubesys/*.py ../docker/virtlet/centos7/kubesys
+cp -rf kubesys/*.py ../docker/libvirtwatcher/centos7/kubesys
+cp -rf kubesys/*.py ../docker/virtmonitor/centos7/kubesys
 cp -rf utils/*.py ../docker/virtctl/centos7/utils/
 cp -rf utils/*.py ../docker/virtlet/centos7/utils/
 cp -rf utils/*.py ../docker/libvirtwatcher/centos7/utils/

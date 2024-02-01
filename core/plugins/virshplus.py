@@ -3,6 +3,19 @@ Copyright (2024, ) Institute of Software, Chinese Academy of
 
 @author: wuheng@otcaix.iscas.ac.cn
 @author: wuyuewen@otcaix.iscas.ac.cn
+@author: liujiexin@otcaix.iscas.ac.cn
+
+* Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
 '''
 import json
 from json import loads, load, dumps, dump
@@ -44,11 +57,11 @@ import yaml
 '''
 Import third party libs
 '''
-from kubernetes import client, config
-from kubernetes.client.rest import ApiException
+# from kubernetes import client, config
+# from kubernetes.client.rest import ApiException
 
-from kubernetes import config, client
-from kubernetes.client import V1DeleteOptions
+# from kubernetes import config, client
+# from kubernetes.client import V1DeleteOptions
 sys.path.append('..')
 sys.path.append('/home/kubevmm/core/')
 sys.path.append('./core/')
@@ -64,6 +77,8 @@ from utils.libvirt_util import create, destroy, check_pool_content_type, is_vm_d
 from utils.misc import get_IP, set_field_in_kubernetes_by_index, get_l2_network_info, get_address_set_info, get_l3_network_info, updateDomain, randomMAC, runCmd, get_rebase_backing_file_cmds, add_spec_in_volume, get_hostname_in_lower_case, DiskImageHelper, updateDescription, get_volume_snapshots, updateJsonRemoveLifecycle, addSnapshots, report_failure, addPowerStatusMessage, RotatingOperation, string_switch, deleteLifecycleInJson, get_field_in_kubernetes_by_index, write_config
 from utils import logger
 from utils.k8s import K8sHelper
+from kubesys.client import KubernetesClient
+from kubesys.exceptions import HTTPError
 
 VM_PLURAL = constants.KUBERNETES_PLURAL_VM
 VMP_PLURAL = constants.KUBERNETES_PLURAL_VMP
@@ -391,9 +406,11 @@ def convert_vmdi_to_vmd(params):
         '''
         i = 0
         success = False
+        client=KubernetesClient(config=TOKEN)
         while(i < 3):
             try:
-                client.CustomObjectsApi().get_namespaced_custom_object(group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=name)
+                # client.CustomObjectsApi().get_namespaced_custom_object(group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=name)
+                client.getResource(kind=VMD_KIND,name=name,namespace='default')
             except:
                 time.sleep(1)
                 success = False
@@ -550,8 +567,10 @@ def delete_vmdi(params):
 def updateOS(params):
     name, source, target = _get_param('--domain', params), _get_param('--source', params), 
     _get_param('--target', params)
-    jsonDict = client.CustomObjectsApi().get_namespaced_custom_object(
-        group=GROUP, version=VERSION, namespace='default', plural=VM_PLURAL, name=name)
+    client=KubernetesClient(config=TOKEN)
+    # jsonDict = client.CustomObjectsApi().get_namespaced_custom_object(
+    #     group=GROUP, version=VERSION, namespace='default', plural=VM_PLURAL, name=name)
+    jsonDict=client.getResource(kind=VM_KIND,name=name,namespace='default')
     jsonString = json.dumps(jsonDict)
     if jsonString.find(source) >= 0 and os.path.exists(target):
         runCmd('cp %s %s' %(target, source))
@@ -562,10 +581,11 @@ def updateOS(params):
     body = addPowerStatusMessage(jsonDict, vm_power_state, 'The VM is %s' % vm_power_state)
     body = updateDescription(body)
     try:
-        client.CustomObjectsApi().replace_namespaced_custom_object(
-            group=GROUP, version=VERSION, namespace='default', plural=VM_PLURAL, name=name, body=body)
-    except ApiException as e:
-        if e.reason == 'Conflict':
+        # client.CustomObjectsApi().replace_namespaced_custom_object(
+        #     group=GROUP, version=VERSION, namespace='default', plural=VM_PLURAL, name=name, body=body)
+        client.updateResource(body)
+    except HTTPError as e:
+        if str(e).find('Conflict'):
             logger.debug('**Other process updated %s, ignore this 409 error.' % name) 
         else:
             logger.error(e)
@@ -574,7 +594,7 @@ def updateOS(params):
 def delete_disk(params):
     params_dict = _get_params(params)
     vol, pool, type = params_dict.get('vol'), params_dict.get('pool'), params_dict.get('type')
-    pool_path = get_field_in_kubernetes_by_index(pool, GROUP, VERSION, VMP_PLURAL, ['spec','pool','url'])
+    pool_path = get_field_in_kubernetes_by_index(pool, VMP_KIND, ['spec','pool','url'])
     if not os.path.isdir(pool_path):
         raise BadRequest('can not get pool path: %s.' % pool_path)
     disk_dir = "%s/%s" % (pool_path, vol)
@@ -607,7 +627,7 @@ def create_disk(params):
     params_dict = _get_params(params)
     vol, pool, capacity, format, type = params_dict.get('vol'), params_dict.get('pool'), params_dict.get('capacity'), \
                     params_dict.get('format'), params_dict.get('type')
-    pool_path = get_field_in_kubernetes_by_index(pool, GROUP, VERSION, VMP_PLURAL, ['spec','pool','url'])
+    pool_path = get_field_in_kubernetes_by_index(pool, VMP_KIND, ['spec','pool','url'])
     if not os.path.isdir(pool_path):
         raise BadRequest('can not get pool path: %s.' % pool_path)
     # create disk dir and create disk in dir.
@@ -668,8 +688,10 @@ def create_pool(params):
 def create_disk_snapshot(params):
     vol, pool, snapshot = _get_param('--name', params), _get_param('--pool', params),
     _get_param('--snapshotname', params)
-    jsondict = client.CustomObjectsApi().get_namespaced_custom_object(
-        group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol)
+    client=KubernetesClient(config=TOKEN)
+    # jsondict = client.CustomObjectsApi().get_namespaced_custom_object(
+    #     group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol)
+    jsondict=client.getResource(kind=VMD_KIND,name=vol,namespace='default')
     vol_path = get_volume_current_path(pool, vol)
     snapshots = get_volume_snapshots(vol_path)['snapshot']
     name_conflict = False
@@ -692,10 +714,11 @@ def create_disk_snapshot(params):
         body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
         body = updateDescription(body)
         try:
-            client.CustomObjectsApi().replace_namespaced_custom_object(
-                group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol, body=body)
-        except ApiException as e:
-            if e.reason == 'Conflict':
+            # client.CustomObjectsApi().replace_namespaced_custom_object(
+            #     group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol, body=body)
+            client.updateResource(body)
+        except HTTPError as e:
+            if str(e).find('Conflict'):
                 logger.debug('**Other process updated %s, ignore this 409 error.' % vol) 
             else:
                 logger.error(e)
@@ -703,13 +726,15 @@ def create_disk_snapshot(params):
     except:
         logger.error('Oops! ', exc_info=1)
         info=sys.exc_info()
-        report_failure(vol, jsondict, 'VirtletError', str(info[1]), GROUP, VERSION, VMD_PLURAL)
+        report_failure(vol, 'VirtletError', str(info[1]), VMD_KIND)
 
 def delete_disk_snapshot(params):
     vol, pool, snapshot = _get_param('--name', params), _get_param('--pool', params),
     _get_param('--snapshotname', params)
-    jsondict = client.CustomObjectsApi().get_namespaced_custom_object(
-        group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol)
+    # jsondict = client.CustomObjectsApi().get_namespaced_custom_object(
+    #     group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol)
+    client=KubernetesClient(config=TOKEN)
+    jsondict=client.getResource(kind=VMD_KIND,name=vol,namespace='default')
     vol_path = get_volume_current_path(pool, vol)
     cmd = 'qemu-img snapshot -d %s %s' % (snapshot, vol_path)
     try:
@@ -722,10 +747,11 @@ def delete_disk_snapshot(params):
         body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
         body = updateDescription(body)
         try:
-            client.CustomObjectsApi().replace_namespaced_custom_object(
-                group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol, body=body)
-        except ApiException as e:
-            if e.reason == 'Conflict':
+            # client.CustomObjectsApi().replace_namespaced_custom_object(
+            #     group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol, body=body)
+            client.updateResource(body)
+        except HTTPError as e:
+            if str(e).find('Conflict'):
                 logger.debug('**Other process updated %s, ignore this 409 error.' % vol) 
             else:
                 logger.error(e)
@@ -733,13 +759,15 @@ def delete_disk_snapshot(params):
     except:
         logger.error('Oops! ', exc_info=1)
         info=sys.exc_info()
-        report_failure(vol, jsondict, 'VirtletError', str(info[1]), GROUP, VERSION, VMD_PLURAL)
+        report_failure(vol, 'VirtletError', str(info[1]), VMD_KIND)
 
 def revert_disk_internal_snapshot(params):
     vol, pool, snapshot = _get_param('--name', params), _get_param('--pool', params),
     _get_param('--snapshotname', params)
-    jsondict = client.CustomObjectsApi().get_namespaced_custom_object(
-        group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol)
+    client = KubernetesClient(config=TOKEN)
+    # jsondict = client.CustomObjectsApi().get_namespaced_custom_object(
+    #     group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol)
+    jsondict=client.getResource(kind=VMD_KIND,name=vol,namespace='default')
     vol_path = get_volume_current_path(pool, vol)
     cmd = 'qemu-img snapshot -a %s %s' % (snapshot, vol_path)
     try:
@@ -752,10 +780,11 @@ def revert_disk_internal_snapshot(params):
         body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
         body = updateDescription(body)
         try:
-            client.CustomObjectsApi().replace_namespaced_custom_object(
-                group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol, body=body)
-        except ApiException as e:
-            if e.reason == 'Conflict':
+            # client.CustomObjectsApi().replace_namespaced_custom_object(
+            #     group=GROUP, version=VERSION, namespace='default', plural=VMD_PLURAL, name=vol, body=body)
+            client.updateResource(body)
+        except HTTPError as e:
+            if str(e).find('Conflict'):
                 logger.debug('**Other process updated %s, ignore this 409 error.' % vol) 
             else:
                 logger.error(e)
@@ -763,7 +792,8 @@ def revert_disk_internal_snapshot(params):
     except:
         logger.error('Oops! ', exc_info=1)
         info=sys.exc_info()
-        report_failure(vol, jsondict, 'VirtletError', str(info[1]), GROUP, VERSION, VMD_PLURAL)
+        report_failure(vol, 'VirtletError', str(info[1]), VMD_KIND)
+
         
 def revert_disk_external_snapshot(params):
 #     jsondict = client.CustomObjectsApi().get_namespaced_custom_object(
@@ -865,6 +895,7 @@ def toKubeJson(json):
                     'nested-hv', 'nested_hv').replace('suspend-to-mem', 'suspend_to_mem').replace('suspend-to-disk', 'suspend_to_disk')
                     
 def write_result_to_server(name, op, kind, plural, params):
+    client = KubernetesClient(config=TOKEN)
     if op == 'create':
         logger.debug('Create %s %s, report to virtlet' % (kind, name))
         jsondict = {'spec': {'volume': {}, 'nodeName': HOSTNAME, 'status': {}},
@@ -880,39 +911,45 @@ def write_result_to_server(name, op, kind, plural, params):
         jsondict = updateJsonRemoveLifecycle(jsondict, vol_json)
         body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')    
         try:
-            client.CustomObjectsApi().create_namespaced_custom_object(
-                group=GROUP, version=VERSION, namespace='default', plural=plural, body=body)
-        except ApiException as e:
-            if e.reason == 'Conflict':
+            # client.CustomObjectsApi().create_namespaced_custom_object(
+            #     group=GROUP, version=VERSION, namespace='default', plural=plural, body=body)
+            client.createResource(body)
+
+        except HTTPError as e:
+            if str(e).find('Conflict'):
                 logger.debug('**The %s %s already exists, update it.' % (kind, name))
-                jsondict = client.CustomObjectsApi().get_namespaced_custom_object(group=GROUP,
-                                                                              version=VERSION,
-                                                                              namespace='default',
-                                                                              plural=plural,
-                                                                              name=name)
+                # jsondict = client.CustomObjectsApi().get_namespaced_custom_object(group=GROUP,
+                #                                                               version=VERSION,
+                #                                                               namespace='default',
+                #                                                               plural=plural,
+                #                                                               name=name)
+                jsondict=client.getResource(kind=kind,name=name,namespace='default')
                 jsondict = updateJsonRemoveLifecycle(jsondict, vol_json)
                 body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.') 
-                client.CustomObjectsApi().replace_namespaced_custom_object(
-                   group=GROUP, version=VERSION, namespace='default', plural=plural, name=name, body=body)
+                # client.CustomObjectsApi().replace_namespaced_custom_object(
+                #    group=GROUP, version=VERSION, namespace='default', plural=plural, name=name, body=body)
+                client.updateResource(body)
             else:
                 logger.error(e)
                 raise e  
     elif op == 'delete':
         try:
             refresh_pool(params.get('pool'))
-            jsondict = client.CustomObjectsApi().get_namespaced_custom_object(group=GROUP,
-                                                                              version=VERSION,
-                                                                              namespace='default',
-                                                                              plural=plural,
-                                                                              name=name)
+            # jsondict = client.CustomObjectsApi().get_namespaced_custom_object(group=GROUP,
+            #                                                                   version=VERSION,
+            #                                                                   namespace='default',
+            #                                                                   plural=plural,
+            #                                                                   name=name)
+            jsondict=client.getResource(kind=kind,name=name,namespace='default')
             #             vol_xml = get_volume_xml(pool, name)
             #             vol_json = toKubeJson(xmlToJson(vol_xml))
             jsondict = updateJsonRemoveLifecycle(jsondict, {})
             body = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
-            client.CustomObjectsApi().replace_namespaced_custom_object(
-                group=GROUP, version=VERSION, namespace='default', plural=plural, name=name, body=body)
-        except ApiException as e:
-            if e.reason == 'Not Found':
+            # client.CustomObjectsApi().replace_namespaced_custom_object(
+            #     group=GROUP, version=VERSION, namespace='default', plural=plural, name=name, body=body)
+            client.updateResource(body)
+        except HTTPError as e:
+            if str(e).find('Not Found'):
                 logger.debug('**%s %s already deleted.' % (kind, name))
             else:
                 logger.error(e)
@@ -920,10 +957,11 @@ def write_result_to_server(name, op, kind, plural, params):
         except:
             logger.error('Oops! ', exc_info=1)
         try:
-            client.CustomObjectsApi().delete_namespaced_custom_object(
-                group=GROUP, version=VERSION, namespace='default', plural=plural, name=name, body=V1DeleteOptions())
-        except ApiException as e:
-            if e.reason == 'Not Found':
+            # client.CustomObjectsApi().delete_namespaced_custom_object(
+            #     group=GROUP, version=VERSION, namespace='default', plural=plural, name=name, body=V1DeleteOptions())
+            client.deleteResource(kind=kind,namespace='default',name=name)
+        except HTTPError as e:
+            if str(e).find('Not Found'):
                 logger.debug('**%s %s already deleted.' % (kind, name))
             else:
                 logger.error(e)
@@ -1165,7 +1203,7 @@ def delete_network(params):
     return
 
 def _update_vmdisk_used_by_which_vm_in_k8s(vmdisk,vm):
-    return set_field_in_kubernetes_by_index(vmdisk, constants.KUBERNETES_GROUP,constants.KUBERNETES_API_VERSION, constants.KUBERNETES_PLURAL_VMD, ['spec','volume','vm'], vm)
+    return set_field_in_kubernetes_by_index(vmdisk, VMD_KIND, ['spec','volume','vm'], vm)
     
 def _runOperationQueue(operation_queue, interval = 1, raise_it = True):
     for operation in operation_queue:
@@ -1707,17 +1745,17 @@ def _unplugDeviceFromXmlCmd(metadata_name, device_type, data, args):
     return 'virsh detach-device --domain %s --file %s %s' % (metadata_name, file_path, args)
 
 def _createNICFromXml(metadata_name, jsondict, the_cmd_key):
-    spec = jsondict['raw_object'].get('spec')
+    spec = jsondict.get('spec')
     lifecycle = spec.get('lifecycle')
     if not lifecycle:
         return
     '''
     Read parameters from lifecycle, add default value to some parameters.
     '''
-    mac = jsondict['raw_object']['spec']['lifecycle'][the_cmd_key].get('mac')
-    source = jsondict['raw_object']['spec']['lifecycle'][the_cmd_key].get('source')
-    model = jsondict['raw_object']['spec']['lifecycle'][the_cmd_key].get('model')
-#     target = jsondict['raw_object']['spec']['lifecycle'][the_cmd_key].get('target')
+    mac = jsondict['spec']['lifecycle'][the_cmd_key].get('mac')
+    source = jsondict['spec']['lifecycle'][the_cmd_key].get('source')
+    model = jsondict['spec']['lifecycle'][the_cmd_key].get('model')
+#     target = jsondict['spec']['lifecycle'][the_cmd_key].get('target')
     if not source:
         raise BadRequest('Execute plugNIC error: missing parameter "source"!')
     if not mac:
@@ -1733,27 +1771,27 @@ def _createNICFromXml(metadata_name, jsondict, the_cmd_key):
     
     file_path = _createNICXml(metadata_name, lines)
 
-    del jsondict['raw_object']['spec']['lifecycle'][the_cmd_key]
+    del jsondict['spec']['lifecycle'][the_cmd_key]
     new_cmd_key = 'plugDevice'
-    jsondict['raw_object']['spec']['lifecycle'][new_cmd_key] = {'file': file_path}
+    jsondict['spec']['lifecycle'][new_cmd_key] = {'file': file_path}
     return(jsondict, new_cmd_key, file_path)
 
 def _deleteNICFromXml(metadata_name, jsondict, the_cmd_key):
-    spec = jsondict['raw_object'].get('spec')
+    spec = jsondict.get('spec')
     lifecycle = spec.get('lifecycle')
     if not lifecycle:
         return
     '''
     Read parameters from lifecycle, add default value to some parameters.
     '''
-    mac = jsondict['raw_object']['spec']['lifecycle'][the_cmd_key].get('mac')
+    mac = jsondict['spec']['lifecycle'][the_cmd_key].get('mac')
     if not mac:
         raise BadRequest('Execute plugNIC error: missing parameter "mac"!')
     
     file_path = '%s/%s-nic-%s.xml' % (constants.KUBEVMM_VM_DEVICES_DIR, metadata_name, mac.replace(':', ''))
-    del jsondict['raw_object']['spec']['lifecycle'][the_cmd_key]
+    del jsondict['spec']['lifecycle'][the_cmd_key]
     new_cmd_key = 'unplugDevice'
-    jsondict['raw_object']['spec']['lifecycle'][new_cmd_key] = {'file': file_path}
+    jsondict['spec']['lifecycle'][new_cmd_key] = {'file': file_path}
     return (jsondict, new_cmd_key, file_path)
 
 def mvNICXmlToTmpDir(file_path):
@@ -2034,7 +2072,7 @@ def main():
         sys.exit(1)
 
 if __name__ == '__main__':
-    config.load_kube_config(config_file=TOKEN)
+    # config.load_kube_config(config_file=TOKEN)
     #plug_disk(["--config", "--source", "/var/lib/libvirt/pooltest12/disktest-wyw1/disktest-wyw1", "--subdriver", "qcow2", "--target", "vdb", "--domain", "test-wyw"])
     #unplug_disk(["--config", "--target", "vdb", "--domain", "test-wyw"])
     main()

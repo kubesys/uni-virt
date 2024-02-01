@@ -37,4 +37,11 @@ source /root/.bashrc >/dev/null 2>&1
 SHELL_FOLDER=$(dirname $(readlink -f "$0"))
 cd ${SHELL_FOLDER}
 cd ./virtctl
-python3 virtctl_in_docker.py
+python3_path="/usr/local/python3/bin/python3"
+script_path="virtctl_in_docker.py"
+
+if [ -e "$python3_path" ]; then
+  "$python3_path" "$script_path"
+else
+  /usr/bin/python3 "$script_path"
+fi

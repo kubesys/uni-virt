@@ -4,18 +4,39 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 @author: wuyuewen@otcaix.iscas.ac.cn
 @author: wuheng@otcaix.iscas.ac.cn
 @author: liujiexin@otcaix.iscas.ac.cn
+
+* Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
 '''
+import sys
 import json
 from json import loads, load, dumps, dump
 
 try:
     from utils.libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
-    from utils.exception import InternalServerError, NotFound, Forbidden, BadRequest
+    from utils.exception import InternalServerError, NotFound, Forbidden, BadRequest,ExecuteException
+    from utils.k8s_handler import Event,InvolvedObject,Metadata
     from utils import constants
+    from kubesys.client import KubernetesClient
+    from kubesys.exceptions import HTTPError
 except:
     from libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
-    from exception import InternalServerError, NotFound, Forbidden, BadRequest
+    from exception import InternalServerError, NotFound, Forbidden, BadRequest,ExecuteException
+    from k8s_handler import Event,InvolvedObject,Metadata
     import constants
+    sys.path.append("..")
+    sys.path.append('./core/')
+    from kubesys.client import KubernetesClient
+    from kubesys.exceptions import HTTPError
 
 '''
 Import python libs
@@ -26,7 +47,7 @@ import socket
 import shlex
 import errno
 from functools import wraps
-import os, sys, time, signal, atexit, subprocess
+import os, time, signal, atexit, subprocess
 import threading
 import random
 import socket
@@ -41,10 +62,11 @@ from collections import namedtuple
 '''
 Import third party libs
 '''
-from kubernetes import client, config
-from kubernetes.client import V1DeleteOptions
-from kubernetes.client.rest import ApiException
-from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_type, retry_if_exception_message
+# from kubernetes import client, config
+# # from kubernetes.client import V1DeleteOptions
+# # from kubernetes.client.rest import ApiException
+from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_message,retry_if_result
+
 
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 TOKEN_ORIGIN = constants.KUBERNETES_TOKEN_FILE_ORIGIN
@@ -53,15 +75,28 @@ RESOURCE_FILE_PATH = constants.KUBEVMM_RESOURCE_FILE_PATH
 OVN_CONFIG_FILE = constants.KUBEVMM_OVN_FILE
 
 
+# @retry(stop=stop_after_attempt(3),
+#        retry=retry_if_exception_type(ApiException),
+#        wait=wait_random(min=0, max=3),
+#        reraise=True)
+# def create_custom_object(group, version, plural, body):
+#     config.load_kube_config(config_file=TOKEN)
+#     retv = client.CustomObjectsApi().create_namespaced_custom_object(group=group,
+#                                                                      version=version, namespace='default',
+#                                                                      plural=plural, body=body)
+#     return retv
+def is_none_p(value):
+    """Return True if value is None"""
+    return value is None
+
+
 @retry(stop=stop_after_attempt(3),
-       retry=retry_if_exception_type(ApiException),
+       retry=retry_if_result(is_none_p),
        wait=wait_random(min=0, max=3),
        reraise=True)
-def create_custom_object(group, version, plural, body):
-    config.load_kube_config(config_file=TOKEN)
-    retv = client.CustomObjectsApi().create_namespaced_custom_object(group=group,
-                                                                     version=version, namespace='default',
-                                                                     plural=plural, body=body)
+def create_custom_object(jsonStr):
+    client=KubernetesClient(token=TOKEN)
+    retv=client.createResource(jsonStr)
     return retv
 
 
@@ -69,10 +104,19 @@ def create_custom_object(group, version, plural, body):
        retry=retry_if_exception_message(match='Not Found'),
        wait=wait_random(min=0, max=3),
        reraise=True)
-def get_custom_object(group, version, plural, metadata_name):
-    config.load_kube_config(config_file=TOKEN)
-    jsonStr = client.CustomObjectsApi().get_namespaced_custom_object(
-        group=group, version=version, namespace='default', plural=plural, name=metadata_name)
+def get_custom_object(kind, metadata_name)->dict:
+    client = KubernetesClient(config=TOKEN)
+    jsonDict = client.getResource(kind=kind, name=metadata_name, namespace='default')
+    return jsonDict
+
+
+@retry(stop=stop_after_attempt(3),
+       retry=retry_if_exception_message(match='Not Found'),
+       wait=wait_random(min=0, max=3),
+       reraise=True)
+def list_custom_object(kind,namespace):
+    client=KubernetesClient(config=TOKEN)
+    jsonStr=client.listResources(kind=kind,namespace=namespace).get('items')
     return jsonStr
 
 
@@ -80,34 +124,22 @@ def get_custom_object(group, version, plural, metadata_name):
        retry=retry_if_exception_message(match='Not Found'),
        wait=wait_random(min=0, max=3),
        reraise=True)
-def list_custom_object(group, version, plural):
-    config.load_kube_config(config_file=TOKEN)
-    jsonStr = client.CustomObjectsApi().list_cluster_custom_object(
-        group=group, version=version, plural=plural).get('items')
-    return jsonStr
-
-
-@retry(stop=stop_after_attempt(3),
-       retry=retry_if_exception_message(match='Not Found'),
-       wait=wait_random(min=0, max=3),
-       reraise=True)
-def update_custom_object(group, version, plural, metadata_name, body):
-    config.load_kube_config(config_file=TOKEN)
+def update_custom_object(body):
+    client=KubernetesClient(config=TOKEN)
     body = updateDescription(body)
-    retv = client.CustomObjectsApi().replace_namespaced_custom_object(
-        group=group, version=version, namespace='default', plural=plural, name=metadata_name, body=body)
+    retv=client.updateResource(dictToJsonString(body))
     return retv
 
+def dictToJsonString(dict_obj) -> str:
+    return json.dumps(dict_obj, indent=4, separators=(',', ': '))
 
 @retry(stop=stop_after_attempt(3),
        retry=retry_if_exception_message(match='Not Found'),
        wait=wait_random(min=0, max=3),
        reraise=True)
-def delete_custom_object(group, version, plural, metadata_name):
-    config.load_kube_config(config_file=TOKEN)
-    retv = client.CustomObjectsApi().delete_namespaced_custom_object(
-        group=group, version=version, namespace='default', plural=plural, name=metadata_name,
-        body=V1DeleteOptions())
+def delete_custom_object(kind,namespace, metadata_name):
+    client=KubernetesClient(config=TOKEN)
+    retv=client.deleteResource(kind,namespace,metadata_name)
     return retv
 
 
@@ -275,7 +307,7 @@ def get_l3_network_info(name):
     #         raise Exception('ovn-nbctl --db=tcp:%s:%s show %s error: no id found!' % (master_ip, nb_port, name))
     if switchId:
         cmd = 'kubectl ko nbctl show --kubeconfig=%s %s | grep dhcpv4id | awk -F"dhcpv4id-%s-" \'{print$2}\'' % (
-        TOKEN_ORIGIN, name, name)
+            TOKEN_ORIGIN, name, name)
         lines = runCmdRaiseException(cmd)
         #         if not lines:
         #             raise Exception('error occurred: ovn-nbctl --db=tcp:%s:%s list DHCP_Options  | grep -B 3 "%s"  | grep "_uuid" | awk -F":" \'{print$2}\'' % (master_ip, nb_port, switchId))
@@ -388,8 +420,8 @@ def get_address_set_info(name):
 
 def get_field_in_kubernetes_node(name, index):
     try:
-        v1_node_list = client.CoreV1Api().list_node(label_selector='host=%s' % name)
-        jsondict = v1_node_list.to_dict()
+        client=KubernetesClient(config=TOKEN)
+        jsondict=client.listResourcesWithSelector(kind='Node',namespace="",tp='label',selects={'host':name})
         items = jsondict.get('items')
         if items:
             return get_field(items[0], index)
@@ -410,50 +442,55 @@ def write_config(vol, dir, current, pool):
         dump(config, f)
 
 
-def get_field_in_kubernetes_by_index(name, group, version, plural, index):
+def get_field_in_kubernetes_by_index(name,kind, index):
     try:
         if not index or not list(index):
             return None
-        jsondict = get_custom_object(group, version, plural, name)
+        jsondict = get_custom_object(kind, name)
         return get_field(jsondict, index)
     except:
         return None
 
 
-def set_field_in_kubernetes_by_index(name, group, version, plural, index, value):
+def set_field_in_kubernetes_by_index(name, kind,index, value):
     try:
         if not index or not list(index):
             return None
-        jsondict = get_custom_object(group, version, plural, name)
+        jsondict = get_custom_object(kind, name)
         contents = set_field(jsondict, index, value)
-        return update_custom_object(group, version, plural, name, contents)
+        return update_custom_object(contents)
     except:
         return None
 
 
-def list_objects_in_kubernetes(group, version, plural):
+@retry(stop=stop_after_attempt(3),
+       retry=retry_if_exception_message(match='Not Found'),
+       wait=wait_random(min=0, max=3),
+       reraise=True)
+def list_objects_in_kubernetes(kind):
     try:
-        return list_custom_object(group, version, plural)
+        client = KubernetesClient(config=TOKEN)
+        return client.listResources(kind=kind).get('items')
     except:
         return None
 
 
-def get_node_name_from_kubernetes(group, version, namespace, plural, metadata_name):
+def get_node_name_from_kubernetes(kind, metadata_name):
     try:
-        jsonStr = get_custom_object(group, version, plural, metadata_name)
-    except ApiException as e:
-        if e.reason == 'Not Found':
+        jsonStr = get_custom_object(kind, metadata_name)
+    except HTTPError as e:
+        if str(e).find('Not Found'):
             return None
         else:
             raise e
     return jsonStr['metadata']['labels']['host']
 
 
-def get_ha_from_kubernetes(group, version, namespace, plural, metadata_name):
+def get_ha_from_kubernetes(kind, metadata_name):
     try:
-        jsonStr = get_custom_object(group, version, plural, metadata_name)
-    except ApiException as e:
-        if e.reason == 'Not Found':
+        jsonStr = get_custom_object(kind, metadata_name)
+    except HTTPError as e:
+        if str(e).find('Not Found'):
             return False
         else:
             raise e
@@ -835,22 +872,22 @@ class TimeoutError(Exception):
     pass
 
 
-def report_failure(name, jsondict, error_reason, error_message, group, version, plural):
-    jsondict = get_custom_object(group, version, plural, name)
+def report_failure(name, error_reason, error_message, kind):
+    jsondict = get_custom_object(kind, name)
     jsondict = deleteLifecycleInJson(jsondict)
     jsondict = updateDescription(jsondict)
     body = addExceptionMessage(jsondict, error_reason, error_message)
-    retv = update_custom_object(group, version, plural, name, body)
+    retv = update_custom_object(body)
     return retv
 
 
-def report_success(name, jsondict, success_reason, success_message, group, version, plural):
-    jsondict = get_custom_object(group, version, plural, name)
-    jsondict = deleteLifecycleInJson(jsondict)
-    jsondict = updateDescription(jsondict)
-    body = addPowerStatusMessage(jsondict, success_reason, success_message)
-    retv = update_custom_object(group, version, plural, name, body)
-    return retv
+# def report_success(name, jsondict, success_reason, success_message, group, version, plural):
+#     jsondict = get_custom_object(group, version, plural, name)
+#     jsondict = deleteLifecycleInJson(jsondict)
+#     jsondict = updateDescription(jsondict)
+#     body = addPowerStatusMessage(jsondict, success_reason, success_message)
+#     retv = update_custom_object(group, version, plural, name, body)
+#     return retv
 
 
 def get_spec(jsondict):
@@ -1084,12 +1121,6 @@ def _userDefinedOperationInList(field, jsondict, alist):
                 tmp2 = '{}[\'{}\']'.format(tmp2, value)
         exec('%s = %s' % (tmp2, _addListToSpecificField(tmp)))
     return
-
-
-class ExecuteException(Exception):
-    def __init__(self, reason, message):
-        self.reason = reason
-        self.message = message
 
 
 class KubevmmException(Exception):
@@ -1533,38 +1564,48 @@ def get_switch_and_ip_info(vm, device):
 
 def get_all_nodes():
     """:rtype: V1NodeList"""
-    return client.CoreV1Api().list_node()
+    client=KubernetesClient(config=TOKEN)
+    return client.listResources(kind='Node')
+
 
 
 def get_nodes_num():
     """:rtype: int"""
-    return len(get_all_nodes().items)
+    return len(get_all_nodes().get('items'))
+
 
 
 def get_all_nodes_name():
     """:rtype: list"""
     names = []
-    for item in get_all_nodes().items:
-        names.append(item.metadata.name)
+    for item in get_all_nodes().get('items'):
+        names.append(item.get('metadata').get('name'))
     return names
 
 
 def get_node_label_value(nodes, label):
     """:type nodes: str:type label: str:rtype: str"""
     try:
+        # for item in get_all_nodes().get('items'):
+        #     if item.get('metadata').get('name')==nodes:
+        #         return item.get('metadata').get('labels')[label]
         i = get_all_nodes_name().index(nodes)
-        return get_all_nodes().items[i].metadata.labels[label]
+        return get_all_nodes().get('items')[i].get('metadata').get('labels')[label]
     except ValueError:
         return None
 
 
 def push_node_label_value(node, label, value):
     """:type node: str:type label: str:type value: str"""
-    body = {"metadata": {"labels": {label: value}}}
+    client = KubernetesClient(config=TOKEN)
+    jsonDict=client.getResource(kind='Node',name=node)
+    body = {label: value}
+    jsonDict['metadata']['labels'].update(body)
     if node in get_all_nodes_name():
-        client.CoreV1Api().patch_node(node, body)
+        client.updateResource(jsonDict)
     else:
-        raise BadRequest("node %s is not exist" % node)
+        raise BadRequest("node %s does not exist" % node)
+
 
 
 class UserDefinedEvent(object):
@@ -1579,8 +1620,10 @@ class UserDefinedEvent(object):
         'event_type': 'str'
     }
 
-    def __init__(self, event_metadata_name, time_start, time_end, involved_object_name, involved_object_kind, message,
+    def __init__(self, action,controller,event_metadata_name, time_start, time_end, involved_object_name, involved_object_kind, message,
                  reason, event_type):
+        self.action=action
+        self.controller=controller
         self.event_metadata_name = event_metadata_name
         self.time_start = time_start
         self.time_end = time_end
@@ -1595,26 +1638,34 @@ class UserDefinedEvent(object):
         More details please @See:
             https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/V1Event.md
         '''
-        involved_object = client.V1ObjectReference(name=self.involved_object_name, kind=self.involved_object_kind,
-                                                   namespace='default')
-        metadata = client.V1ObjectMeta(name=self.event_metadata_name, namespace='default')
-        body = client.CoreV1Event(first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
-                                  involved_object=involved_object, message=self.message, reason=self.reason,
-                                  type=self.event_type)
-        client.CoreV1Api().replace_namespaced_event(self.event_metadata_name, 'default', body, pretty='true')
+        # involved_object = client.V1ObjectReference(name=self.involved_object_name, kind=self.involved_object_kind,
+        #                                            namespace='default')
+        # metadata = client.V1ObjectMeta(name=self.event_metadata_name, namespace='default')
+        # body = client.CoreV1Event(first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
+        #                           involved_object=involved_object, message=self.message, reason=self.reason,
+        #                           type=self.event_type)
+        # client.CoreV1Api().replace_namespaced_event(self.event_metadata_name, 'default', body, pretty='true')
+        involved_object=InvolvedObject(name=self.involved_object_name, kind=self.involved_object_kind,namespace='default')
+        metadata=Metadata(name=self.event_metadata_name, namespace='default')
+        body=Event(action=self.action,controller=self.controller,first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
+                   involved_object=involved_object, message=self.message, reason=self.reason,
+                   type=self.event_type)
+        KubernetesClient(config=TOKEN).updateResource(body.__dict__,pretty=True)
+
 
     def updateKubernetesEvent(self):
         '''
         More details please @See:
             https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/V1Event.md
         '''
-        involved_object = client.V1ObjectReference(name=self.involved_object_name, kind=self.involved_object_kind,
-                                                   namespace='default')
-        metadata = client.V1ObjectMeta(name=self.event_metadata_name, namespace='default')
-        body = client.CoreV1Event(first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
-                                  involved_object=involved_object, message=self.message, reason=self.reason,
-                                  type=self.event_type)
-        client.CoreV1Api().replace_namespaced_event(self.event_metadata_name, 'default', body, pretty='true')
+        # involved_object = client.V1ObjectReference(name=self.involved_object_name, kind=self.involved_object_kind,
+        #                                            namespace='default')
+        # metadata = client.V1ObjectMeta(name=self.event_metadata_name, namespace='default')
+        # body = client.CoreV1Event(first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
+        #                           involved_object=involved_object, message=self.message, reason=self.reason,
+        #                           type=self.event_type)
+        # client.CoreV1Api().replace_namespaced_event(self.event_metadata_name, 'default', body, pretty='true')
+        self.registerKubernetesEvent()
 
     def get_event_metadata_name(self):
         return self.__event_metadata_name
@@ -1900,13 +1951,14 @@ class CDaemon:
 
 
 if __name__ == '__main__':
-    config.load_kube_config(config_file=TOKEN)
+    # config.load_kube_config(config_file=TOKEN)
     #     print(get_update_description_command('cloudinit1', 'fe540007a50c', 'switch2', '192.168.0.1', '--config'))
     #     pprint.pprint(list_objects_in_kubernetes('cloudplus.io', 'v1alpha3', 'virtualmachinepools'))
     #     print(get_field_in_kubernetes_by_index('cloudinit', 'cloudplus.io', 'v1alpha3', 'virtualmachines', ['metadata', 'labels']))
     #     tmp=get_custom_object(constants.KUBERNETES_GROUP,constants.KUBERNETES_API_VERSION, constants.KUBERNETES_PLURAL_VMD,"disktest")
-    print(set_field_in_kubernetes_by_index('disktest-wyw', constants.KUBERNETES_GROUP, constants.KUBERNETES_API_VERSION,
-                                           constants.KUBERNETES_PLURAL_VMD, ['spec', 'volume', 'vm'], 'test-wyw'))
+
+    print(set_field_in_kubernetes_by_index('disktest-wyw', constants.KUBERNETES_KIND_VMD, ['spec', 'volume', 'vm'], 'test-wyw'))
+
 #     print(tmp)
 # pprint.pprint(change_master_ip('192.168.66.102'))
 #     check_vdiskfs_by_disk_path('/var/lib/libvirt/cstor/3eebd453b21c4b8fad84a60955598195/3eebd453b21c4b8fad84a60955598195/77a5b25d34be4bcdbaeb9f5929661f8f/77a5b25d34be4bcdbaeb9f5929661f8f --disk /var/lib/libvirt/cstor/076fe6aa813842d3ba141f172e3f8eb6/076fe6aa813842d3ba141f172e3f8eb6/4a2b67b44f4c4fca87e7a811e9fd545c.iso,device=cdrom,perms=ro')

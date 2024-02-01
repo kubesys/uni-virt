@@ -63,7 +63,7 @@ if [[ "$1" == "update" ]] ;then
 	cd ./core/plugins
 	cp -f virshplus.py ../
 	cd ..
-	pyinstaller -F virshplus.py
+	pyinstaller --distpath ./dist/centos7/ -F virshplus.py --hidden-import urllib3 --hidden-import requests --hidden-import kubernetes --hidden-import tenacity  --add-data ../utils/*:utils --add-data ../utils/*:. --add-data ../kubesys/*:kubesys --clean
 	if [ $? -ne 0 ]; then
 	    echo "    Failed to compile <virshplus>!"
 	    exit 1

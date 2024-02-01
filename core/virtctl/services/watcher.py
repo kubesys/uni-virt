@@ -4,6 +4,19 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 
 @author: wuyuewen@otcaix.iscas.ac.cn
 @author: wuheng@otcaix.iscas.ac.cn
+@author: liujiexin@otcaix.iscas.ac.cn
+
+* Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
 '''
 
 '''
@@ -19,9 +32,12 @@ from json import loads
 '''
 Import third party libs
 '''
-from kubernetes import client, config, watch
-from kubernetes.client.rest import ApiException
-from kubernetes.client import V1DeleteOptions
+# from kubernetes import client, config, watch
+# from kubernetes.client.rest import ApiException
+# from kubernetes.client import V1DeleteOptions
+from kubesys.client import KubernetesClient
+from kubesys.watch_handler import WatchHandler
+from kubesys.exceptions import HTTPError
 from libvirt import libvirtError
 
 '''
@@ -36,7 +52,7 @@ from utils.kubernetes_event_utils import KubernetesEvent
 from services.executor import Executor
 from services.convertor import toCmds
 
-from utils.misc import is_valid_uuid, get_label_selector, report_failure,get_field_in_kubernetes_by_index,get_custom_object
+from utils.misc import is_valid_uuid, get_label_selector, report_failure,dictToJsonString
 
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 logger = logger.set_logger(os.path.basename(__file__), constants.KUBEVMM_VIRTCTL_LOG)
@@ -108,7 +124,6 @@ def main():
     except:
         logger.error('Oops! ', exc_info=1)
 
-
 def doWatch(plural, k8s_object_kind):
     '''监听器的请求处理逻辑，请求封装在{'spec': {'lifecycle': {...}}}里。\
     lifecycle通过解析器convertor解析，并与constatns里的配置项匹配，转化成invoke cmd和query cmd。\
@@ -117,33 +132,40 @@ def doWatch(plural, k8s_object_kind):
 
     '''
     while True:
-        watcher = watch.Watch()
+        # watcher = watch.Watch()
+        client=KubernetesClient(config=TOKEN)
+
         kwargs = {}
         kwargs['label_selector'] = get_label_selector()
         kwargs['watch'] = True
         kwargs['timeout_seconds'] = int(constants.KUBERNETES_WATCHER_TIME_OUT)
         threads=[]
         try:
-            for jsondict in watcher.stream(client.CustomObjectsApi().list_cluster_custom_object,
-                                           group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION,
-                                           plural=plural, **kwargs):
-                logger.debug("watch here")
-                # logger.debug(jsondict)
-#                 global current_event_id
-#                 if is_not_valid_uuid(_getEventId(jsondict)):
-#                     raise BadRequest('Event ID: %s is not valid uuid!' % _getEventId(jsondict))
-                thread = Thread(target=doExecutor, args=(plural, k8s_object_kind, jsondict))
-                thread.name = 'do_executor'
-                threads.append(thread)
-                thread.start()
-            for i in threads:
-                i.join()
+            handler=WatchHandler(add_func=lambda jsondict: doExecutor(plural, k8s_object_kind, jsondict),
+                                 modify_func=lambda jsondict: doExecutor(plural, k8s_object_kind, jsondict),
+                                 delete_func=lambda jsondict: doExecutor(plural, k8s_object_kind, jsondict))
+            watcher=client.watchResources(kind=k8s_object_kind,namespace='default',watcherhandler=handler)
+            time.sleep(int(constants.KUBERNETES_WATCHER_TIME_OUT))
+#             for jsondict in watcher.stream(client.CustomObjectsApi().list_cluster_custom_object,
+#                                            group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION,
+#                                            plural=plural, **kwargs):
+#                 logger.debug("watch here")
+#                 # logger.debug(jsondict)
+# #                 global current_event_id
+# #                 if is_not_valid_uuid(_getEventId(jsondict)):
+# #                     raise BadRequest('Event ID: %s is not valid uuid!' % _getEventId(jsondict))
+#                 thread = Thread(target=doExecutor, args=(plural, k8s_object_kind, jsondict))
+#                 thread.name = 'do_executor'
+#                 threads.append(thread)
+#                 thread.start()
+#             for i in threads:
+#                 i.join()
         except Exception as e:
             #             master_ip = change_master_and_reload_config(fail_times)
-            config.load_kube_config(config_file=TOKEN)
+            # config.load_kube_config(config_file=TOKEN)
             #             fail_times += 1
             #             logger.debug('retrying another master %s, retry times: %d' % (master_ip, fail_times))
-            info = sys.exc_info()
+            # info = sys.exc_info()
             logger.warning('Oops! ', exc_info=1)
             #             vMWatcher(group=GROUP_VM, version=VERSION_VM, plural=PLURAL_VM)
             time.sleep(3)
@@ -165,45 +187,29 @@ def doExecutor(plural, k8s_object_kind, jsondict):
     if operation_type == 'DELETED':
         # delete type特殊处理: kubectl delete vmp pooltest
         if  k8s_object_kind==constants.KUBERNETES_KIND_VMP:
-            jsondict["raw_object"]["spec"]['lifecycle']={"deletePool":dict()}
+            jsondict["spec"]['lifecycle']={"deletePool":dict()}
         elif k8s_object_kind==constants.KUBERNETES_KIND_VMD:
-            poolName=jsondict["raw_object"]["spec"]['volume']['pool']
+            poolName=jsondict["spec"]['volume']['pool']
             logger.debug('vmd poolName: %s' % poolName)
-            jsondict["raw_object"]["spec"]['lifecycle'] = {"deleteDisk": {"pool": poolName}}
+            jsondict["spec"]['lifecycle'] = {"deleteDisk": {"pool": poolName}}
         elif k8s_object_kind==constants.KUBERNETES_KIND_VMDI:
-            poolName = jsondict["raw_object"]["spec"]['volume']['pool']
+            poolName = jsondict["spec"]['volume']['pool']
             logger.debug('vmdi poolName: %s' % poolName)
-            jsondict["raw_object"]["spec"]['lifecycle'] = {"deleteDiskImage": {"pool": poolName}}
+            jsondict["spec"]['lifecycle'] = {"deleteDiskImage": {"pool": poolName}}
         elif k8s_object_kind==constants.KUBERNETES_KIND_VMDSN:
-            volumeDict = jsondict["raw_object"]["spec"]['volume']
+            volumeDict = jsondict["spec"]['volume']
             poolName = volumeDict['pool']
             logger.debug('vmdsn poolName: %s' % poolName)
             domain=""
             if "domain" in volumeDict.keys():
                 domain=volumeDict["domain"]
-            jsondict["raw_object"]["spec"]['lifecycle'] = {"deleteDiskExternalSnapshot": {"pool": poolName,"source":volumeDict["disk"],"domain":domain}}
+            jsondict["spec"]['lifecycle'] = {"deleteDiskExternalSnapshot": {"pool": poolName,"source":volumeDict["disk"],"domain":domain}}
     # 在此处检查lifecycle，只有带lifecycle的才继续处理
     (policy, the_cmd_key, prepare_cmd, invoke_cmd, query_cmd) = toCmds(jsondict)
     logger.debug(toCmds(jsondict))
 
     # acquire lock
     if the_cmd_key:
-#         '''考虑到apiserver高可用场景，当接收到相同eventId的请求时，忽略。
-#         '''
-#         if not is_valid_uuid(_getEventId(jsondict)):
-#             raise BadRequest('Event ID: %s is not valid uuid!' % _getEventId(jsondict))
-#         global current_event_id
-#         if current_event_id.get("{}.{}".format(k8s_object_kind, _getMetadataName(jsondict))) == _getEventId(jsondict):
-#             logger.warning('Same event id %s for %s, ignore it...' % (_getEventId(jsondict),_getMetadataName(jsondict)))
-#             return
-#         else:
-#             current_event_id["{}.{}".format(k8s_object_kind, _getMetadataName(jsondict))] = _getEventId(jsondict)
-#         if last_operation.get("{}.{}".format(k8s_object_kind, _getMetadataName(jsondict))) == the_cmd_key and the_cmd_key in conflict_operations:
-#             logger.warning('Conflict operation %s for %s, ignore it...' % (the_cmd_key,_getMetadataName(jsondict)))
-#             return
-#         else:
-#             logger.debug(last_operation)
-#             last_operation["{}.{}".format(k8s_object_kind, _getMetadataName(jsondict))] = the_cmd_key
         _acquire_mutex_lock(the_cmd_key)
     try:
         # if the_cmd_key and operation_type != 'DELETED':
@@ -211,11 +217,12 @@ def doExecutor(plural, k8s_object_kind, jsondict):
             logger.debug("cmd key: %s, prepare cmd: %s, invoke cmd: %s, query cmd: %s" % (
             the_cmd_key, prepare_cmd, invoke_cmd, query_cmd))
             '''delete lifecycle in Kubernetes'''
-            delete_lifecycle_in_kubernetes(plural, metadata_name)
+            delete_lifecycle_in_kubernetes(k8s_object_kind, metadata_name)
             '''create Kubernetes event'''
             event_id = _getEventId(jsondict)
-            event = KubernetesEvent(metadata_name, the_cmd_key, k8s_object_kind, event_id)
-            event.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DOING, constants.KUBEVMM_EVENT_TYPE_NORMAL)
+            event_doing = KubernetesEvent(metadata_name, the_cmd_key, k8s_object_kind, event_id)
+            event_doing.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DOING, constants.KUBEVMM_EVENT_TYPE_NORMAL)
+            event_done = KubernetesEvent(metadata_name, the_cmd_key, k8s_object_kind, event_id)
             try:
                 data = {}
                 if invoke_cmd:
@@ -224,31 +231,25 @@ def doExecutor(plural, k8s_object_kind, jsondict):
                     _, data = executor.execute()
                 '''write result, except migrateVM'''
                 if the_cmd_key != 'migrateVM':
-                    write_result_to_kubernetes(plural, metadata_name, data)
+                    write_result_to_kubernetes(k8s_object_kind, metadata_name, data)
                 '''update Kubernetes event'''
-                event.update_evet(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_NORMAL)
+                event_done.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_NORMAL)
             except libvirtError:
                 logger.error('Oops! ', exc_info=1)
                 info = sys.exc_info()
                 try:
-                    report_failure(metadata_name, jsondict, 'LibvirtError', str(info[1]), constants.KUBERNETES_GROUP,
-                                   constants.KUBERNETES_API_VERSION, plural)
+                    report_failure(metadata_name, 'LibvirtError', str(info[1]), k8s_object_kind)
                 except:
                     logger.warning('Oops! ', exc_info=1)
-                event.update_evet(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_ERROR)
+                event_done.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_ERROR)
             except Exception as e:
                 logger.error('Oops! ', exc_info=1)
                 info = sys.exc_info()
                 try:
-                    if hasattr(e, 'reason'):
-                        report_failure(metadata_name, jsondict, e.reason, e.message, constants.KUBERNETES_GROUP,
-                                       constants.KUBERNETES_API_VERSION, plural)
-                    else:
-                        report_failure(metadata_name, jsondict, 'Exception', str(info[1]), constants.KUBERNETES_GROUP,
-                                       constants.KUBERNETES_API_VERSION, plural)
+                    report_failure(metadata_name, 'Exception', str(info[1]),  k8s_object_kind)
                 except:
                     logger.warning('Oops! ', exc_info=1)
-                event.update_evet(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_ERROR)
+                event_done.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_ERROR)
             finally:
                 # 释放锁
                 if the_cmd_key:
@@ -257,12 +258,7 @@ def doExecutor(plural, k8s_object_kind, jsondict):
         logger.error('Oops! ', exc_info=1)
         info = sys.exc_info()
         try:
-            if hasattr(e, 'reason'):
-                report_failure(metadata_name, jsondict, e.reason, e.message, constants.KUBERNETES_GROUP,
-                               constants.KUBERNETES_API_VERSION, plural)
-            else:
-                report_failure(metadata_name, jsondict, 'Exception', str(info[1]), constants.KUBERNETES_GROUP,
-                               constants.KUBERNETES_API_VERSION, plural)
+            report_failure(metadata_name, 'Exception', str(info[1]), k8s_object_kind)
         except:
             logger.warning('Oops! ', exc_info=1)
 
@@ -273,7 +269,7 @@ def _getMetadataName(jsondict):
         str: metadata name in Kubernetes
 
     '''
-    metadata = jsondict['raw_object']['metadata']
+    metadata = jsondict['metadata']
     metadata_name = metadata.get('name')
     if metadata_name:
         return metadata_name
@@ -285,7 +281,7 @@ def _getEventId(jsondict):
     Returns:
         str: event id
     '''
-    metadata = jsondict['raw_object'].get('metadata')
+    metadata = jsondict.get('metadata')
     labels = metadata.get('labels')
     logger.debug(labels)
     return labels.get('eventId') if labels.get('eventId') else '-1'
@@ -332,20 +328,22 @@ def _release_mutex_lock(the_cmd_key):
         migrate_vm_mutex.release()
 
 
-def write_result_to_kubernetes(plural, name, data):
+def write_result_to_kubernetes(kind, name, data):
     '''将executor的处理结果写回到Kubernetes里，处理结果必须是json格式，\
     并且符合{'spec':{...}}规范，如果传{'spec':{}}则代表从Kubernetes中删除该对象。
     '''
     logger.debug('write back to kubernetes')
-    jsonDict = None
+    # jsonDict = None
     try:
+        client = KubernetesClient(config=TOKEN)
         # involved_object_name actually is nodeerror occurred during processing json data from apiserver
         try:
-            jsonStr = client.CustomObjectsApi().get_namespaced_custom_object(
-                group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION, namespace='default',
-                plural=plural, name=name)
-        except ApiException as e:
-            if e.reason == 'Not Found':
+            # jsonStr = client.CustomObjectsApi().get_namespaced_custom_object(
+            #     group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION, namespace='default',
+            #     plural=plural, name=name)
+            jsonStr=client.getResource(kind=kind,name=name,namespace='default')
+        except HTTPError as e:
+            if str(e).find('Not Found'):
                 logger.debug('**Object %s already deleted.' % name)
                 return
             else:
@@ -359,22 +357,24 @@ def write_result_to_kubernetes(plural, name, data):
             if data['spec']:
                 jsonDict['spec'] = data['spec']
                 try:
-                    client.CustomObjectsApi().replace_namespaced_custom_object(
-                        group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION, namespace='default',
-                        plural=plural, name=name, body=jsonDict)
-                except ApiException as e:
-                    if e.reason == 'Conflict':
+                    # client.CustomObjectsApi().replace_namespaced_custom_object(
+                    #     group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION, namespace='default',
+                    #     plural=plural, name=name, body=jsonDict)
+                    client.updateResource(dictToJsonString(jsonDict))
+                except HTTPError as e:
+                    if str(e).find('Conflict'):
                         logger.debug('**Other process updated %s, ignore this 409 message.' % name)
                         return
                     else:
                         raise e
             else:
                 try:
-                    client.CustomObjectsApi().delete_namespaced_custom_object(
-                        group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION, namespace='default',
-                        plural=plural, name=name, body=V1DeleteOptions())
-                except ApiException as e:
-                    if e.reason == 'Not Found':
+                    # client.CustomObjectsApi().delete_namespaced_custom_object(
+                    #     group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION, namespace='default',
+                    #     plural=plural, name=name, body=V1DeleteOptions())
+                    client.deleteResource(kind=kind,namespace='default',name=name)
+                except HTTPError as e:
+                    if str(e).find('Not Found'):
                         logger.debug('**Object %s already deleted, ignore this 404 message.' % name)
                         return
                     else:
@@ -388,17 +388,19 @@ def write_result_to_kubernetes(plural, name, data):
         raise InternalServerError('Write result to apiserver failed: %s %s' % (info[0], info[1]))
 
 
-def delete_lifecycle_in_kubernetes(plural, name):
+def delete_lifecycle_in_kubernetes(kind, name):
     '''删除lifecycle结构，避免推送程序更新Kubernetes时再次进入lifecycle的处理逻辑。
     '''
     jsonDict = None
     try:
+        client=KubernetesClient(config=TOKEN)
         try:
-            jsonStr = client.CustomObjectsApi().get_namespaced_custom_object(
-                group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION, namespace='default',
-                plural=plural, name=name)
-        except ApiException as e:
-            if e.reason == 'Not Found':
+            # jsonStr = client.CustomObjectsApi().get_namespaced_custom_object(
+            #     group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION, namespace='default',
+            #     plural=plural, name=name)
+            jsonStr=client.getResource(kind=kind,name=name,namespace='default')
+        except HTTPError as e:
+            if str(e).find('Not Found'):
                 logger.debug('**Object %s already deleted.' % name)
                 return
             else:
@@ -406,12 +408,14 @@ def delete_lifecycle_in_kubernetes(plural, name):
         # logger.debug(dumps(jsonStr))
         #         logger.debug("node name is: " + name)
         jsonDict = jsonStr.copy()
-        if jsonDict['spec'].get('lifecycle'):
-            del jsonDict['spec']['lifecycle']
+        if jsonDict.get('spec'):
+            if jsonDict['spec'].get('lifecycle'):
+                del jsonDict['spec']['lifecycle']
         #         jsonDict = updateDescription(jsonDict)
-        client.CustomObjectsApi().replace_namespaced_custom_object(
-            group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION, namespace='default',
-            plural=plural, name=name, body=jsonDict)
+        # client.CustomObjectsApi().replace_namespaced_custom_object(
+        #     group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION, namespace='default',
+        #     plural=plural, name=name, body=jsonDict)
+                client.updateResource(dictToJsonString(jsonDict))
     except:
         logger.error('Oops! ', exc_info=1)
         info = sys.exc_info()
@@ -759,5 +763,5 @@ def _isResizeDisk(the_cmd_key):
 
 
 if __name__ == '__main__':
-    config.load_kube_config(config_file=constants.KUBERNETES_TOKEN_FILE)
+    # config.load_kube_config(config_file=constants.KUBERNETES_TOKEN_FILE)
     main()

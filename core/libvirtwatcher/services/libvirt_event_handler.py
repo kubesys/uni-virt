@@ -4,6 +4,18 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 
 @author: wuyuewen@otcaix.iscas.ac.cn
 @author: wuheng@otcaix.iscas.ac.cn
+
+* Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
 '''
 
 '''
@@ -41,10 +53,13 @@ from utils.misc import get_hostname_in_lower_case, delete_custom_object, get_cus
 from utils import logger
 from utils import constants
 
+from kubesys.exceptions import HTTPError
+
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 PLURAL = constants.KUBERNETES_PLURAL_VM
 VERSION = constants.KUBERNETES_API_VERSION
 GROUP = constants.KUBERNETES_GROUP
+KIND=constants.KUBERNETES_KIND_VM
 DEFAULT_DEVICE_DIR = constants.KUBEVMM_VM_DEVICES_DIR
 HOSTNAME = get_hostname_in_lower_case()
 
@@ -146,10 +161,10 @@ class MyDomainEventHandler(threading.Thread):
 #                 jsondict_old = None
                 try:
                     # key point
-                    jsondict = get_custom_object(GROUP, VERSION, PLURAL, vm_name)
+                    jsondict = get_custom_object(KIND, vm_name)
 #                     jsondict_old = jsondict
-                except ApiException as e:
-                    if e.reason == 'Not Found':
+                except HTTPError as e:
+                    if str(e).find('Not Found'):
                         logger.debug('**VM %s already deleted, ignore this 404 error.' % vm_name)
                         ignore_pushing = True
                     else:
@@ -188,11 +203,11 @@ class MyDomainEventHandler(threading.Thread):
                         if body:
                             try:
                                 logger.debug('update %s in kubernetes' % vm_name)
-                                update_custom_object(GROUP, VERSION, PLURAL, vm_name, body)
-                            except ApiException as e:
-                                if e.reason == 'Not Found':
+                                update_custom_object(body)
+                            except HTTPError as e:
+                                if str(e).find('Not Found'):
                                     logger.debug('**VM %s already deleted, ignore this 404 error.' % vm_name)
-                                if e.reason == 'Conflict':
+                                if str(e).find('Conflict'):
                                     logger.debug('**Other process updated %s, ignore this 409 error.' % vm_name)
                                 else:
                                     logger.error('Oops! ', exc_info=1)
@@ -204,7 +219,7 @@ class MyDomainEventHandler(threading.Thread):
                         logger.error('Oops! ', exc_info=1)
                         info=sys.exc_info()
                         try:
-                            report_failure(vm_name, jsondict, 'VirtletError', str(info[1]), GROUP, VERSION, PLURAL)
+                            report_failure(vm_name, 'VirtletError', str(info[1]), KIND)
                         except:
                             logger.warning('Oops! ', exc_info=1)
                 if 'event' in self.kwargs.keys() and str(DOM_EVENTS[self.kwargs['event']]) == "Stopped":
@@ -212,7 +227,7 @@ class MyDomainEventHandler(threading.Thread):
                         logger.debug('Callback domain shutdown to virtlet')
                         if str(DOM_EVENTS[self.kwargs['event']][self.kwargs['detail']]) == 'Migrated':
                             logger.debug('VM %s has been migrated, ignore its stop signal.' % vm_name)
-                        elif get_ha_from_kubernetes(GROUP, VERSION, 'default', PLURAL, vm_name) and \
+                        elif get_ha_from_kubernetes(KIND, vm_name) and \
                             jsondict['metadata']['labels']['host'] == HOSTNAME:
         #                     autostart_vms = list_autostart_vms()
         #                     if vm_name in autostart_vms:
@@ -229,7 +244,11 @@ class MyDomainEventHandler(threading.Thread):
                                 time_end = time_now
                                 operation_name = 'startVMbyHA'
                                 message = 'type:%s, name:%s, operation:%s, status:%s, reporter:%s, eventId:%s, duration:%f' % (involved_object_kind, involved_object_name, operation_name, status, reporter, event_id, (time_end - time_start).total_seconds())
-                                event = UserDefinedEvent(event_metadata_name, time_start, time_end, involved_object_name, involved_object_kind, message, operation_name, event_type)
+                                event = UserDefinedEvent(
+                                    action=operation_name,controller=reporter,event_metadata_name=event_metadata_name,
+                                    time_start=time_start, time_end=time_end,involved_object_name=involved_object_name,
+                                    involved_object_kind=involved_object_kind, message=message,
+                                    reason='Stopped', event_type=event_type)
                                 try:
                                     event.registerKubernetesEvent()
                                 except:
@@ -271,7 +290,7 @@ class MyDomainEventHandler(threading.Thread):
                         logger.error('Oops! ', exc_info=1)
                         info=sys.exc_info()
                         try:
-                            report_failure(vm_name, jsondict, 'VirtletError', str(info[1]), GROUP, VERSION, PLURAL)
+                            report_failure(vm_name, 'VirtletError', str(info[1]), KIND)
                         except:
                             logger.warning('Oops! ', exc_info=1)
                 if step1_done and 'event' in self.kwargs.keys() and str(DOM_EVENTS[self.kwargs['event']]) == "Started":
@@ -318,7 +337,7 @@ class MyDomainEventHandler(threading.Thread):
                         logger.error('Oops! ', exc_info=1)
                         info=sys.exc_info()
                         try:
-                            report_failure(vm_name, jsondict, 'VirtletError', str(info[1]), GROUP, VERSION, PLURAL)
+                            report_failure(vm_name, 'VirtletError', str(info[1]), KIND)
                         except:
                             logger.warning('Oops! ', exc_info=1)
         except:
@@ -347,7 +366,7 @@ Get event id.
 def _getEventId(jsondict):
     metadata = jsondict.get('metadata')
     if not metadata:
-        metadata = jsondict['raw_object'].get('metadata')
+        metadata = jsondict.get('metadata')
     labels = metadata.get('labels')
     logger.debug(labels)
     return labels.get('eventId') if labels.get('eventId') else '-1'
