@@ -38,9 +38,9 @@ from threading import Thread
 '''
 Import third party libs
 '''
-from kubernetes import client, config
-from kubernetes.client.rest import ApiException 
-from kubernetes.client import V1DeleteOptions
+# from kubernetes import client, config
+# from kubernetes.client.rest import ApiException
+# from kubernetes.client import V1DeleteOptions
 from xmljson import badgerfish as bf
 
 '''
@@ -1312,11 +1312,11 @@ def main():
     time.sleep(2)
 
 if __name__ == "__main__":
-    config.load_kube_config(config_file=TOKEN)
+    # config.load_kube_config(config_file=TOKEN)
     while True:
         try:
             main()
         except Exception as e:
-            config.load_kube_config(config_file=TOKEN)
+            # config.load_kube_config(config_file=TOKEN)
             logger.error('Oops! ', exc_info=1)
             sys.exit(1)
