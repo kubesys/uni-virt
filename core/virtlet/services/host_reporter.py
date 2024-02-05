@@ -93,9 +93,11 @@ def main():
                         pass
                     _check_vm_power_state(KIND, vm)
                 ha_check = False
-            for gpu in _list_gpus():
-                (gpu_name, gpu_info) = _parse_pci_info(gpu)
-                _create_or_update_vmgpus(GROUP, VERSION, PLURAL_VMGPU, gpu_name, gpu_info)
+            gpus=_list_gpus()
+            if gpus:
+                for gpu in gpus:
+                    (gpu_name, gpu_info) = _parse_pci_info(gpu)
+                    _create_or_update_vmgpus(GROUP, VERSION, PLURAL_VMGPU, gpu_name, gpu_info)
             _patch_node_status()
             if ha_enable:
                 _check_and_enable_HA()
@@ -316,12 +318,13 @@ def _list_gpus():
     logger.debug(info_lines)
     # Parse the lines and create key-value pairs
     result = []
-    for line in info_lines:
-        pattern = re.compile(r'(\w+:\w+\.\w+)[\w\s]+controller[\w\s]+', re.DOTALL)
-        matches = pattern.findall(line)
-        for match in matches:
-            id_value = match
-            result.append(id_value)
+    if info_lines:
+        for line in info_lines:
+            pattern = re.compile(r'(\w+:\w+\.\w+)[\w\s]+controller[\w\s]+', re.DOTALL)
+            matches = pattern.findall(line)
+            for match in matches:
+                id_value = match
+                result.append(id_value)
     return result
 
 
