@@ -287,14 +287,14 @@ def _create_or_update_vmgpus(group, version, plural, metadata_name, gpu_info):
     jsondict = {}
     try:
         # logger.debug('create or update vmgpus: %s' % metadata_name)
-        jsondict = get_custom_object(group, version, plural, metadata_name)
-    except ApiException as e:
-        if e.reason == 'Not Found':
+        jsondict = get_custom_object(KIND_VMGPU,metadata_name)
+    except HTTPError as e:
+        if str(e).find("Not Found"):
             jsondict = {'spec': gpu_info, 'kind': KIND_VMGPU,
                         'metadata': {'labels': {'host': HOSTNAME}, 'name': metadata_name},
                         'apiVersion': '%s/%s' % (group, version)}
             # logger.debug('**VM %s already deleted, ignore this 404 error.' % metadata_name)
-            create_custom_object(group, version, plural, jsondict)
+            create_custom_object(jsondict)
             return
     except Exception as e:
         logger.error('Oops! ', exc_info=1)
@@ -302,9 +302,9 @@ def _create_or_update_vmgpus(group, version, plural, metadata_name, gpu_info):
 
     try:
         jsondict['spec'] = gpu_info
-        update_custom_object(group, version, plural, metadata_name, jsondict)
-    except ApiException as e:
-        if e.reason == 'Conflict':
+        update_custom_object(jsondict)
+    except HTTPError as e:
+        if str(e).find('Conflict'):
             logger.debug('**Other process updated %s, ignore this 409.' % metadata_name)
         else:
             logger.error('Oops! ', exc_info=1)
