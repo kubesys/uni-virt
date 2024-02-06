@@ -1281,18 +1281,25 @@ def main():
 #             observer.schedule(event_handler, ob[1], True)
 
         # vmd event handler
-        if not os.path.exists(VMD_TEMPLATE_DIR):
-            os.makedirs(VMD_TEMPLATE_DIR, 0x0711)
-            try:
-                runCmdRaiseException('virsh pool-create-as --name %s --type dir --target %s' % ('default', VMD_TEMPLATE_DIR))
-            except:
-                os.removedirs(VMD_TEMPLATE_DIR)
-                runCmdRaiseException('virsh pool-destroy --name %s' % ('default'))
-                runCmdRaiseException('virsh pool-undefine --name %s' % ('default'))
-                logger.error('Oops! ', exc_info=1)
-        event_handler = VmdImageLibvirtXmlEventHandler('default', VMD_TEMPLATE_DIR, GROUP, VERSION,
-                                                       PLURAL_VM_DISK_IMAGE)
-        observer.schedule(event_handler, VMD_TEMPLATE_DIR, True)
+        # if not os.path.exists(VMD_TEMPLATE_DIR):
+        #     os.makedirs(VMD_TEMPLATE_DIR, 0x0711)
+        #     try:
+        #         runCmdRaiseException('virsh pool-create-as --name %s --type dir --target %s' % ('default', VMD_TEMPLATE_DIR))
+        #     except:
+        #         os.removedirs(VMD_TEMPLATE_DIR)
+        #         runCmdRaiseException('virsh pool-destroy --name %s' % ('default'))
+        #         runCmdRaiseException('virsh pool-undefine --name %s' % ('default'))
+        #         logger.error('Oops! ', exc_info=1)
+        # event_handler = VmdImageLibvirtXmlEventHandler('default', VMD_TEMPLATE_DIR, GROUP, VERSION,
+        #                                                PLURAL_VM_DISK_IMAGE)
+        # observer.schedule(event_handler, VMD_TEMPLATE_DIR, True)
+        GPUCheckandUpdate()
+        if os.path.exists(constants.KUBEVMM_GPU_NVIDIA_DIR):
+            event_handler = VmGPUEventHandler()
+            observer.schedule(event_handler, constants.KUBEVMM_GPU_NVIDIA_DIR, True)
+        if os.path.exists(constants.KUBEVMM_GPU_PCI_DIR):
+            event_handler = VmGPUEventHandler()
+            observer.schedule(event_handler, constants.KUBEVMM_GPU_PCI_DIR, True)
         observer.start()
 
         # vmp event handler
@@ -1324,13 +1331,6 @@ def main():
                         watcher = observer.schedule(event_handler, pool_path, True)
                         OLD_PATH_WATCHERS[pool_path] = watcher
 
-                if os.path.exists(constants.KUBEVMM_GPU_NVIDIA_DIR):
-                    event_handler = VmGPUEventHandler()
-                    observer.schedule(event_handler,constants.KUBEVMM_GPU_NVIDIA_DIR,True)
-                if os.path.exists(constants.KUBEVMM_GPU_PCI_DIR):
-                    event_handler = VmGPUEventHandler()
-                    observer.schedule(event_handler, constants.KUBEVMM_GPU_PCI_DIR, True)
-
             except Exception as e:
                 logger.warning('Oops! ', exc_info=1)
             finally:
@@ -1344,7 +1344,6 @@ def main():
 
 if __name__ == "__main__":
     # config.load_kube_config(config_file=TOKEN)
-    GPUCheckandUpdate()
     while True:
         try:
             main()
