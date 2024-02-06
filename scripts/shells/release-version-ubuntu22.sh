@@ -52,6 +52,8 @@ rm -f ./core/plugins/device-passthrough~
 cp -f ./core/utils/arraylist.cfg ./dist/ubuntu22
 cp -rf ./scripts/yamls ./dist/ubuntu22
 cp -rf ./scripts/plugins ./dist/ubuntu22
+cp -rf ./client_python/kubesys ./dist/ubuntu22
+cp -rf ./client_python/kubesys ./core
 #if [ ! -d "./dist/ansible/playbooks" ]; then
 #	mkdir -p ./dist/ansible/playbooks
 #fi
@@ -76,7 +78,7 @@ else
     echo "    Success compile <kubevmm-adm>."
 fi
 cp -f ./dist/ubuntu22/kubevmm-adm ../../dist/ubuntu22
-pyinstaller --distpath ./dist/ubuntu22/ -F virshplus.py
+pyinstaller --distpath ./dist/ubuntu22/ -F virshplus.py --hidden-import urllib3 --hidden-import requests --hidden-import kubernetes --hidden-import tenacity  --add-data ../utils/*:utils --add-data ../utils/*:. --add-data ../kubesys/*:kubesys --clean
 if [ $? -ne 0 ]; then
     echo "    Failed to compile <virshplus>!"
     exit 1
@@ -159,6 +161,23 @@ fi
 if [ ! -d "../docker/virtmonitor/ubuntu22/utils" ]; then
 	mkdir -p ../docker/virtmonitor/ubuntu22/utils
 fi
+
+if [ ! -d "../docker/virtctl/ubuntu22/kubesys" ]; then
+	mkdir -p ../docker/virtctl/ubuntu22/kubesys
+fi
+if [ ! -d "../docker/virtlet/ubuntu22/kubesys" ]; then
+	mkdir -p ../docker/virtlet/ubuntu22/kubesys
+fi
+if [ ! -d "../docker/libvirtwatcher/ubuntu22/kubesys" ]; then
+	mkdir -p ../docker/libvirtwatcher/ubuntu22/kubesys
+fi
+if [ ! -d "../docker/virtmonitor/ubuntu22/kubesys" ]; then
+	mkdir -p ../docker/virtmonitor/ubuntu22/kubesys
+fi
+cp -rf kubesys/*.py ../docker/virtctl/centos7/kubesys
+cp -rf kubesys/*.py ../docker/virtlet/centos7/kubesys
+cp -rf kubesys/*.py ../docker/libvirtwatcher/centos7/kubesys
+cp -rf kubesys/*.py ../docker/virtmonitor/centos7/kubesys
 cp -rf utils/*.py ../docker/virtctl/ubuntu22/utils/
 cp -rf utils/*.py ../docker/virtlet/ubuntu22/utils/
 cp -rf utils/*.py ../docker/libvirtwatcher/ubuntu22/utils/
