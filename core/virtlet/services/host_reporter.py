@@ -95,8 +95,8 @@ def main():
                 ha_check = False
             gpus=_list_gpus()
             if gpus:
-                for gpu in gpus:
-                    (gpu_name, gpu_info) = _parse_pci_info(gpu)
+                for gpu_id, gpu_id_value in gpus:
+                    (gpu_name, gpu_info) = _parse_pci_info(gpu_id, gpu_id_value)
                     _create_or_update_vmgpus(GROUP, VERSION, PLURAL_VMGPU, gpu_name, gpu_info)
             _patch_node_status()
             if ha_enable:
@@ -317,20 +317,22 @@ def _list_gpus():
     info_lines = runCmdRaiseException(command)
     logger.debug(info_lines)
     # Parse the lines and create key-value pairs
-    result = []
+    result = {}
+    gpu_id = 0
     if info_lines:
         for line in info_lines:
             pattern = re.compile(r'(\w+:\w+\.\w+)[\w\s]+controller[\w\s]+', re.DOTALL)
             matches = pattern.findall(line)
             for match in matches:
                 id_value = match
-                result.append(id_value)
+                result[gpu_id] = id_value
+                gpu_id += 1
     return result
 
 
-def _parse_pci_info(device_id):
+def _parse_pci_info(gpu_id, gpu_id_value):
     # Execute the command to get the output
-    command = f"lspci -vs {device_id}"
+    command = f"lspci -vs {gpu_id_value}"
     info = runCmdRaiseException(command)
     # logger.debug(info)
 
@@ -379,25 +381,41 @@ def _parse_pci_info(device_id):
     info_dict['type'] = type_match.group(1) if type_match else ''
     # logger.debug(info_dict)
 
+    # Update the dictionary with 'inUse' values
+    # Vms
     in_use = None
-    bus_id = device_id.split(":")[0] if ":" in device_id else device_id.lower()
-    for vm in list_active_vms():
-        vm_xml = get_xml(vm)
-        vm_json_string = dumps(toKubeJson(xmlToJson(vm_xml)))
-        data_without_spaces = vm_json_string.replace("\n", "").replace(" ", "")
-        # logger.debug(data_without_spaces)
-        # logger.debug(f"\\\"_bus\\\":\\\"0x{bus_id}\\\"")
-        if f"\\\"_bus\\\":\\\"0x{bus_id}\\\"" in data_without_spaces:
-            # logger.debug("inhere")
-            in_use = vm
-
-    info_dict['inUse'] = in_use
-    # logger.debug(info_dict)
+    bus_id = gpu_id_value.split(":")[0] if ":" in gpu_id_value else gpu_id_value.lower()
     if info_dict.get('kernelDriverInUse') == 'vfio-pci':
         info_dict['useMode'] = "passthrough"
+        for vm in list_active_vms():
+            vm_xml = get_xml(vm)
+            vm_json_string = dumps(toKubeJson(xmlToJson(vm_xml)))
+            data_without_spaces = vm_json_string.replace("\n", "").replace(" ", "")
+            # logger.debug(data_without_spaces)
+            # logger.debug(f"\\\"_bus\\\":\\\"0x{bus_id}\\\"")
+            if f"\\\"_bus\\\":\\\"0x{bus_id}\\\"" in data_without_spaces:
+                # logger.debug("inhere")
+                in_use = vm
+        info_dict['inUse'] = in_use
     else:
         info_dict['useMode'] = "share"
+        # Containers
+        command1 = f'kubectl get pods -A -o json --field-selector spec.nodeName={HOSTNAME} | jq -r \'.items[] | select(.metadata.annotations."doslab.io/gpu-assigned" == "true") | "namespace-" + .metadata.namespace + "-name-" + .metadata.name + "-gpu-" + .metadata.annotations."doslab.io/predicate-gpu-idx-0" + "-gpucore-" + .spec.containers[0].resources.limits."doslab.io/vcuda-core" + "-gpumem-" + .spec.containers[0].resources.limits."doslab.io/vcuda-memory"\''
+        info1 = runCmdRaiseException(command1)
+        pattern = re.compile(r'namespace-(?P<namespace>[\w\d\-\.]+)-name-(?P<name>[\w\d\-\.]+)-gpu-(?P<gpu>\d+)-gpucore-(?P<gpucore>\d+)-gpumem-(?P<gpumem>\d+)')
+        if info1:
+            in_use_pods = []
+            for line in info1:
+                match = pattern.search(line)
+                if match:
+                    result_dict = match.groupdict()
+                    if str(gpu_id) == result_dict.get('gpu'):
+                        in_use_pods.append({"namespace": result_dict.get("namespace"), "name": result_dict.get("name"),
+                                            "gpucore": result_dict.get("gpucore"), "gpumem": result_dict.get("gpumem")})
+            info_dict['inUse'] = in_use_pods
 
+
+    # logger.debug(info_dict)
     gpu_name = 'host-%s-type-%s-id-%s' % (HOSTNAME.lower(), info_dict.get('type', 'unknown').replace(' ', '-').lower(), bus_id.lower())
 
     # Modify the dictionary to include the desired keys and values
