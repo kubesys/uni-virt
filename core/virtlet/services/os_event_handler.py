@@ -45,7 +45,7 @@ from tenacity import retry, stop_after_attempt, wait_random,before_sleep_log
 Import local libs
 '''
 from utils.libvirt_util import get_pool_path, get_volume_path, refresh_pool, get_volume_xml, get_snapshot_xml, is_vm_exists, get_xml, \
-    vm_state, _get_all_pool_path, get_vol_info_by_qemu
+    vm_state, _get_all_pool_path, get_vol_info_by_qemu,list_active_vms
 from utils import logger
 from utils import constants
 from utils.misc import create_custom_object, delete_custom_object, get_custom_object, update_custom_object, add_spec_in_volume, updateDescription, addSnapshots, get_volume_snapshots, runCmdRaiseException, \
@@ -63,6 +63,7 @@ VMDI_KIND = constants.KUBERNETES_KIND_VMDI
 VMSN_KIND = constants.KUBERNETES_KIND_VMSN
 VMDEV_KIND = constants.KUBERNETES_KIND_VMDEV
 VMI_KIND = constants.KUBERNETES_KIND_VMI
+VMGPU_KIND = constants.KUBERNETES_KIND_VMGPU
 
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 PLURAL_VM = constants.KUBERNETES_PLURAL_VM
@@ -401,6 +402,22 @@ class VmSnapshotEventHandler(FileSystemEventHandler):
             logger.debug("directory modified:{0}".format(event.src_path))
         else:
             logger.debug("file modified:{0}".format(event.src_path))
+
+
+class VmGPUEventHandler(FileSystemEventHandler):
+    def __init__(self):
+        FileSystemEventHandler.__init__(self)
+
+    def on_created(self, event):
+        if event.is_directory:
+            logger.debug("directory created:{0}".format(event.src_path))
+            GPUCheckandUpdate()
+
+    def on_deleted(self, event):
+        if event.is_directory:
+            logger.debug("directory deleted:{0}".format(event.src_path))
+            GPUCheckandUpdate()
+
 
 
 # def myVmBlockDevEventHandler(event, name, group, version, plural):
@@ -1048,6 +1065,168 @@ def updateDomainStructureAndDeleteLifecycleInJson(jsondict, body):
 
     return jsondict
 
+def _create_or_update_vmgpus(group, version, metadata_name, gpu_info):
+    jsondict = {}
+    try:
+        # logger.debug('create or update vmgpus: %s' % metadata_name)
+        jsondict = get_custom_object(VMGPU_KIND,metadata_name)
+    except HTTPError as e:
+        if str(e).find("Not Found"):
+            jsondict = {'spec': gpu_info, 'kind': VMGPU_KIND,
+                        'metadata': {'labels': {'host': HOSTNAME}, 'name': metadata_name},
+                        'apiVersion': '%s/%s' % (group, version)}
+            # logger.debug('**VM %s already deleted, ignore this 404 error.' % metadata_name)
+            create_custom_object(jsondict)
+            return
+    except Exception as e:
+        logger.error('Oops! ', exc_info=1)
+        return
+
+    try:
+        jsondict['spec'] = gpu_info
+        update_custom_object(jsondict)
+    except HTTPError as e:
+        if str(e).find('Conflict'):
+            logger.debug('**Other process updated %s, ignore this 409.' % metadata_name)
+        else:
+            logger.error('Oops! ', exc_info=1)
+    except Exception as e:
+        logger.error('Oops! ', exc_info=1)
+
+
+def _list_gpus():
+    command = f"lspci -nn | grep -i nvidia"
+    info_lines = runCmdRaiseException(command)
+    logger.debug(info_lines)
+    # Parse the lines and create key-value pairs
+    result = {}
+    gpu_id = 0
+    if info_lines:
+        for line in info_lines:
+            pattern = re.compile(r'(\w+:\w+\.\w+)[\w\s]+controller[\w\s]+', re.DOTALL)
+            matches = pattern.findall(line)
+            for match in matches:
+                id_value = match
+                result[gpu_id] = id_value
+                gpu_id += 1
+    return result
+
+
+def _parse_pci_info(gpu_id, gpu_id_value):
+    # Execute the command to get the output
+    command = f"lspci -vs {gpu_id_value}"
+    info = runCmdRaiseException(command)
+    # logger.debug(info)
+
+    # Define a regular expression pattern for the controller information
+    pattern = re.compile(r'(\w+:\w+\.\w+)[\w\s]+controller: (.+)', re.DOTALL)
+
+    pattern1 = re.compile(r'Kernel driver in use: (.+)', re.DOTALL)
+
+    # Find the matches in the input information
+    matches = pattern.findall('\n'.join(info))
+    matches1 = pattern1.findall('\n'.join(info))
+
+    # Replace matches with a standardized key
+    for match in matches:
+        id_value, controller_value = match
+        info = [line.replace(f'{id_value} controller: {controller_value}',
+                             f'id: {id_value} \n type: {controller_value}') for line in info]
+
+    for match in matches1:
+        key = "kernelDriverInUse"
+        info = [line.replace(match, f'{key}: {match}') for line in info]
+
+    # Split the input by lines and remove empty lines
+    info_lines = [line.strip() for line in info if line.strip()]
+
+    # Create a dictionary to store the information
+    info_dict = {}
+
+    # Parse the lines and create key-value pairs
+    for line in info_lines:
+        if ':' in line:
+            key, value = line.split(':', 1)
+            # Use regular expressions for matching and replacement
+            pattern = re.compile(r'\[([^\]]+)\]')
+            # Check if words list is not empty before accessing indices
+            words = key.split()
+            current_key = words[0].lower() + ''.join(word.capitalize() for word in words[1:]) if words else ""
+            info_dict[current_key] = value.strip()
+
+    # Extract 'id' and 'type' values from the first line
+    id_match = re.match(r'(\w+:\w+\.\w+)', info_lines[0])
+    type_match = re.search(r'\[([^\]]+)\]', info_lines[0])
+
+    # Update the dictionary with 'id' and 'type' values
+    info_dict['id'] = id_match.group(1) if id_match else ''
+    info_dict['type'] = type_match.group(1) if type_match else ''
+    # logger.debug(info_dict)
+
+    # Update the dictionary with 'inUse' values
+    # Vms
+    in_use = None
+    bus_id = gpu_id_value.split(":")[0] if ":" in gpu_id_value else gpu_id_value.lower()
+    if info_dict.get('kernelDriverInUse') == 'vfio-pci':
+        info_dict['useMode'] = "passthrough"
+        for vm in list_active_vms():
+            vm_xml = get_xml(vm)
+            vm_json_string = dumps(toKubeJson(xmlToJson(vm_xml)))
+            data_without_spaces = vm_json_string.replace("\n", "").replace(" ", "")
+            # logger.debug(data_without_spaces)
+            # logger.debug(f"\\\"_bus\\\":\\\"0x{bus_id}\\\"")
+            if f"\\\"_bus\\\":\\\"0x{bus_id}\\\"" in data_without_spaces:
+                # logger.debug("inhere")
+                in_use = vm
+        info_dict['inUse'] = in_use
+    else:
+        info_dict['useMode'] = "share"
+        # Containers
+        command1 = f'kubectl get pods -A -o json --field-selector spec.nodeName={HOSTNAME} | jq -r \'.items[] | select(.metadata.annotations."doslab.io/gpu-assigned" == "true") | "namespace-" + .metadata.namespace + "-name-" + .metadata.name + "-gpu-" + .metadata.annotations."doslab.io/predicate-gpu-idx-0" + "-gpucore-" + .spec.containers[0].resources.limits."doslab.io/vcuda-core" + "-gpumem-" + .spec.containers[0].resources.limits."doslab.io/vcuda-memory"\''
+        info1 = runCmdRaiseException(command1)
+        pattern = re.compile(r'namespace-(?P<namespace>[\w\d\-\.]+)-name-(?P<name>[\w\d\-\.]+)-gpu-(?P<gpu>\d+)-gpucore-(?P<gpucore>\d+)-gpumem-(?P<gpumem>\d+)')
+        if info1:
+            in_use_pods = []
+            for line in info1:
+                match = pattern.search(line)
+                if match:
+                    result_dict = match.groupdict()
+                    if str(gpu_id) == result_dict.get('gpu'):
+                        in_use_pods.append({"namespace": result_dict.get("namespace"), "name": result_dict.get("name"),
+                                            "gpucore": result_dict.get("gpucore"), "gpumem": result_dict.get("gpumem")})
+            info_dict['inUse'] = in_use_pods
+
+
+    # logger.debug(info_dict)
+    gpu_name = 'host-%s-type-%s-id-%s' % (HOSTNAME.lower(), info_dict.get('type', 'unknown').replace(' ', '-').lower(), bus_id.lower())
+
+    # Modify the dictionary to include the desired keys and values
+    gpu_info = {
+        "gpu": {
+            "id": info_dict.get("id", ""),
+            "type": info_dict.get("type", ""),
+            "subsystem": info_dict.get("subsystem", ""),
+            "flags": info_dict.get("flags", ""),
+            "capabilities": info_dict.get("capabilities", ""),
+            "kernelDriverInUse": info_dict.get("kernelDriverInUse", ""),
+            "kernelModules": info_dict.get("kernelModules", ""),
+            "inUse": info_dict.get("inUse", ""),
+            "useMode": info_dict.get("useMode", "")
+        },
+        "nodeName": HOSTNAME
+    }
+    logger.debug(gpu_info)
+
+    return gpu_name, gpu_info
+
+
+def GPUCheckandUpdate():
+    gpus = _list_gpus()
+    if gpus:
+        for gpu_id, gpu_id_value in gpus:
+            (gpu_name, gpu_info) = _parse_pci_info(gpu_id, gpu_id_value)
+            _create_or_update_vmgpus(GROUP, VERSION, gpu_name, gpu_info)
+
 
 def addNodeName(jsondict):
     if jsondict:
@@ -1144,6 +1323,14 @@ def main():
                         event_handler = VmVolEventHandler(pool, pool_path, GROUP, VERSION, PLURAL_VM_DISK)
                         watcher = observer.schedule(event_handler, pool_path, True)
                         OLD_PATH_WATCHERS[pool_path] = watcher
+
+                if os.path.exists(constants.KUBEVMM_GPU_NVIDIA_DIR):
+                    event_handler = VmGPUEventHandler()
+                    observer.schedule(event_handler,constants.KUBEVMM_GPU_NVIDIA_DIR,True)
+                if os.path.exists(constants.KUBEVMM_GPU_PCI_DIR):
+                    event_handler = VmGPUEventHandler()
+                    observer.schedule(event_handler, constants.KUBEVMM_GPU_PCI_DIR, True)
+
             except Exception as e:
                 logger.warning('Oops! ', exc_info=1)
             finally:
@@ -1157,6 +1344,7 @@ def main():
 
 if __name__ == "__main__":
     # config.load_kube_config(config_file=TOKEN)
+    GPUCheckandUpdate()
     while True:
         try:
             main()
