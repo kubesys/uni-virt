@@ -43,6 +43,8 @@ KUBEVMM_EVENT_TYPE_ERROR           = "Warning"
 KUBEVMM_EVENT_TYPE_NORMAL          = "Normal"
 
 KUBEVMM_VM_DEVICES_DIR             = "/var/lib/libvirt/devices"
+KUBEVMM_GPU_NVIDIA_DIR             = "/sys/bus/pci/drivers/nvidia"
+KUBEVMM_GPU_PCI_DIR                = "/sys/bus/pci/drivers/vfio-pci"
 KUBEVMM_LIBVIRT_VM_XML_DIR         = "/etc/libvirt/qemu"
 KUBEVMM_NOVNC_TOKEN                = "/root/noVNC/websockify/token/token.conf"
 KUBEVMM_RESOURCE_FILE_PATH         = "/etc/kubevmm/resource"
