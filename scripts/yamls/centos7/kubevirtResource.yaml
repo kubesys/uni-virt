@@ -33,7 +33,7 @@ spec:
     - jsonPath: .spec.domain._type
       name: TYPE
       type: string
-    - jsonPath: .spec.domain.vcpu._current
+    - jsonPath: .spec.domain.vcpu.text
       name: CPU
       type: string
     - jsonPath: .spec.domain.currentMemory.text
