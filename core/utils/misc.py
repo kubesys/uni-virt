@@ -1583,6 +1583,15 @@ def get_all_nodes_name():
     return names
 
 
+def get_1st_ready():
+    client=KubernetesClient(config=TOKEN)
+    names=get_all_nodes_name()
+    for name in names:
+        nodestatus=client.getResourceStatus(kind='Node',name=name)
+        condition=nodestatus.get('conditions')[-1]
+        if condition.get('type')=='Ready' and condition.get('status')=='True':
+            return name
+
 def get_node_label_value(nodes, label):
     """:type nodes: str:type label: str:rtype: str"""
     try:
@@ -1895,7 +1904,7 @@ class CDaemon:
 
     def start(self, *args, **kwargs):
         if self.verbose >= 1:
-            print('ready to starting ......')
+            print('ready to start ......')
         # check for a pid file to see if the daemon already runs
         pid = self.get_pid()
         if pid:
