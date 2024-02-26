@@ -15,3 +15,11 @@
       when: ansible_os_family == 'Debian'
       with_items: "{{ ansible_play_batch }}"
       run_once: true
+
+    - name: Fetch node IP
+      command: "hostname -i"
+      register: node_ip_result
+
+    - name: Set metadata-annotations-THISIP
+      command: "kubectl annotate node {{ item }} THISIP={{ node_ip_result.stdout }} --overwrite"
+      with_items: "{{ ansible_play_batch }}"
