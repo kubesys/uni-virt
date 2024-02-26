@@ -44,7 +44,7 @@ ADD sdsctl-install.sh /home
 
 RUN yum install centos-release-openstack-rocky.noarch -y && \
     yum install libcurl-devel -y && \
-    yum install cloud-utils usbutils libguestfs-tools-c virt-manager libvirt-devel gcc-c++ glib-devel glibc-devel libvirt virt-install qemu-kvm -y && \
+    yum install jq cloud-utils usbutils libguestfs-tools-c virt-manager libvirt-devel gcc-c++ glib-devel glibc-devel libvirt virt-install qemu-kvm -y && \
     yum install glusterfs-client-xlators glusterfs-cli lusterfs-extra-xlators glusterfs-fuse iscsiadm -y && \
     yum install openvswitch-ovn* openvswitch python-openvswitch openvswitch-test openvswitch-devel openvswitch-ipsec -y && \
     pip3 install --upgrade pip && \
