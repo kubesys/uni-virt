@@ -219,13 +219,8 @@ def myVmVolEventHandler(event, pool, name, group, version, plural):
 
 
 class VmVolEventHandler(FileSystemEventHandler):
-    def __init__(self, pool, target, group, version, plural):
+    def __init__(self):
         FileSystemEventHandler.__init__(self)
-        self.pool = pool
-        self.target = target
-        self.group = group
-        self.version = version
-        self.plural = plural
 
     def on_moved(self, event):
         if event.is_directory:
