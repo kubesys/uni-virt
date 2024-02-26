@@ -49,7 +49,7 @@ from utils.libvirt_util import get_pool_path, get_volume_path, refresh_pool, get
 from utils import logger
 from utils import constants
 from utils.misc import create_custom_object, delete_custom_object, get_custom_object, update_custom_object, add_spec_in_volume, updateDescription, addSnapshots, get_volume_snapshots, runCmdRaiseException, \
-    addPowerStatusMessage, updateDomainSnapshot, updateDomain, report_failure, get_hostname_in_lower_case, \
+    addPowerStatusMessage, updateDomainSnapshot, updateDomain, report_failure, get_hostname_in_lower_case,get_1st_ready,\
     DiskImageHelper
 
 from kubesys.exceptions import HTTPError
@@ -219,13 +219,8 @@ def myVmVolEventHandler(event, pool, name, group, version, plural):
 
 
 class VmVolEventHandler(FileSystemEventHandler):
-    def __init__(self, pool, target, group, version, plural):
+    def __init__(self):
         FileSystemEventHandler.__init__(self)
-        self.pool = pool
-        self.target = target
-        self.group = group
-        self.version = version
-        self.plural = plural
 
     def on_moved(self, event):
         if event.is_directory:
@@ -833,17 +828,17 @@ class VmdImageLibvirtXmlEventHandler(FileSystemEventHandler):
         self.version = version
         self.plural = plural
 
-    def on_moved(self, event):
-        if event.is_directory:
-            logger.debug("directory moved from {0} to {1}".format(event.src_path, event.dest_path))
-        else:
-            logger.debug("file moved from {0} to {1}".format(event.src_path, event.dest_path))
-            vmdi = os.path.split(event.src_path)[1]
-            try:
-                myVmdImageLibvirtXmlEventHandler('Create', vmdi, self.pool, event.dest_path, self.group, self.version,
-                                                 self.plural)
-            except HTTPError:
-                logger.error('Oops! ', exc_info=1)
+    # def on_moved(self, event):
+    #     if event.is_directory:
+    #         logger.debug("directory moved from {0} to {1}".format(event.src_path, event.dest_path))
+    #     else:
+    #         logger.debug("file moved from {0} to {1}".format(event.src_path, event.dest_path))
+    #         vmdi = os.path.split(event.src_path)[1]
+    #         try:
+    #             myVmdImageLibvirtXmlEventHandler('Create', vmdi, self.pool, event.dest_path, self.group, self.version,
+    #                                              self.plural)
+    #         except HTTPError:
+    #             logger.error('Oops! ', exc_info=1)
 
     def on_created(self, event):
         if event.is_directory:
@@ -869,12 +864,12 @@ class VmdImageLibvirtXmlEventHandler(FileSystemEventHandler):
             except HTTPError:
                 logger.error('Oops! ', exc_info=1)
 
-    def on_modified(self, event):
-        if event.is_directory:
-            #             logger.debug("directory modified:{0}".format(event.src_path))
-            pass
-        else:
-            logger.debug("file modified:{0}".format(event.src_path))
+    # def on_modified(self, event):
+    #     if event.is_directory:
+    #         #             logger.debug("directory modified:{0}".format(event.src_path))
+    #         pass
+    #     else:
+    #         logger.debug("file modified:{0}".format(event.src_path))
 
 
 #             _,name = os.path.split(event.src_path)
@@ -1239,6 +1234,32 @@ def addNodeName(jsondict):
     return jsondict
 
 
+def observe(observer,kind,event_handler):
+    OLD_PATH_WATCHERS = {}
+    paths = _get_all_pool_path()
+    paths_copy = paths.copy()
+    for pool_name, pool_path in paths_copy.items():
+        content_file = '%s/content' % pool_path
+        if os.path.exists(content_file):
+            with open(content_file, 'r') as fr:
+                pool_content = fr.read().strip()
+            if pool_content != kind:
+                del paths[pool_name]
+    # unschedule not exist pool path
+    watchers = {}
+    for path in OLD_PATH_WATCHERS.keys():
+        if path not in paths.values():
+            observer.unschedule(OLD_PATH_WATCHERS[path])
+        else:
+            watchers[path] = OLD_PATH_WATCHERS[path]
+    OLD_PATH_WATCHERS = watchers
+
+    for pool, pool_path in paths.items():
+        if pool_path and pool_path not in OLD_PATH_WATCHERS.keys() and os.path.isdir(pool_path):
+            logger.debug(pool_path)
+            watcher = observer.schedule(event_handler, pool_path, True)
+            OLD_PATH_WATCHERS[pool_path] = watcher
+
 def main():
     observer = Observer()
     try:
@@ -1302,35 +1323,40 @@ def main():
             observer.schedule(event_handler, constants.KUBEVMM_GPU_PCI_DIR, True)
         observer.start()
 
-        # vmp event handler
-        OLD_PATH_WATCHERS = {}
+        # vmp and vmdi event handler
+        # OLD_PATH_WATCHERS = {}
         while True:
             try:
-                paths = _get_all_pool_path()
-                paths_copy = paths.copy()
-                for pool_name, pool_path in paths_copy.items():
-                    content_file = '%s/content' % pool_path
-                    if os.path.exists(content_file):
-                        with open(content_file, 'r') as fr:
-                            pool_content = fr.read().strip()
-                        if pool_content != 'vmd':
-                            del paths[pool_name]
-                # unschedule not exist pool path
-                watchers = {}
-                for path in OLD_PATH_WATCHERS.keys():
-                    if path not in paths.values():
-                        observer.unschedule(OLD_PATH_WATCHERS[path])
-                    else:
-                        watchers[path] = OLD_PATH_WATCHERS[path]
-                OLD_PATH_WATCHERS = watchers
-
-                for pool, pool_path in paths.items():
-                    if pool_path and pool_path not in OLD_PATH_WATCHERS.keys() and os.path.isdir(pool_path):
-                        logger.debug(pool_path)
-                        event_handler = VmVolEventHandler(pool, pool_path, GROUP, VERSION, PLURAL_VM_DISK)
-                        watcher = observer.schedule(event_handler, pool_path, True)
-                        OLD_PATH_WATCHERS[pool_path] = watcher
-
+                # paths = _get_all_pool_path()
+                # paths_copy = paths.copy()
+                # for pool_name, pool_path in paths_copy.items():
+                #     content_file = '%s/content' % pool_path
+                #     if os.path.exists(content_file):
+                #         with open(content_file, 'r') as fr:
+                #             pool_content = fr.read().strip()
+                #         if pool_content != 'vmd':
+                #             del paths[pool_name]
+                # # unschedule not exist pool path
+                # watchers = {}
+                # for path in OLD_PATH_WATCHERS.keys():
+                #     if path not in paths.values():
+                #         observer.unschedule(OLD_PATH_WATCHERS[path])
+                #     else:
+                #         watchers[path] = OLD_PATH_WATCHERS[path]
+                # OLD_PATH_WATCHERS = watchers
+                #
+                # for pool, pool_path in paths.items():
+                #     if pool_path and pool_path not in OLD_PATH_WATCHERS.keys() and os.path.isdir(pool_path):
+                #         logger.debug(pool_path)
+                #         event_handler = VmVolEventHandler()
+                #         watcher = observer.schedule(event_handler, pool_path, True)
+                #         OLD_PATH_WATCHERS[pool_path] = watcher
+                observe(observer,'vmd',VmVolEventHandler())
+                node = get_1st_ready()
+                if HOSTNAME == node:
+                    event_handler = VmdImageLibvirtXmlEventHandler('default', VMD_TEMPLATE_DIR, GROUP, VERSION,
+                                                                   PLURAL_VM_DISK_IMAGE)
+                    observe(observer,'vmdi',event_handler)
             except Exception as e:
                 logger.warning('Oops! ', exc_info=1)
             finally:
