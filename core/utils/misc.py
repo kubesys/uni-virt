@@ -1587,7 +1587,7 @@ def get_1st_ready():
     client=KubernetesClient(config=TOKEN)
     names=get_all_nodes_name()
     for name in names:
-        nodestatus=client.getResourceStatus(kind='Node',name=name)
+        nodestatus=client.getResourceStatus(kind='Node',name=name).get('status')
         condition=nodestatus.get('conditions')[-1]
         if condition.get('type')=='Ready' and condition.get('status')=='True':
             return name
