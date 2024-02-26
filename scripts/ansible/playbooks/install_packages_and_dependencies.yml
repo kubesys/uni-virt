@@ -135,6 +135,7 @@
           - openvswitch-test
           - openvswitch-devel
           - openvswitch-ipsec
+          - jq
         state: present
       tags: 
         - packages
