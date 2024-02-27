@@ -1234,7 +1234,7 @@ def addNodeName(jsondict):
     return jsondict
 
 
-def observe(observer,kind,event_handler):
+def observe(observer,kind):
     OLD_PATH_WATCHERS = {}
     paths = _get_all_pool_path()
     paths_copy = paths.copy()
