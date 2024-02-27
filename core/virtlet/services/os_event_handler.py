@@ -1257,6 +1257,13 @@ def observe(observer,kind,event_handler):
     for pool, pool_path in paths.items():
         if pool_path and pool_path not in OLD_PATH_WATCHERS.keys() and os.path.isdir(pool_path):
             logger.debug(pool_path)
+            if kind=='vmd':
+                event_handler = VmVolEventHandler()
+            elif kind=='vmdi':
+                event_handler=VmdImageLibvirtXmlEventHandler(pool, VMD_TEMPLATE_DIR, GROUP, VERSION,
+                                                                   PLURAL_VM_DISK_IMAGE)
+            else:
+                raise Exception('Wrong pool kind')
             watcher = observer.schedule(event_handler, pool_path, True)
             OLD_PATH_WATCHERS[pool_path] = watcher
 
@@ -1327,36 +1334,11 @@ def main():
         # OLD_PATH_WATCHERS = {}
         while True:
             try:
-                # paths = _get_all_pool_path()
-                # paths_copy = paths.copy()
-                # for pool_name, pool_path in paths_copy.items():
-                #     content_file = '%s/content' % pool_path
-                #     if os.path.exists(content_file):
-                #         with open(content_file, 'r') as fr:
-                #             pool_content = fr.read().strip()
-                #         if pool_content != 'vmd':
-                #             del paths[pool_name]
-                # # unschedule not exist pool path
-                # watchers = {}
-                # for path in OLD_PATH_WATCHERS.keys():
-                #     if path not in paths.values():
-                #         observer.unschedule(OLD_PATH_WATCHERS[path])
-                #     else:
-                #         watchers[path] = OLD_PATH_WATCHERS[path]
-                # OLD_PATH_WATCHERS = watchers
-                #
-                # for pool, pool_path in paths.items():
-                #     if pool_path and pool_path not in OLD_PATH_WATCHERS.keys() and os.path.isdir(pool_path):
-                #         logger.debug(pool_path)
-                #         event_handler = VmVolEventHandler()
-                #         watcher = observer.schedule(event_handler, pool_path, True)
-                #         OLD_PATH_WATCHERS[pool_path] = watcher
-                observe(observer,'vmd',VmVolEventHandler())
+                observe(observer,'vmd')
                 node = get_1st_ready()
+                logger.info(f"VMDI is listened on {node}")
                 if HOSTNAME == node:
-                    event_handler = VmdImageLibvirtXmlEventHandler('default', VMD_TEMPLATE_DIR, GROUP, VERSION,
-                                                                   PLURAL_VM_DISK_IMAGE)
-                    observe(observer,'vmdi',event_handler)
+                    observe(observer,'vmdi')
             except Exception as e:
                 logger.warning('Oops! ', exc_info=1)
             finally:
