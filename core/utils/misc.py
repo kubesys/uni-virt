@@ -95,7 +95,7 @@ def is_none_p(value):
        wait=wait_random(min=0, max=3),
        reraise=True)
 def create_custom_object(jsonStr):
-    client=KubernetesClient(token=TOKEN)
+    client=KubernetesClient(config=TOKEN)
     retv=client.createResource(jsonStr)
     return retv
 
