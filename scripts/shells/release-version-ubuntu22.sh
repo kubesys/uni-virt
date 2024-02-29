@@ -174,10 +174,10 @@ fi
 if [ ! -d "../docker/virtmonitor/ubuntu22/kubesys" ]; then
 	mkdir -p ../docker/virtmonitor/ubuntu22/kubesys
 fi
-cp -rf kubesys/*.py ../docker/virtctl/centos7/kubesys
-cp -rf kubesys/*.py ../docker/virtlet/centos7/kubesys
-cp -rf kubesys/*.py ../docker/libvirtwatcher/centos7/kubesys
-cp -rf kubesys/*.py ../docker/virtmonitor/centos7/kubesys
+cp -rf kubesys/*.py ../docker/virtctl/ubuntu22/kubesys
+cp -rf kubesys/*.py ../docker/virtlet/ubuntu22/kubesys
+cp -rf kubesys/*.py ../docker/libvirtwatcher/ubuntu22/kubesys
+cp -rf kubesys/*.py ../docker/virtmonitor/ubuntu22/kubesys
 cp -rf utils/*.py ../docker/virtctl/ubuntu22/utils/
 cp -rf utils/*.py ../docker/virtlet/ubuntu22/utils/
 cp -rf utils/*.py ../docker/libvirtwatcher/ubuntu22/utils/
