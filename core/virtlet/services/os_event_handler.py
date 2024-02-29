@@ -76,7 +76,8 @@ VMD_TEMPLATE_DIR = constants.KUBEVMM_DEFAULT_VMDI_DIR
 HOSTNAME = get_hostname_in_lower_case()
 NAMESPACE='default'
 logger = logger.set_logger(os.path.basename(__file__), constants.KUBEVMM_VIRTLET_LOG)
-
+CUT_OFF_TIME = 3
+event_mapper={}
 
 def xmlToJson(xmlStr):
     return dumps(bf.data(fromstring(xmlStr)), sort_keys=True, indent=4)
@@ -1354,7 +1355,7 @@ def main():
         # OLD_PATH_WATCHERS = {}
         while True:
             try:
-                observe(observer,'vmd')
+                # observe(observer,'vmd')
                 node = get_1st_ready()
                 logger.info(f"VMDI is listened on {node}")
                 if HOSTNAME == node:
