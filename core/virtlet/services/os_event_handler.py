@@ -24,7 +24,7 @@ import json
 Import python libs
 '''
 import os
-import time
+from time import time
 import traceback
 import sys
 from json import loads
@@ -100,6 +100,26 @@ def updateJsonRemoveLifecycle(jsondict, body):
     return jsondict
 
 
+class FSEHPreProcessing(FileSystemEventHandler):
+    def __init__(self):
+        FileSystemEventHandler.__init__(self)
+
+    def dispatch(self, event):
+        global event_mapper
+        key = (event.src_path, event.event_type)
+        value = time()
+        last_time = event_mapper.get(key, 0.0)
+        if value - last_time > CUT_OFF_TIME:
+            event_mapper[key] = value
+            self.on_any_event(event)
+            {
+                EVENT_TYPE_CREATED: self.on_created,
+                EVENT_TYPE_DELETED: self.on_deleted,
+                EVENT_TYPE_MODIFIED: self.on_modified,
+                EVENT_TYPE_MOVED: self.on_moved,
+                EVENT_TYPE_CLOSED: self.on_closed,
+                EVENT_TYPE_OPENED: self.on_opened,
+            }[event.event_type](event)
 
 def myVmVolEventHandler(event, pool, name, group, version, plural):
     #     print(jsondict)
@@ -218,9 +238,9 @@ def myVmVolEventHandler(event, pool, name, group, version, plural):
                 logger.warning('Oops! ', exc_info=1)
 
 
-class VmVolEventHandler(FileSystemEventHandler):
+class VmVolEventHandler(FSEHPreProcessing):
     def __init__(self):
-        FileSystemEventHandler.__init__(self)
+        FSEHPreProcessing.__init__(self)
 
     def on_moved(self, event):
         if event.is_directory:
@@ -340,9 +360,9 @@ def myVmSnapshotEventHandler(event, vm, name, group, version, plural):
             logger.warning('Oops! ', exc_info=1)
 
 
-class VmSnapshotEventHandler(FileSystemEventHandler):
+class VmSnapshotEventHandler(FSEHPreProcessing):
     def __init__(self, field, target, group, version, plural):
-        FileSystemEventHandler.__init__(self)
+        FSEHPreProcessing.__init__(self)
         self.field = field
         self.target = target
         self.group = group
@@ -399,9 +419,9 @@ class VmSnapshotEventHandler(FileSystemEventHandler):
             logger.debug("file modified:{0}".format(event.src_path))
 
 
-class VmGPUEventHandler(FileSystemEventHandler):
+class VmGPUEventHandler(FSEHPreProcessing):
     def __init__(self):
-        FileSystemEventHandler.__init__(self)
+        FSEHPreProcessing.__init__(self)
 
     def on_created(self, event):
         if event.is_directory:
@@ -493,9 +513,9 @@ class VmGPUEventHandler(FileSystemEventHandler):
 #                 logger.warning('Oops! ', exc_info=1)
 # 
 # 
-# class VmBlockDevEventHandler(FileSystemEventHandler):
+# class VmBlockDevEventHandler(FSEHPreProcessing):
 #     def __init__(self, field, target, group, version, plural):
-#         FileSystemEventHandler.__init__(self)
+#         FSEHPreProcessing.__init__(self)
 #         self.field = field
 #         self.target = target
 #         self.group = group
@@ -669,9 +689,9 @@ def myVmLibvirtXmlEventHandler(event, name, xml_path, group, version, plural):
 #                 logger.warning('Oops! ', exc_info=1)
 
 
-class VmLibvirtXmlEventHandler(FileSystemEventHandler):
+class VmLibvirtXmlEventHandler(FSEHPreProcessing):
     def __init__(self, field, target, group, version, plural):
-        FileSystemEventHandler.__init__(self)
+        FSEHPreProcessing.__init__(self)
         self.field = field
         self.target = target
         self.group = group
@@ -819,9 +839,9 @@ def myVmdImageLibvirtXmlEventHandler(event, name, pool, xml_path, group, version
                 logger.warning('Oops! ', exc_info=1)
 
 
-class VmdImageLibvirtXmlEventHandler(FileSystemEventHandler):
+class VmdImageLibvirtXmlEventHandler(FSEHPreProcessing):
     def __init__(self, pool, target, group, version, plural):
-        FileSystemEventHandler.__init__(self)
+        FSEHPreProcessing.__init__(self)
         self.pool = pool
         self.target = target
         self.group = group
@@ -982,9 +1002,9 @@ def myImageLibvirtXmlEventHandler(event, name, xml_path, group, version, plural)
                 logger.warning('Oops! ', exc_info=1)
 
 
-class ImageLibvirtXmlEventHandler(FileSystemEventHandler):
+class ImageLibvirtXmlEventHandler(FSEHPreProcessing):
     def __init__(self, field, target, group, version, plural):
-        FileSystemEventHandler.__init__(self)
+        FSEHPreProcessing.__init__(self)
         self.field = field
         self.target = target
         self.group = group
