@@ -31,7 +31,7 @@ Import third party libs
 '''
 Import local libs
 '''
-from utils.misc import singleton, runCmd, CDaemon
+from utils.misc import singleton, runCmd, CDaemon,daemonize
 from utils import logger
 from utils import constants
     
@@ -95,37 +95,12 @@ def is_kubernetes_master():
 #     else:
 #         libvirt_event_handler.main()
             
-def daemonize():
-    '''守护进程的实现
-    '''
-    help_msg = 'Usage: python %s <start|stop|restart|status>' % sys.argv[0]
-    if len(sys.argv) != 2:
-        print(help_msg)
-        sys.exit(1)
+
+if __name__ == '__main__':
     p_name = constants.KUBEVMM_LIBVIRTWATCHER_SERVICE_NAME
     pid_fn = constants.KUBEVMM_LIBVIRTWATCHER_SERVICE_LOCK
     log_fn = constants.KUBEVMM_VIRTLET_LOG
     err_fn = constants.KUBEVMM_VIRTLET_LOG
-    cD = ClientDaemon(p_name, pid_fn, stderr=err_fn, verbose=1)
-
-    if sys.argv[1] == 'start':
-        cD.start(log_fn)
-    elif sys.argv[1] == 'stop':
-        cD.stop()
-    elif sys.argv[1] == 'restart':
-        cD.restart(log_fn)
-    elif sys.argv[1] == 'status':
-        alive = cD.is_running()
-        if alive:
-            print('process [%s] is running ......' % cD.get_pid())
-        else:
-            print('daemon process [%s] stopped' % cD.name)
-    else:
-        print('invalid argument!')
-        print(help_msg)
-
-
-if __name__ == '__main__':
-    daemonize()
+    daemonize(ClientDaemon(p_name, pid_fn, stderr=err_fn, verbose=1),log_fn)
 
 
