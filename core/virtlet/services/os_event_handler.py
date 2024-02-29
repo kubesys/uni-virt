@@ -24,7 +24,7 @@ import json
 Import python libs
 '''
 import os
-from time import time
+from time import time,sleep
 import traceback
 import sys
 from json import loads
@@ -1363,7 +1363,7 @@ def main():
             except Exception as e:
                 logger.warning('Oops! ', exc_info=1)
             finally:
-                time.sleep(1)
+                sleep(1)
     except KeyboardInterrupt:
         observer.stop()
     except:
