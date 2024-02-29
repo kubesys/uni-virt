@@ -605,6 +605,36 @@ def get_volume_snapshots(path):
     return snapshots
 
 
+def daemonize(cd,log_fn):
+    '''守护进程的实现
+    '''
+    help_msg = 'Usage: python %s <start|stop|restart|status>' % sys.argv[0]
+    if len(sys.argv) != 2:
+        print(help_msg)
+        sys.exit(1)
+    # p_name = constants.KUBEVMM_LIBVIRTWATCHER_SERVICE_NAME
+    # pid_fn = constants.KUBEVMM_LIBVIRTWATCHER_SERVICE_LOCK
+    # log_fn = constants.KUBEVMM_VIRTLET_LOG
+    # err_fn = constants.KUBEVMM_VIRTLET_LOG
+    # cD = ClientDaemon(p_name, pid_fn, stderr=err_fn, verbose=1)
+
+    if sys.argv[1] == 'start':
+        cd.start(log_fn)
+    elif sys.argv[1] == 'stop':
+        cd.stop()
+    elif sys.argv[1] == 'restart':
+        cd.restart(log_fn)
+    elif sys.argv[1] == 'status':
+        alive = cd.is_running()
+        if alive:
+            print('process [%s] is running ......' % cd.get_pid())
+        else:
+            print('daemon process [%s] stopped' % cd.name)
+    else:
+        print('invalid argument!')
+        print(help_msg)
+
+
 def singleton(pid_filename):
     def decorator(f):
         @wraps(f)

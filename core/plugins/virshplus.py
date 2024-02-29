@@ -25,24 +25,7 @@ import shlex
 import errno
 from functools import wraps
 import os, sys, time, signal, atexit, subprocess
-import threading
-import random
-import socket
-import datetime
-import traceback
-import operator
-from dateutil.tz import gettz
-from pprint import pformat
-from six import iteritems
-from xml.etree import ElementTree
-from collections import namedtuple
-import subprocess
-import collections
-from pprint import pprint
 from xml.dom import minidom
-from io import StringIO as _StringIO
-import logging
-import logging.handlers
 
 '''
 Import third party libs
@@ -59,7 +42,6 @@ Import third party libs
 '''
 # from kubernetes import client, config
 # from kubernetes.client.rest import ApiException
-
 # from kubernetes import config, client
 # from kubernetes.client import V1DeleteOptions
 sys.path.append('..')
@@ -73,7 +55,7 @@ from xmljson import badgerfish as bf
 
 from utils import constants
 from utils.exception import ExecuteException, InternalServerError, NotFound, Forbidden, BadRequest
-from utils.libvirt_util import create, destroy, check_pool_content_type, is_vm_disk_driver_cache_none, vm_state, is_vm_exists, is_vm_active, get_boot_disk_path, get_xml
+from utils.libvirt_util import create, destroy, check_pool_content_type, is_vm_disk_driver_cache_none, vm_state, is_vm_exists, is_vm_active, get_boot_disk_path, get_xml,get_pool_path
 from utils.misc import get_IP, set_field_in_kubernetes_by_index, get_l2_network_info, get_address_set_info, get_l3_network_info, updateDomain, randomMAC, runCmd, get_rebase_backing_file_cmds, add_spec_in_volume, get_hostname_in_lower_case, DiskImageHelper, updateDescription, get_volume_snapshots, updateJsonRemoveLifecycle, addSnapshots, report_failure, addPowerStatusMessage, RotatingOperation, string_switch, deleteLifecycleInJson, get_field_in_kubernetes_by_index, write_config
 from utils import logger
 from utils.k8s import K8sHelper

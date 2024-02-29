@@ -31,7 +31,7 @@ from json import loads, dumps
 sys.path.append("..")
 from utils import constants
 from utils import logger
-from utils.misc import singleton, get_hostname_in_lower_case, list_objects_in_kubernetes, get_field_in_kubernetes_by_index, CDaemon, list_all_disks, runCmdRaiseException, get_hostname_in_lower_case, get_field_in_kubernetes_node
+from utils.misc import singleton, get_hostname_in_lower_case, list_objects_in_kubernetes, get_field_in_kubernetes_by_index, CDaemon, list_all_disks, runCmdRaiseException, get_hostname_in_lower_case, get_field_in_kubernetes_node,daemonize
 # from kubesys.client import KubernetesClient
 LOG = '/var/log/virtmonitor.log'
 logger = logger.set_logger(os.path.basename(__file__), LOG)
@@ -739,38 +739,14 @@ class ClientDaemon(CDaemon):
         except:
             logger.error('Oops! ', exc_info=1)
 
-def daemonize():
-    '''守护进程的实现
-    '''
-    help_msg = 'Usage: python %s <start|stop|restart|status>' % sys.argv[0]
-    if len(sys.argv) != 2:
-        print(help_msg)
-        sys.exit(1)
+
+if __name__ == '__main__':
     p_name = constants.KUBEVMM_VIRTMONITOR_SERVICE_NAME
     pid_fn = constants.KUBEVMM_VIRTMONITOR_SERVICE_LOCK
     log_fn = constants.KUBEVMM_VIRTLET_LOG
     err_fn = constants.KUBEVMM_VIRTLET_LOG
     cD = ClientDaemon(p_name, pid_fn, stderr=err_fn, verbose=1)
-
-    if sys.argv[1] == 'start':
-        cD.start(log_fn)
-    elif sys.argv[1] == 'stop':
-        cD.stop()
-    elif sys.argv[1] == 'restart':
-        cD.restart(log_fn)
-    elif sys.argv[1] == 'status':
-        alive = cD.is_running()
-        if alive:
-            print('process [%s] is running ......' % cD.get_pid())
-        else:
-            print('daemon process [%s] stopped' % cD.name)
-    else:
-        print('invalid argument!')
-        print(help_msg)
-
-
-if __name__ == '__main__':
-    daemonize()
+    daemonize(cD,log_fn)
 #     start_http_server(19998)
 #     config.load_kube_config(config_file=TOKEN)
 #     zone = get_field_in_kubernetes_node(HOSTNAME, ['metadata', 'labels', 'zone'])
