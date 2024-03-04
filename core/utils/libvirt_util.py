@@ -35,13 +35,11 @@ from io import StringIO as _StringIO
 
 try:
     from utils import constants
-    from utils import logger
 except:
     import constants
-    import logger
 
-LOG = constants.KUBEVMM_VIRTCTL_LOG
-logger = logger.set_logger(os.path.basename(__file__), LOG)
+# LOG = constants.KUBEVMM_VIRTCTL_LOG
+# logger = logger.set_logger(os.path.basename(__file__), LOG)
 
 '''
 Import third party libs
@@ -1022,7 +1020,6 @@ def get_vol_info_by_qemu(vol_path):
 
 def runCmdAndParse(cmd):
     if not cmd:
-        #         logger.debug('No CMD to execute.')
         return
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
@@ -1113,38 +1110,6 @@ def is_vm_disk_driver_cache_none(vm):
 #             pool['host'] = line.split()[1]
 #             pools.append(pool)
 #     return pools
-#
-def runCmdAndGetOutput(cmd):
-    logger.debug(cmd)
-    if not cmd:
-        return
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    try:
-        std_out = p.stdout.readlines()
-        std_err = p.stderr.readlines()
-        if std_out:
-            msg = ''
-            for line in std_out:
-                msg = msg + line
-            return msg
-        if std_err:
-            msg = ''
-            for index, line in enumerate(std_err):
-                if not str.strip(line):
-                    continue
-                if index == len(std_err) - 1:
-                    msg = msg + str.strip(line) + '. ' + '***More details in %s***' % LOG
-                else:
-                    msg = msg + str.strip(line) + ', '
-            logger.debug(cmd)
-            logger.debug(msg)
-            if msg.strip() != '':
-                raise BadRequest('RunCmdError', msg)
-    except Exception:
-        logger.warning('Oops! ', exc_info=1)
-    finally:
-        p.stdout.close()
-        p.stderr.close()
 #
 #
 #
