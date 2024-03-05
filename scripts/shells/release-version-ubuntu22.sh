@@ -78,7 +78,7 @@ else
     echo "    Success compile <kubevmm-adm>."
 fi
 cp -f ./dist/ubuntu22/kubevmm-adm ../../dist/ubuntu22
-pyinstaller --distpath ./dist/ubuntu22/ -F virshplus.py --hidden-import urllib3 --hidden-import requests --hidden-import kubernetes --hidden-import tenacity  --add-data ../utils/*:utils --add-data ../utils/*:. --add-data ../kubesys/*:kubesys --clean
+pyinstaller --distpath ./dist/ubuntu22/ -F virshplus.py --hidden-import urllib3 --hidden-import requests --hidden-import logging.handlers --hidden-import tenacity --hidden-import dateutil.tz --add-data ../utils/*:utils --add-data ../utils/*:. --add-data ../kubesys/*:kubesys --clean
 if [ $? -ne 0 ]; then
     echo "    Failed to compile <virshplus>!"
     exit 1
