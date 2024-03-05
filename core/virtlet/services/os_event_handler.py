@@ -1115,16 +1115,14 @@ def _list_gpus():
     info_lines = runCmdRaiseException(command)
     logger.debug(info_lines)
     # Parse the lines and create key-value pairs
-    result = {}
-    gpu_id = 0
+    result = []
     if info_lines:
         for line in info_lines:
             pattern = re.compile(r'(\w+:\w+\.\w+)[\w\s]+controller[\w\s]+', re.DOTALL)
             matches = pattern.findall(line)
             for match in matches:
                 id_value = match
-                result[gpu_id] = id_value
-                gpu_id += 1
+                result.append(id_value)
     return result
 
 
@@ -1239,7 +1237,7 @@ def _parse_pci_info(gpu_id, gpu_id_value):
 def GPUCheckandUpdate():
     gpus = _list_gpus()
     if gpus:
-        for gpu_id, gpu_id_value in gpus:
+        for gpu_id, gpu_id_value in enumerate(gpus):
             (gpu_name, gpu_info) = _parse_pci_info(gpu_id, gpu_id_value)
             _create_or_update_vmgpus(GROUP, VERSION, gpu_name, gpu_info)
 
