@@ -76,7 +76,7 @@ VMD_TEMPLATE_DIR = constants.KUBEVMM_DEFAULT_VMDI_DIR
 HOSTNAME = get_hostname_in_lower_case()
 NAMESPACE='default'
 logger = logger.set_logger(os.path.basename(__file__), constants.KUBEVMM_VIRTLET_LOG)
-CUT_OFF_TIME = 3
+CUT_OFF_TIME = 4
 event_mapper={}
 
 def xmlToJson(xmlStr):
