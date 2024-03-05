@@ -1351,11 +1351,14 @@ def main():
 
         # vmp and vmdi event handler
         # OLD_PATH_WATCHERS = {}
+        repeated=False
         while True:
             try:
                 # observe(observer,'vmd')
                 node = get_1st_ready()
-                logger.info(f"VMDI is listened on {node}")
+                if not repeated:
+                    logger.info(f"VMDI is listened on {node}")
+                    repeated=True
                 if HOSTNAME == node:
                     observe(observer,'vmdi')
             except Exception as e:
