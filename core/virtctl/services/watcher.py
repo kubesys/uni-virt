@@ -114,7 +114,8 @@ def main():
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
-            return
+            pass
+
         thread_1.join()
         thread_2.join()
         thread_3.join()
@@ -170,8 +171,6 @@ def doWatch(plural, k8s_object_kind):
             #             vMWatcher(group=GROUP_VM, version=VERSION_VM, plural=PLURAL_VM)
             time.sleep(3)
             continue
-        finally:
-            watcher.stop()
             
 # def create_and_start_thread(plural, k8s_object_kind, jsondict):
 #     thread = Thread(target=doExecutor, args=(plural, k8s_object_kind, jsondict))
