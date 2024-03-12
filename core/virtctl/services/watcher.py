@@ -136,17 +136,18 @@ def doWatch(plural, k8s_object_kind):
         # watcher = watch.Watch()
         client=KubernetesClient(config=TOKEN)
 
-        kwargs = {}
-        kwargs['label_selector'] = get_label_selector()
-        kwargs['watch'] = True
-        kwargs['timeout_seconds'] = int(constants.KUBERNETES_WATCHER_TIME_OUT)
-        threads=[]
+        # kwargs = {}
+        # kwargs['label_selector'] = get_label_selector()
+        # kwargs['watch'] = True
+        # kwargs['timeout_seconds'] = int(constants.KUBERNETES_WATCHER_TIME_OUT)
+        params={'labelSelector':get_label_selector()}
+        # threads=[]
         try:
             handler=WatchHandler(add_func=lambda jsondict: doExecutor(plural, k8s_object_kind, jsondict),
                                  modify_func=lambda jsondict: doExecutor(plural, k8s_object_kind, jsondict),
                                  delete_func=lambda jsondict: doExecutor(plural, k8s_object_kind, jsondict))
-            watcher=client.watchResources(kind=k8s_object_kind,namespace='default',thread_name='do_executor',
-                                          watcherhandler=handler,**kwargs)
+            watcher=client.watchResources(kind=k8s_object_kind,namespace='default',
+                                          watcherhandler=handler,**params)
             time.sleep(int(constants.KUBERNETES_WATCHER_TIME_OUT))
 #             for jsondict in watcher.stream(client.CustomObjectsApi().list_cluster_custom_object,
 #                                            group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION,
