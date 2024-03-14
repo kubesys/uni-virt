@@ -1283,7 +1283,7 @@ def observe(observer,kind):
                                                                    PLURAL_VM_DISK_IMAGE)
             else:
                 raise Exception('Wrong pool kind')
-            watcher = observer.schedule(event_handler, pool_path, True)
+            watcher = observer.schedule(event_handler, pool_path)
             OLD_PATH_WATCHERS[pool_path] = watcher
 
 def main():
