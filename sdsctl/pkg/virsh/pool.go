@@ -8,6 +8,7 @@ import (
 	"libvirt.org/go/libvirt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func GetPoolInfo(name string) (*libvirt.StoragePool, error) {
@@ -175,7 +176,7 @@ func CheckPoolType(pool, content string) bool {
 	if err != nil {
 		return false
 	}
-	return string(file) == content
+	return strings.Trim(string(file), " \n") == content
 }
 
 func GetPoolTargetPath(name string) (string, error) {
