@@ -1,0 +1,20 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachineDisk",
+  "metadata": {
+    "name": "ljx",
+    "labels": {
+        "host": "133.133.135.134"
+    } 
+  },
+  "spec": {
+    "nodeName": "133.133.135.134",
+    "lifecycle": {
+      "resizeDisk": {
+        "type": "cephfs",
+        "pool": "data134",
+        "capacity": "21737418240"
+      }
+    }
+  }
+}

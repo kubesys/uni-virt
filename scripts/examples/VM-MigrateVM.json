@@ -1,0 +1,19 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachine",
+  "metadata": {
+    "name": "backuptest1",
+    "labels": {
+      "host": "133.133.135.134"
+    }
+  },
+  "spec": {
+    "nodeName": "133.133.135.134",
+    "lifecycle": {
+      "migrateVM": {
+        "offline": true,
+        "ip": "133.133.135.73"
+      }
+    }
+  }
+}

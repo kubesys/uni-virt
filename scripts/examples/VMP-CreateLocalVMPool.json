@@ -2,18 +2,18 @@
   "apiVersion": "doslab.io/v1",
   "kind": "VirtualMachinePool",
   "metadata": {
-    "name": "pooltest",
+    "name": "ljx",
     "labels": {
-      "host": "vm.node31"
+      "host": "133.133.135.134"
     }
   },
   "spec": {
-    "nodeName": "vm.node31",
+    "nodeName": "133.133.135.134",
     "lifecycle": {
       "createPool": {
-          "type": "dir",
-          "url": "/var/lib/libvirt/pooltest",
-          "content": "vmd",
+          "type": "localfs",
+          "url": "/var/lib/libvirt/ljx",
+          "content": "vmdi",
           "auto-start": true
       }
     }

@@ -4,11 +4,11 @@
   "metadata": {
     "name": "disktest",
     "labels": {
-        "host": "vm.node31"
+        "host": "192.168.10.12"
     } 
   },
   "spec": {
-    "nodeName": "vm.node31",
+    "nodeName": "192.168.10.12",
     "lifecycle": {
       "createDisk": {
         "type": "localfs",

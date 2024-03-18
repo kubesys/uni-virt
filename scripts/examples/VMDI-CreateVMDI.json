@@ -1,0 +1,22 @@
+{
+  "apiVersion" : "doslab.io/v1",
+  "kind" : "VirtualMachineDiskImage",
+  "metadata" : {
+    "labels" : {
+      "kubestack.label.event.id" : "abc",
+      "host" : "133.133.135.134"
+    },
+    "name" : "centos7-iso"
+  },
+  "spec" : {
+    "nodeName" : "133.133.135.134",
+    "lifecycle" : {
+      "createDiskImage" : {
+        "imageType" : "iso",
+        "source" : "/var/lib/libvirt/iso/centos7-minimal-1810.iso",
+        "targetPool" : "vmdi134"
+      }
+    }
+  }
+}
+

@@ -1,0 +1,19 @@
+{
+  "apiVersion" : "doslab.io/v1",
+  "kind" : "VirtualMachineDiskImage",
+  "metadata" : {
+    "labels" : {
+      "kubestack.label.event.id" : "abcd",
+      "host" : "133.133.135.134"
+    },
+    "name" : "ljx-img-test1"
+  },
+  "spec" : {
+    "nodeName" : "133.133.135.134",
+    "lifecycle" : {
+      "deleteDiskImage" : {
+        "sourcePool" : "vmdi134"
+      }
+    }
+  }
+}

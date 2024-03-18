@@ -2,16 +2,16 @@
   "apiVersion": "doslab.io/v1",
   "kind": "VirtualMachine",
   "metadata": {
-    "name": "backuptest1",
+    "name": "ybs-test1",
     "labels": {
-      "host": "133.133.135.134"
+        "host": "133.133.135.134"
     }
   },
   "spec": {
     "nodeName": "133.133.135.134",
     "lifecycle": {
-      "migrateVM": {
-        "ip": "133.133.135.73"
+      "stopVM": {
+
       }
     }
   }
