@@ -75,7 +75,7 @@ func createExternalSnapshot(ctx *cli.Context) error {
 	}
 	exist := virsh.IsDiskSnapshotExist(pool, ctx.String("source"), ctx.String("name"))
 	if exist {
-		return errors.New(fmt.Sprintf("the volume %+v is already exist", ctx.String("source")))
+		return errors.New(fmt.Sprintf("the snapshot %+v is already exist", ctx.String("name")))
 	}
 
 	diskDir, _ := virsh.ParseDiskDir(pool, ctx.String("source"))
@@ -121,7 +121,6 @@ func createExternalSnapshot(ctx *cli.Context) error {
 			return err
 		}
 	}
-
 	// update vmd
 	ksgvr := k8s.NewKsGvr(constant.VMDS_Kind)
 	vmd, err := ksgvr.Get(ctx.Context, constant.DefaultNamespace, ctx.String("source"))

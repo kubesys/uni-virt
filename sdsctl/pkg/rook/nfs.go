@@ -106,7 +106,7 @@ func MountNfs(nfsServerIp, nfsPath, localPath string) error {
 	}
 	resp, err := client.C.Call(context.TODO(), req)
 	if err != nil || resp.Code != constant.STATUS_OK {
-		return fmt.Errorf("grpc call err: %+v", resp.Message)
+		return fmt.Errorf("grpc call msg: %+v, err: %+v", resp, err)
 	}
 	return nil
 }
@@ -130,7 +130,7 @@ func UmountNfs(path string) error {
 	}
 	resp, err := client.C.Call(context.TODO(), req)
 	if err != nil || resp.Code != constant.STATUS_OK {
-		return fmt.Errorf("grpc call err: %+v", resp.Message)
+		return fmt.Errorf("grpc call msg: %+v, err: %+v", resp, err)
 	}
 	return nil
 }

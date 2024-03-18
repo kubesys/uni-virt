@@ -47,9 +47,9 @@ func main() {
 				if nodeName != host {
 					continue
 				}
-				logger.Infof("item nodeName:%s", nodeName)
+				logger.Infof("check nodeName:%s", nodeName)
 				info, _ := k8s.GetCRDSpec(item.Spec.Raw, constant.CRD_Pool_Key)
-				logger.Infof("check umount %s:%s %s", info["sourceHost"], info["sourcePath"], info["url"])
+				logger.Infof("check cephfs pool %s:%s %s", info["sourceHost"], info["sourcePath"], info["url"])
 				if !k8s.CheckCephfsMount(info["sourceHost"], info["sourcePath"], info["url"]) {
 					logger.Infof("start mount %s:%s %s", info["sourceHost"], info["sourcePath"], info["url"])
 					secret, _ := rook.GetSecret()

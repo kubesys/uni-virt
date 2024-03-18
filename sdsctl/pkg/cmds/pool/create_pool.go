@@ -110,6 +110,14 @@ func createPool(ctx *cli.Context) error {
 			return err
 		}
 
+		subvol := filepath.Base(sourcePath)
+		comm2 := &utils.Command{
+			Cmd: fmt.Sprintf("ceph fs subvolumegroup create myfs %s", subvol),
+		}
+		if _, err := comm2.Execute(); err != nil {
+			return err
+		}
+
 		scmd := fmt.Sprintf("mount -t ceph -o mds_namespace=%s,name=%s,secret=%s %s:%s %s", constant.DefaultMdsNamespace, constant.DefaultName, secret, sourceHost, sourcePath, ctx.String("url"))
 		//fmt.Println(scmd)
 		comm := utils.Command{Cmd: scmd}
@@ -127,7 +135,7 @@ func createPool(ctx *cli.Context) error {
 		}
 		resp, err := client.C.Call(ctx.Context, req)
 		if err != nil || resp.Code != constant.STATUS_OK {
-			return fmt.Errorf("grpc call err: %+v", resp.Message)
+			return fmt.Errorf("grpc call msg: %+v, err: %+v", resp, err)
 		}
 
 		// 持久化
@@ -171,7 +179,8 @@ func createPool(ctx *cli.Context) error {
 	//logger.Infof("write content")
 	// write content file
 	contentPath := filepath.Join(ctx.String("url"), "content")
-	var content = []byte(ctx.String("content"))
+	contentVar := strings.Trim(ctx.String("content"), " \n")
+	var content = []byte(contentVar)
 	os.WriteFile(contentPath, content, 0666)
 	// update vmp
 
