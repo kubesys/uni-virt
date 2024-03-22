@@ -1,0 +1,413 @@
+import groovy.json.JsonSlurperClassic
+def get1stItem(String kind,String location,String value){
+    def first_output=sh returnStdout: true, script: "kubectl get ${kind} -l host=${env.ip} -o json | jq -r 'first(.items[]|select(${location}==\"${value}\").metadata.name)'"
+    first_output
+}
+
+def checkStatus(String kind,String name){
+    def output=sh returnStdout: true,script:"kubectl get ${kind} -l name=${name} -o jsonpath={.items[0].spec.status.conditions.state.waiting.reason}"
+    output
+}
+def determineTarget(){}
+def modifyNameIP(String filename){
+    def dataObject = readJSON file: filename
+    dataObject.metadata.name=${env.BUILD_TAG}
+    dataObject.labels.host=${env.ip}
+    dataObject.spec.nodeName=${env.ip}
+    dataObject
+}
+pipeline {
+
+    agent {label 'jnlp-slave'}
+    environment{
+        disk1-name=UUID.randomUUID().toString()
+        disk2-name=UUID.randomUUID().toString()
+        //vmd-name=${env.BUILD_TAG}
+        vmd_vmp_name=get1stItem("vmp",".spec.pool.content","vmd")
+        vmd_vmp_path=sh returnStdout:true,script:"kubectl get vmp ${vmd_vmp_name} -o jsonpath={.spec.pool.url}"
+        vmdi_vmp_name=get1stItem("vmp",".spec.pool.content","vmdi")
+    }
+    parameter{
+        string(name:'ip',defaultValue:'default',description:'')
+    }
+
+    stages {
+        stage('git clone') {
+            steps {
+
+                container('tools'){
+                    sh "git config --global http.proxy socks5://133.133.133.111:7899"
+                    sh "git config --global https.proxy socks5://133.133.133.111:7899"
+                    sh "rm -rf *"
+                    retry(3){sh "git clone https://github.com/kubesys/uni-virt.git"}
+                    sh "cd uni-virt/scripts/examples"
+                }
+                echo 'git clone finish'
+
+            }
+        }
+        stage('determine ip address'){
+            steps{
+                container('tools'){
+                    string ip=${env.BUILD_URL.split('/')[2].split(':')[0]}
+
+                    if (${params.ip}!='default'){
+                        ip=${params.ip}
+                    }
+
+                    string migrate_ip=sh statusStdout:true, script:"kubectl get nodes -l kubernetes.io/hostname!=${ip} -o json | jq -r 'first(.items[].metadata.name)'"
+                    environment{
+                        ip=${ip}
+                        migrate_ip=${migrate_ip}
+                    }
+                }
+            }
+        }
+        stage('create 2 vmd'){
+            steps{
+
+                container('tools'){
+                    def dataObject = readJSON file: 'VMD-CreateVMDisk.json'
+                    dataObject.metadata.name=${env.disk1-name}
+                    dataObject.labels.host=${env.ip}
+                    dataObject.spec.nodeName=${env.ip}
+                    dataObject.spec.lifecycle.createDisk.type='cephfs'
+                    String vmp=get1stItem("vmp",".spec.pool.content","vmd")
+
+                    dataObject.spec.lifecycle.createDisk.pool=${vmp}
+                    //environment{
+                    //    vmd_vmp_name=${vmp}
+                    //    vmd_vmp_path=sh returnStdout:true,script:"kubectl get vmp ${vmp} -o jsonpath={.spec.pool.url}"
+                    //}
+                    String jsonString = JsonOutput.toJson(dataObject)
+                    def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                    sleep 10
+                    def status=checkStatus('vmd',${env.disk1-name})
+                    if(build_status!=0 or status!='Ready'){
+                        error "vmd creation failed"
+                    }
+                    dataObject.metadata.name=${env.disk2-name}
+                    String jsonString = JsonOutput.toJson(dataObject)
+                    def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                    sleep 10
+                    def status=checkStatus('vmd',${env.disk2-name})
+                    if(build_status!=0 or status!='Ready'){
+                        error "vmd creation failed"
+                    }
+                }
+            }
+        }
+        stage('resize vmd'){
+            steps{
+
+                container('tools'){
+                    def dataObject = readJSON file: 'VMD-ResizeDisk.json'
+                    dataObject.metadata.name=${env.disk2-name}
+                    dataObject.labels.host=${env.ip}
+                    dataObject.spec.nodeName=${env.ip}
+                    dataObject.spec.lifecycle.resizeDisk.type='cephfs'
+                    dataObject.spec.lifecycle.resizeDisk.pool=${env.vmd_vmp_name}
+                    String jsonString = JsonOutput.toJson(dataObject)
+                    def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                    sleep 10
+                    def status=checkStatus('vmd',${env.disk2-name})
+                    if(build_status!=0 or status!='Ready'){
+                        error "vmd ${env.disk2-name} resizing failed"
+                    }
+                }
+            }
+        }
+        stage('create vm'){
+            steps{
+                container('tools'){
+                    def dataObject = readJSON file: 'VM-CreateVMFromISO.json'
+                    dataObject.metadata.name=${env.BUILD_TAG}
+                    dataObject.labels.host=${env.ip}
+                    dataObject.spec.nodeName=${env.ip}
+                    dataObject.spec.lifecycle.createAndStartVMFromISO.disk=${env.vmd_vmp_path}+"/"+${env.disk1-name}+"/"+${env.disk1-name}+".qcow2,format=qcow2,cache=none"
+                    String jsonString = JsonOutput.toJson(dataObject)
+                    def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                    sleep 10
+                    def status=checkStatus('vm',${env.BUILD_TAG})
+                    if(build_status!=0 or status!='Running'){
+                        error "vm ${env.BUILD_TAG} creation failed"
+                    }
+                }
+            }
+        }
+        stage('stop vm nicely or force'){
+            steps{
+                container('tools'){
+                    def dataObject = readJSON file: 'VM-StopVM.json'
+                    dataObject.metadata.name=${env.BUILD_TAG}
+                    dataObject.labels.host=${env.ip}
+                    dataObject.spec.nodeName=${env.ip}
+                    String jsonString = JsonOutput.toJson(dataObject)
+                    def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                    sleep 10
+                    def status=checkStatus('vm',${env.BUILD_TAG})
+                    if(build_status!=0){
+                        error "vm stopping failed"
+                    }
+                    if(status=='Running'){
+                        def dataObject = readJSON file: 'VM-StopVMForce.json'
+                        dataObject.metadata.name=${env.BUILD_TAG}
+                        dataObject.labels.host=${env.ip}
+                        dataObject.spec.nodeName=${env.ip}
+                        String jsonString = JsonOutput.toJson(dataObject)
+                        def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                        sleep 10
+                        def status=checkStatus('vm',${env.BUILD_TAG})
+                        if(build_status!=0 or status!='Shutdown'){
+                            error "vm stopping failed"
+                        }
+                    }
+                    else{
+                        error "vm stopping failed"
+                    }
+                }
+            }
+        }
+
+        stage('plug disk2'){
+            steps{
+                container('tools'){
+                    def dataObject = readJSON file: 'VM-PlugDisk.json'
+                        dataObject.metadata.name=${env.BUILD_TAG}
+                        dataObject.labels.host=${env.ip}
+                        dataObject.spec.nodeName=${env.ip}
+                        dataObject.spec.lifecycle.plugDisk.ip=${env.migrate_ip}
+                        dataObject.spec.lifecycle.plugDisk.live=false
+                        dataObject.spec.lifecycle.plugDisk.source=${env.vmd_vmp_path}+"/"+${env.disk2-name}+"/"+${env.disk2-name}
+                        //determine target
+                        String jsonString = JsonOutput.toJson(dataObject)
+                        def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                        sleep 10
+                        def status=checkStatus('vm',${env.BUILD_TAG})
+                        if(build_status!=0 or status!='Shutdown'){
+                            error "vm plug disk2 failed"
+                        }
+                }
+            }
+        }
+        stage('unplug disk2'){
+            steps{
+                container('tools'){
+                    def dataObject = readJSON file: 'VM-UnPlugDisk.json'
+                        dataObject.metadata.name=${env.BUILD_TAG}
+                        dataObject.labels.host=${env.ip}
+                        dataObject.spec.nodeName=${env.ip}
+                        dataObject.spec.lifecycle.plugDisk.ip=${env.migrate_ip}
+                        dataObject.spec.lifecycle.plugDisk.live=false
+                        dataObject.spec.lifecycle.plugDisk.source=${env.vmd_vmp_path}+"/"+${env.disk2-name}+"/"+${env.disk2-name}
+                        //set target
+                        String jsonString = JsonOutput.toJson(dataObject)
+                        def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                        sleep 10
+                        def status=checkStatus('vm',${env.BUILD_TAG})
+                        if(build_status!=0 or status!='Shutdown'){
+                            error "vm unplug disk2 failed"
+                        }
+                }
+            }
+        }
+        stage('delete disk2'){
+            steps{
+                container('tools'){
+                    def dataObject = readJSON file: 'VMD-DeleteDisk.json'
+                        dataObject.metadata.name=${env.disk2-name}
+                        dataObject.labels.host=${env.ip}
+                        dataObject.spec.nodeName=${env.ip}
+                        dataObject.spec.lifecycle.deleteDisk.pool=${env.vmd_vmp_name}
+                        String jsonString = JsonOutput.toJson(dataObject)
+                        def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                        sleep 10
+                        def status=sh returnStatus: true,script:"kubectl get vmd -l name=${env.disk2-name} -o jsonpath={.items[0].spec.status.conditions.state.waiting.reason}"
+
+                        if(build_status!=0 or status==0){
+                            error "Delete disk ${env.disk2-name} failed"
+                        }
+                }
+            }
+        }
+        stage('create vmdi'){
+            steps{
+
+                container('tools'){
+                    def dataObject = readJSON file: 'VMDI-CreateVMDI.json'
+                    dataObject.metadata.name=${env.BUILD_TAG}
+                    dataObject.labels.host=${env.ip}
+                    dataObject.spec.nodeName=${env.ip}
+                    dataObject.spec.lifecycle.createDiskImage.targetPool=${env.vmdi_vmp_name}
+                    String jsonString = JsonOutput.toJson(dataObject)
+                    def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                    sleep 10
+                    def status=checkStatus('vmdi',${env.disk1-name})
+                    if(build_status!=0 or status!='Ready'){
+                        error "vmdi creation failed"
+                    }
+                }
+            }
+        }
+        stage('delete vmdi'){
+            steps{
+
+                container('tools'){
+                    def dataObject = readJSON file: 'VMDI-DeleteVMDI.json'
+                    dataObject.metadata.name=${env.BUILD_TAG}
+                    dataObject.labels.host=${env.ip}
+                    dataObject.spec.nodeName=${env.ip}
+                    dataObject.spec.lifecycle.deleteDiskImage.sourcePool=${env.vmdi_vmp_name}
+                    String jsonString = JsonOutput.toJson(dataObject)
+                    def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                    sleep 10
+                    def status=checkStatus('vmdi',${env.BUILD_TAG})
+                    if(build_status!=0 or status!='Ready'){
+                        error "vmdi deletion failed"
+                    }
+                }
+            }
+        }
+        stage('create vmdsn'){
+            steps{
+
+                container('tools'){
+                    def dataObject = readJSON file: 'VMDI-CreateVMDSnapshot.json'
+                    dataObject.metadata.name=${env.BUILD_TAG}
+                    dataObject.labels.host=${env.ip}
+                    dataObject.spec.nodeName=${env.ip}
+                    dataObject.spec.lifecycle.createDiskExternalSnapshot.pool=${env.vmdi_vmp_name}
+                    dataObject.spec.lifecycle.createDiskExternalSnapshot.type='cephfs'
+                    dataObject.spec.lifecycle.createDiskExternalSnapshot.name=${env.BUILD_TAG}
+                    dataObject.spec.lifecycle.createDiskExternalSnapshot.source=${env.disk1-name}
+                    dataObject.spec.lifecycle.createDiskExternalSnapshot.domain=${env.BUILD_TAG}
+                    String jsonString = JsonOutput.toJson(dataObject)
+                    def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                    sleep 10
+                    def status=checkStatus('vmdsn',${env.BUILD_TAG})
+                    if(build_status!=0 or status!='Ready'){
+                        error "vmdsn creation failed"
+                    }
+                }
+            }
+        }
+        stage('revert vmdsn'){
+            steps{
+
+                container('tools'){
+                    def dataObject = readJSON file: 'VMDI-RevertVMDSnapshot.json'
+                    dataObject.metadata.name=${env.BUILD_TAG}
+                    dataObject.labels.host=${env.ip}
+                    dataObject.spec.nodeName=${env.ip}
+                    dataObject.spec.lifecycle.revertDiskExternalSnapshot.pool=${env.vmdi_vmp_name}
+                    dataObject.spec.lifecycle.revertDiskExternalSnapshot.type='cephfs'
+                    dataObject.spec.lifecycle.revertDiskExternalSnapshot.source=${env.disk1-name}
+                    dataObject.spec.lifecycle.revertDiskExternalSnapshot.domain=${env.BUILD_TAG}
+                    String jsonString = JsonOutput.toJson(dataObject)
+                    def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                    sleep 10
+                    def status=checkStatus('vm',${env.BUILD_TAG})
+                    if(build_status!=0 or status!='Running'){
+                        error "vmdsn reversion failed"
+                    }
+                }
+            }
+        }
+        stage('delete vmdsn'){
+            steps{
+
+                container('tools'){
+                    def dataObject = readJSON file: 'VMDI-DeleteVMDSnapshot.json'
+                    dataObject.metadata.name=${env.BUILD_TAG}
+                    dataObject.labels.host=${env.ip}
+                    dataObject.spec.nodeName=${env.ip}
+                    dataObject.spec.lifecycle.deleteDiskExternalSnapshot.pool=${env.vmdi_vmp_name}
+                    dataObject.spec.lifecycle.deleteDiskExternalSnapshot.type='cephfs'
+                    dataObject.spec.lifecycle.deleteDiskExternalSnapshot.source=${env.disk1-name}
+                    dataObject.spec.lifecycle.deleteDiskExternalSnapshot.domain=${env.BUILD_TAG}
+                    String jsonString = JsonOutput.toJson(dataObject)
+                    def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                    sleep 10
+                    def status=sh returnStatus: true,script:"kubectl get vmdsn -l name=${env.BUILD_TAG} -o jsonpath={.items[0].spec.status.conditions.state.waiting.reason}"
+
+                    if(build_status!=0 or status==0){
+                        error "vmdsn deletion failed"
+                    }
+                }
+            }
+        }
+        stage('migrate vm'){
+            steps{
+                container('tools'){
+                    def dataObject = readJSON file: 'VM-MigrateVM.json'
+                        dataObject.metadata.name=${env.BUILD_TAG}
+                        dataObject.labels.host=${env.ip}
+                        dataObject.spec.nodeName=${env.ip}
+                        dataObject.spec.lifecycle.migrateVM.ip=${env.migrate_ip}
+                        dataObject.spec.lifecycle.migrateVM.offline=true
+                        String jsonString = JsonOutput.toJson(dataObject)
+                        def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                        sleep 10
+                        def status=checkStatus('vm',${env.BUILD_TAG})
+                        if(build_status!=0 or status!='Shutdown'){
+                            error "vm migration failed"
+                        }
+                }
+            }
+        }
+        stage('start vm'){
+            steps{
+
+                container('tools'){
+                    def dataObject = readJSON file: 'VM-StartVM.json'
+                    dataObject.metadata.name=${env.BUILD_TAG}
+                    dataObject.labels.host=${env.ip}
+                    dataObject.spec.nodeName=${env.ip}
+                    String jsonString = JsonOutput.toJson(dataObject)
+                    def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                    sleep 10
+                    def status=checkStatus('vm',${env.BUILD_TAG})
+                    if(build_status!=0 or status!='Running'){
+                        error "vm starting failed"
+                    }
+                }
+            }
+        }
+        stage('reboot vm'){
+            steps{
+
+                container('tools'){
+                    def dataObject = readJSON file: 'VM-RebootVM.json'
+                    dataObject.metadata.name=${env.BUILD_TAG}
+                    dataObject.labels.host=${env.ip}
+                    dataObject.spec.nodeName=${env.ip}
+                    String jsonString = JsonOutput.toJson(dataObject)
+                    def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                    sleep 10
+                    def status=checkStatus('vm',${env.BUILD_TAG})
+                    if(build_status!=0 or status!='Running'){
+                        error "vm rebooting failed"
+                    }
+                }
+            }
+        }
+        stage('delete vm'){
+            steps{
+
+                container('tools'){
+                    def dataObject = readJSON file: 'VM-DeleteVM.json'
+                    dataObject.metadata.name=${env.BUILD_TAG}
+                    dataObject.labels.host=${env.ip}
+                    dataObject.spec.nodeName=${env.ip}
+                    String jsonString = JsonOutput.toJson(dataObject)
+                    def build_status=sh returnStatus:true, script:"echo ${jsonString}| kubectl apply -f -"
+                    sleep 10
+                    def status=sh returnStatus: true,script:"kubectl get vm -l name=${env.BUILD_TAG} -o jsonpath={.items[0].spec.status.conditions.state.waiting.reason}"
+                    if(build_status!=0 or status==0){
+                        error "vm deletion failed"
+                    }
+                }
+            }
+        }
+    }
+}
