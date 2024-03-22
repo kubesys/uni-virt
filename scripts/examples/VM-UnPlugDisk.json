@@ -1,0 +1,22 @@
+{
+  "apiVersion": "doslab.io/v1",
+  "kind": "VirtualMachine",
+  "metadata": {
+    "name": "test",
+    "labels": {
+        "host": "vm.node191"
+    }
+  },
+  "spec": {
+    "nodeName": "vm.node191",
+    "lifecycle": {
+      "unplugDisk": {
+        "source": "/var/lib/libvirt/pooltest/disk1/disk1",
+        "target": "vdb",
+        "live": true,
+        "config": true,
+        "subdriver": "qcow2"
+      }
+    }
+  }
+}

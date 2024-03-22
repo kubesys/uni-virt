@@ -5,12 +5,12 @@
     "name": "ljx",
     "labels": {
         "host": "133.133.135.134"
-    } 
+    }
   },
   "spec": {
     "nodeName": "133.133.135.134",
     "lifecycle": {
-      "plugNIC": {
+      "unplugNIC": {
         "source": "source=br-bond1",
         "config": true,
         "live": true,
