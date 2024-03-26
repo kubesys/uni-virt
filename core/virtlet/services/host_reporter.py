@@ -84,15 +84,15 @@ def main():
             # host=client.getResourceStatus(kind="Node",name=HOSTNAME)
             # node_watcher = HostCycler()
             # host['status'] = node_watcher.get_node_status()
-            # if ha_check:
-            #     for vm in list_vms():
-            #         _check_vm_by_hosting_node(KIND, vm)
-            #         try:
-            #             _check_ha_and_autostart_vm(KIND, vm)
-            #         except RetryError:
-            #             pass
-            #         _check_vm_power_state(KIND, vm)
-            #     ha_check = False
+            if ha_check:
+                for vm in list_vms():
+                    _check_vm_by_hosting_node(KIND, vm)
+                    try:
+                        _check_ha_and_autostart_vm(KIND, vm)
+                    except RetryError:
+                        pass
+                    _check_vm_power_state(KIND, vm)
+                ha_check = False
             _patch_node_status()
             if ha_enable:
                 _check_and_enable_HA()
