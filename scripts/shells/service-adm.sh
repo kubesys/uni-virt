@@ -60,6 +60,7 @@ if [[ "$1" == "update" ]] ;then
 	#fi
 	#cp -f ./dist/kubevmm-adm /usr/bin/
 	#rm -rf ./dist
+	cp -rf ./client_python/kubesys ./core/
 	cd ./core/plugins
 	cp -f virshplus.py ../
 	cd ../..
