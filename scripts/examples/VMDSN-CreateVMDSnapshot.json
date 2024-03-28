@@ -11,7 +11,7 @@
     "nodeName": "133.133.135.134",
     "lifecycle": {
       "createDiskExternalSnapshot": {
-        "type": "localfs",
+        "type": "cephfs",
         "pool": "cephfspool134",
         "source": "backuptest0",
         "name": "backuptest1-snapshot",
