@@ -771,7 +771,7 @@ def myVmdImageLibvirtXmlEventHandler(event, name, pool, xml_path, group, version
             # vmd_xml = get_volume_xml(pool, name)
             vol_path = get_volume_path(pool, name)
             try:
-                file_ext = os.path.splitext(vol_path)[1].lower()
+                file_ext = os.path.splitext(vol_path)[1][1:].lower()
             except:
                 file_ext = 'unknown'
             vmdi_json = {'volume': {"current": vol_path, "pool": pool, "type": file_ext, "format": "raw"}}
