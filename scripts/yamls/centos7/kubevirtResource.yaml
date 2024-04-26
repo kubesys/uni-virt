@@ -165,10 +165,10 @@ spec:
             type: object
             x-kubernetes-preserve-unknown-fields: true
     additionalPrinterColumns:
-    - jsonPath: .spec.volume.target.format._type
+    - jsonPath: .spec.volume.type
       name: TYPE
       type: string  
-    - jsonPath: .spec.volume.target.path.text
+    - jsonPath: .spec.volume.current
       name: PATH
       type: string  
     - jsonPath: .spec.status.conditions.state.waiting.reason

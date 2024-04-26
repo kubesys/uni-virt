@@ -27,6 +27,7 @@ import os
 from time import time,sleep
 import traceback
 import sys
+import logging,re
 from json import loads
 from json import dumps
 from xml.etree.ElementTree import fromstring
@@ -767,11 +768,16 @@ def myVmdImageLibvirtXmlEventHandler(event, name, pool, xml_path, group, version
             jsondict = {'spec': {'volume': {}, 'nodeName': HOSTNAME, 'status': {}},
                         'kind': VMDI_KIND, 'metadata': {'labels': {'host': HOSTNAME}, 'name': name,'namespace': NAMESPACE},
                         'apiVersion': '%s/%s' % (group, version)}
-            vmd_xml = get_volume_xml(pool, name)
+            # vmd_xml = get_volume_xml(pool, name)
             vol_path = get_volume_path(pool, name)
-            vmd_json = toKubeJson(xmlToJson(vmd_xml))
-            vmd_json = addSnapshots(vol_path, loads(vmd_json))
-            jsondict = updateDomainStructureAndDeleteLifecycleInJson(jsondict, vmd_json)
+            try:
+                file_ext = os.path.splitext(vol_path)[1].lower()
+            except:
+                file_ext = 'unknown'
+            vmdi_json = {'volume': {"current": vol_path, "pool": pool, "type": file_ext, "format": "raw"}}
+            # vmd_json = toKubeJson(xmlToJson(vmd_xml))
+            # vmd_json = addSnapshots(vol_path, loads(vmd_json))
+            jsondict = updateDomainStructureAndDeleteLifecycleInJson(jsondict, vmdi_json)
             jsondict = addPowerStatusMessage(jsondict, 'Ready', 'The resource is ready.')
             body = addNodeName(jsondict)
             try:
