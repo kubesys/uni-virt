@@ -1093,7 +1093,7 @@ def _create_or_update_vmgpus(group, version, metadata_name, gpu_info):
         # logger.debug('create or update vmgpus: %s' % metadata_name)
         jsondict = get_custom_object(VMGPU_KIND,metadata_name)
     except HTTPError as e:
-        if str(e).find("Not Found"):
+        if str(e).find("Not Found") or str(e).find("not found"):
             jsondict = {'spec': gpu_info, 'kind': VMGPU_KIND,
                         'metadata': {'labels': {'host': HOSTNAME}, 'name': metadata_name},
                         'apiVersion': '%s/%s' % (group, version)}
@@ -1346,12 +1346,12 @@ def main():
         while True:
             try:
                 # observe(observer,'vmd')
-                # node = get_1st_ready()
-                # if not repeated:
-                #     logger.info(f"VMDI is listened on {node}")
-                #     repeated=True
-                # if HOSTNAME == node:
-                observe(observer,'vmdi')
+                node = get_1st_ready()
+                if not repeated:
+                    logger.info(f"VMDI is listened on {node}")
+                    repeated=True
+                if HOSTNAME == node:
+                    observe(observer,'vmdi')
             except Exception as e:
                 logger.warning('Oops! ', exc_info=1)
             finally:
