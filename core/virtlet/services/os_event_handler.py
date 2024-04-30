@@ -1361,12 +1361,12 @@ def main():
         while True:
             try:
                 # observe(observer,'vmd')
-                node = get_1st_ready()
-                if not repeated:
-                    logger.info(f"VMDI is listened on {node}")
-                    repeated=True
-                if HOSTNAME == node:
-                    observe(observer,'vmdi')
+                # node = get_1st_ready()
+                # if not repeated:
+                #     logger.info(f"VMDI is listened on {node}")
+                #     repeated=True
+                # if HOSTNAME == node:
+                observe(observer,'vmdi')
             except Exception as e:
                 logger.warning('Oops! ', exc_info=1)
             finally:
