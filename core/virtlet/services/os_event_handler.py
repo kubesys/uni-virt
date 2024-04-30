@@ -1093,7 +1093,7 @@ def _create_or_update_vmgpus(group, version, metadata_name, gpu_info):
         # logger.debug('create or update vmgpus: %s' % metadata_name)
         jsondict = get_custom_object(VMGPU_KIND,metadata_name)
     except HTTPError as e:
-        if str(e).find("Not Found") or str(e).find("not found"):
+        if str(e).find("Not Found") or str(e).find("not found") or str(e).find("NotFound"):
             jsondict = {'spec': gpu_info, 'kind': VMGPU_KIND,
                         'metadata': {'labels': {'host': HOSTNAME}, 'name': metadata_name},
                         'apiVersion': '%s/%s' % (group, version)}
@@ -1181,7 +1181,11 @@ def _parse_pci_info(gpu_id, gpu_id_value):
     # Update the dictionary with 'id' and 'type' values
     info_dict['id'] = id_match.group(1) if id_match else ''
     info_dict['type'] = type_match.group(1) if type_match else ''
-    # logger.debug(info_dict)
+    logger.debug(info_dict)
+    logger.debug(info_lines[0])
+    # type for nvidia 4090
+    if info_dict['type'] == 'VGA controller' and 'NVIDIA Corporation Device 2684' in info_lines[0]:
+        info_dict['type'] = '4090'
 
     # Update the dictionary with 'inUse' values
     # Vms
