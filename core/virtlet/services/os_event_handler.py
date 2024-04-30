@@ -1323,37 +1323,22 @@ def main():
         #             observer.schedule(event_handler,ob[1],True)
 
         # vm event handler
-        if not os.path.exists(LIBVIRT_XML_DIR):
-            os.makedirs(LIBVIRT_XML_DIR, 0x0711)
-        event_handler = VmLibvirtXmlEventHandler('kvm', LIBVIRT_XML_DIR, GROUP, VERSION, PLURAL_VM)
-        observer.schedule(event_handler, LIBVIRT_XML_DIR, True)
-#         for ob in TEMPLATE_DIRS:
-#             if not os.path.exists(ob[1]):
-#                 os.makedirs(ob[1], 0x0711)
-#             event_handler = ImageLibvirtXmlEventHandler(ob[0], ob[1], GROUP_VMI, VERSION_VMI, PLURAL_VMI)
-#             observer.schedule(event_handler, ob[1], True)
 
-        # vmd event handler
-        # if not os.path.exists(VMD_TEMPLATE_DIR):
-        #     os.makedirs(VMD_TEMPLATE_DIR, 0x0711)
-        #     try:
-        #         runCmdRaiseException('virsh pool-create-as --name %s --type dir --target %s' % ('default', VMD_TEMPLATE_DIR))
-        #     except:
-        #         os.removedirs(VMD_TEMPLATE_DIR)
-        #         runCmdRaiseException('virsh pool-destroy --name %s' % ('default'))
-        #         runCmdRaiseException('virsh pool-undefine --name %s' % ('default'))
-        #         logger.error('Oops! ', exc_info=1)
-        # event_handler = VmdImageLibvirtXmlEventHandler('default', VMD_TEMPLATE_DIR, GROUP, VERSION,
-        #                                                PLURAL_VM_DISK_IMAGE)
-        # observer.schedule(event_handler, VMD_TEMPLATE_DIR, True)
-        GPUCheckandUpdate()
-        if os.path.exists(constants.KUBEVMM_GPU_NVIDIA_DIR):
-            event_handler = VmGPUEventHandler()
-            observer.schedule(event_handler, constants.KUBEVMM_GPU_NVIDIA_DIR, True)
-        if os.path.exists(constants.KUBEVMM_GPU_PCI_DIR):
-            event_handler = VmGPUEventHandler()
-            observer.schedule(event_handler, constants.KUBEVMM_GPU_PCI_DIR, True)
-        observer.start()
+        try:
+            if not os.path.exists(LIBVIRT_XML_DIR):
+                os.makedirs(LIBVIRT_XML_DIR, 0x0711)
+            event_handler = VmLibvirtXmlEventHandler('kvm', LIBVIRT_XML_DIR, GROUP, VERSION, PLURAL_VM)
+            observer.schedule(event_handler, LIBVIRT_XML_DIR, True)
+            GPUCheckandUpdate()
+            if os.path.exists(constants.KUBEVMM_GPU_NVIDIA_DIR):
+                event_handler = VmGPUEventHandler()
+                observer.schedule(event_handler, constants.KUBEVMM_GPU_NVIDIA_DIR, True)
+            if os.path.exists(constants.KUBEVMM_GPU_PCI_DIR):
+                event_handler = VmGPUEventHandler()
+                observer.schedule(event_handler, constants.KUBEVMM_GPU_PCI_DIR, True)
+            observer.start()
+        except:
+            logger.warning('Oops! ', exc_info=1)
 
         # vmp and vmdi event handler
         # OLD_PATH_WATCHERS = {}
