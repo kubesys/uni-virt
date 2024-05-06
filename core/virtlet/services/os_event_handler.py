@@ -1181,11 +1181,11 @@ def _parse_pci_info(gpu_id, gpu_id_value):
     # Update the dictionary with 'id' and 'type' values
     info_dict['id'] = id_match.group(1) if id_match else ''
     info_dict['type'] = type_match.group(1) if type_match else ''
-    logger.debug(info_dict)
-    logger.debug(info_lines[0])
+    # logger.debug(info_dict)
+    # logger.debug(info_lines[0])
     # type for nvidia 4090
     if info_dict['type'] == 'VGA controller' and 'NVIDIA Corporation Device 2684' in info_lines[0]:
-        info_dict['type'] = '4090'
+        info_dict['type'] = 'GeForce RTX 4090'
 
     # Update the dictionary with 'inUse' values
     # Vms
@@ -1227,15 +1227,15 @@ def _parse_pci_info(gpu_id, gpu_id_value):
     # Modify the dictionary to include the desired keys and values
     gpu_info = {
         "gpu": {
-            "id": info_dict.get("id", ""),
-            "type": info_dict.get("type", ""),
-            "subsystem": info_dict.get("subsystem", ""),
-            "flags": info_dict.get("flags", ""),
-            "capabilities": info_dict.get("capabilities", ""),
-            "kernelDriverInUse": info_dict.get("kernelDriverInUse", ""),
-            "kernelModules": info_dict.get("kernelModules", ""),
-            "inUse": info_dict.get("inUse", ""),
-            "useMode": info_dict.get("useMode", "")
+            "id": info_dict.get("id", "unknown"),
+            "type": info_dict.get("type", "unknown"),
+            "subsystem": info_dict.get("subsystem", "unknown"),
+            "flags": info_dict.get("flags", "unknown"),
+            "capabilities": info_dict.get("capabilities", "unknown"),
+            "kernelDriverInUse": info_dict.get("kernelDriverInUse", "unknown"),
+            "kernelModules": info_dict.get("kernelModules", "unknown"),
+            "inUse": info_dict.get("inUse", "unknown"),
+            "useMode": info_dict.get("useMode", "unknown")
         },
         "nodeName": HOSTNAME
     }
