@@ -1618,9 +1618,10 @@ def get_1st_ready():
     names=get_all_nodes_name()
     for name in names:
         nodestatus=client.getResourceStatus(kind='Node',name=name).get('status')
-        condition=nodestatus.get('conditions')[-1]
-        if condition.get('type')=='Ready' and condition.get('status')=='True':
-            return name
+        if nodestatus and nodestatus.get('conditions'):
+            condition=nodestatus.get('conditions')[-1]
+            if condition.get('type')=='Ready' and condition.get('status')=='True':
+                return name
 
 def get_node_label_value(nodes, label):
     """:type nodes: str:type label: str:rtype: str"""
