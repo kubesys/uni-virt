@@ -1090,8 +1090,7 @@ def updateDomainStructureAndDeleteLifecycleInJson(jsondict, body):
 def _create_or_update_vmgpus(group, version, metadata_name, gpu_info):
     jsondict = {}
     try:
-        # logger.debug('create or update vmgpus: %s' % metadata_name)
-        jsondict = get_custom_object(VMGPU_KIND,metadata_name)
+        jsondict = get_custom_object.__wrapped__(VMGPU_KIND,metadata_name)
     except HTTPError as e:
         if str(e).find("Not Found") or str(e).find("not found") or str(e).find("NotFound"):
             jsondict = {'spec': gpu_info, 'kind': VMGPU_KIND,
