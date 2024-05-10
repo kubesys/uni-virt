@@ -1090,11 +1090,11 @@ def updateDomainStructureAndDeleteLifecycleInJson(jsondict, body):
 def _create_or_update_vmgpus(group, version, metadata_name, gpu_info):
     jsondict = {}
     try:
-        jsondict = get_custom_object.__wrapped__(VMGPU_KIND,metadata_name)
+        jsondict = get_custom_object(VMGPU_KIND,metadata_name)
     except HTTPError as e:
         if str(e).find("Not Found") or str(e).find("not found") or str(e).find("NotFound"):
             jsondict = {'spec': gpu_info, 'kind': VMGPU_KIND,
-                        'metadata': {'labels': {'host': HOSTNAME}, 'name': metadata_name},
+                        'metadata': {'labels': {'host': HOSTNAME}, 'name': metadata_name, 'namespace':'default'},
                         'apiVersion': '%s/%s' % (group, version)}
             # logger.debug('**VM %s already deleted, ignore this 404 error.' % metadata_name)
             create_custom_object(jsondict)
