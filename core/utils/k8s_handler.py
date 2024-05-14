@@ -53,10 +53,10 @@ class Event:
         self.lastTimestamp=last_timestamp.isoformat()
         self.eventTime=last_timestamp.isoformat()
         self.metadata=metadata.__dict__
-        self.involvedObject=involved_object.__dict__
+        self.regarding=involved_object.__dict__
         self.reportingController=controller
         self.reportingInstance=self.reportingController+'-'+metadata.name
-        self.message=message
+        self.note=message
         self.reason=reason
         self.type=type
         self.kind='Event'
