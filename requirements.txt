@@ -18,3 +18,6 @@ watchdog~=2.3.0
 wheel>=0.37
 xmltodict~=0.13.0
 xmljson~=0.2.0
+urllib3~=2.1.0
+werkzeug~=3.0.0
+setuptools~=68.2.0
