@@ -1,0 +1,18 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"rbac.authorization.k8s.io/v1","kind":"ClusterRoleBinding","metadata":{"annotations":{},"name":"rbd-csi-nodeplugin"},"roleRef":{"apiGroup":"rbac.authorization.k8s.io","kind":"ClusterRole","name":"rbd-csi-nodeplugin"},"subjects":[{"kind":"ServiceAccount","name":"rook-csi-rbd-plugin-sa","namespace":"rook-ceph-backup1"}]}
+  creationTimestamp: "2024-05-03T09:22:45Z"
+  name: rbd-csi-nodeplugin-rook-ceph
+  resourceVersion: "126419151"
+  uid: 68593fd3-5870-46d4-aee2-2411991e4706
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rbd-csi-nodeplugin
+subjects:
+- kind: ServiceAccount
+  name: rook-csi-rbd-plugin-sa
+  namespace: rook-ceph
