@@ -59,7 +59,21 @@ if args.command == 'show':
         if driver_match:
             print(f"PCI address: {pci_addr}, {driver_match.group(0)}")
         else :
-            print(f"PCI address: {pci_addr}, has not bind kernel module")
+            if os.path.isdir(f"/sys/bus/pci/devices/0000:{pci_addr}/driver"):
+                if os.path.isdir(f"/sys/bus/pci/devices/0000:{pci_addr}/driver/module/drivers"):
+                    folders = next(os.walk(f"/sys/bus/pci/devices/0000:{pci_addr}/driver/module/drivers"))[1]
+                    matching_nvidia_folders = [folder for folder in folders if 'nvidia' in folder]
+                    matching_vfio_folders = [folder for folder in folders if 'vfio' in folder]
+                    if matching_nvidia_folders:
+                         print(f"PCI address: {pci_addr}, Kernel driver in use: nvidia")
+                    elif matching_vfio_folders:
+                         print(f"PCI address: {pci_addr}, Kernel driver in use: vfio")
+                    else :
+                        cmd = f"echo 0000:{pci_addr} > /sys/bus/pci/devices/0000:{pci_addr}/driver/unbind"
+                        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                        print(f"PCI address: {pci_addr}, has not bind kernel module")
+            else :
+                print(f"PCI address: {pci_addr}, has not bind kernel module")
     print("----------------------------------------------------------------------------")
 elif args.command == "unbind":
     if args.driver == "nvidia":
