@@ -5,7 +5,26 @@ import os
 import argparse
 
 
-#--可选参数
+def check_iommu_enabled():
+    # 检查 dmesg 日志是否包含 IOMMU 信息
+    dmesg_cmd = "dmesg | grep -E 'DMAR|IOMMU'"
+    dmesg_result = subprocess.run(dmesg_cmd, shell=True, capture_output=True, text=True)
+
+    # 检查 /proc/cmdline 文件中的内核启动参数
+    cmdline_cmd = "cat /proc/cmdline"
+    cmdline_result = subprocess.run(cmdline_cmd, shell=True, capture_output=True, text=True)
+
+    if "iommu=on" in cmdline_result.stdout or "intel_iommu=on" in cmdline_result.stdout or "amd_iommu=on" in cmdline_result.stdout:
+        if "IOMMU enabled" in dmesg_result.stdout:
+            print("IOMMU is enabled.")
+        else:
+            print("IOMMU maybe is not properly initialized. Please check your system configuration.")
+    else:
+        print("IOMMU is not enabled. Please set IOMMU on.")
+        sys.exit(1)
+
+
+# --可选参数
 parser = argparse.ArgumentParser(description='Script for binding and unbinding devices to drivers with PCI address.')
 
 subparsers = parser.add_subparsers(dest='command', required=True)
@@ -51,28 +70,29 @@ if args.command == 'show':
     # 遍历所有找到的PCI地址
     for pci_addr in pci_addresses:
         cmd_details = f"lspci -vs {pci_addr}"
-        result_details = subprocess.run(cmd_details, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result_details = subprocess.run(cmd_details, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                        text=True)
 
         driver_pattern = r"Kernel driver in use: (.*)"
         driver_match = re.search(driver_pattern, result_details.stdout)
 
         if driver_match:
             print(f"PCI address: {pci_addr}, {driver_match.group(0)}")
-        else :
+        else:
             if os.path.isdir(f"/sys/bus/pci/devices/0000:{pci_addr}/driver"):
                 if os.path.isdir(f"/sys/bus/pci/devices/0000:{pci_addr}/driver/module/drivers"):
                     folders = next(os.walk(f"/sys/bus/pci/devices/0000:{pci_addr}/driver/module/drivers"))[1]
                     matching_nvidia_folders = [folder for folder in folders if 'nvidia' in folder]
                     matching_vfio_folders = [folder for folder in folders if 'vfio' in folder]
                     if matching_nvidia_folders:
-                         print(f"PCI address: {pci_addr}, Kernel driver in use: nvidia")
+                        print(f"PCI address: {pci_addr}, Kernel driver in use: nvidia")
                     elif matching_vfio_folders:
-                         print(f"PCI address: {pci_addr}, Kernel driver in use: vfio")
-                    else :
+                        print(f"PCI address: {pci_addr}, Kernel driver in use: vfio")
+                    else:
                         cmd = f"echo 0000:{pci_addr} > /sys/bus/pci/devices/0000:{pci_addr}/driver/unbind"
                         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
                         print(f"PCI address: {pci_addr}, has not bind kernel module")
-            else :
+            else:
                 print(f"PCI address: {pci_addr}, has not bind kernel module")
     print("----------------------------------------------------------------------------")
 elif args.command == "unbind":
@@ -83,13 +103,13 @@ elif args.command == "unbind":
     else:
         print("Usage: script.py bind/unbind nvidia/vfio PCI_ADDRESS")
         sys.exit(1)
-    #可以优化一下非阻塞调用，检查执行状态,万一unbind会卡住
+    # 可以优化一下非阻塞调用，检查执行状态,万一unbind会卡住
     result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     cmd = "lspci -vs {} | grep Kernel".format(args.pci_address)
     result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     print(result.stdout)
 elif args.command == "bind":
-    #绑定之前确认解绑
+    # 绑定之前确认解绑
     cmd = f'lspci -vs {args.pci_address} | grep "Kernel driver in use"'
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     if "Kernel driver in use" in result.stdout:
@@ -106,18 +126,13 @@ elif args.command == "bind":
             sys.exit(1)
         cmd = f"echo 0000:{args.pci_address} > /sys/bus/pci/drivers/nvidia/bind"
     elif args.driver == "vfio":
-        cmd = "dmesg | grep -E 'DMAR|IOMMU'"
+        check_iommu_enabled()
+        cmd = "modprobe vfio && modprobe vfio-pci"
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        if "IOMMU enabled" not in result.stdout:
-            print("IOMMU is not enabled.Please set IOMMU on")
+        if not os.path.isdir("/sys/bus/pci/drivers/vfio-pci"):
+            print("load vfio-pci kernel error")
             sys.exit(1)
-        else:
-            cmd = "modprobe vfio && modprobe vfio-pci"
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-            if not os.path.isdir("/sys/bus/pci/drivers/vfio-pci"):
-                print("load vfio-pci kernel error")
-                sys.exit(1)
-            cmd = f"echo 0000:{args.pci_address} > /sys/bus/pci/drivers/vfio-pci/bind"
+        cmd = f"echo 0000:{args.pci_address} > /sys/bus/pci/drivers/vfio-pci/bind"
     else:
         print("Usage: script.py bind/unbind nvidia/vfio PCI_ADDRESS")
         sys.exit(1)
@@ -127,3 +142,5 @@ elif args.command == "bind":
 else:
     parser.print_help()
     sys.exit(1)
+
+
