@@ -1,0 +1,18 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"rbac.authorization.k8s.io/v1","kind":"ClusterRoleBinding","metadata":{"annotations":{},"name":"rook-ceph-object-bucket"},"roleRef":{"apiGroup":"rbac.authorization.k8s.io","kind":"ClusterRole","name":"rook-ceph-object-bucket"},"subjects":[{"kind":"ServiceAccount","name":"rook-ceph-system","namespace":"rook-ceph-backup1"}]}
+  creationTimestamp: "2024-05-03T09:22:45Z"
+  name: rook-ceph-object-bucket-rook-ceph-ai2
+  resourceVersion: "126419155"
+  uid: cc7372ef-90b5-45a1-b5d7-e136075d6c49
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rook-ceph-object-bucket
+subjects:
+- kind: ServiceAccount
+  name: rook-ceph-system
+  namespace: rook-ceph-ai2

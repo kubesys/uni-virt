@@ -1,0 +1,18 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"rbac.authorization.k8s.io/v1","kind":"ClusterRoleBinding","metadata":{"annotations":{},"name":"cephfs-csi-provisioner-role"},"roleRef":{"apiGroup":"rbac.authorization.k8s.io","kind":"ClusterRole","name":"cephfs-external-provisioner-runner"},"subjects":[{"kind":"ServiceAccount","name":"rook-csi-cephfs-provisioner-sa","namespace":"rook-ceph"}]}
+  creationTimestamp: "2024-05-03T09:22:45Z"
+  name: cephfs-csi-provisioner-role-rook-ceph-ai1
+  resourceVersion: "186617131"
+  uid: 2f962e49-8c09-4cab-bea7-d1f75367bddd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cephfs-external-provisioner-runner
+subjects:
+- kind: ServiceAccount
+  name: rook-csi-cephfs-provisioner-sa
+  namespace: rook-ceph-ai1
