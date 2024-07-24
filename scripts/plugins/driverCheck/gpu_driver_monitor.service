@@ -1,0 +1,13 @@
+[Unit]
+Description=Record NVIDIA GPU status
+DefaultDependencies=no
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/driverCheck/driverCheck
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

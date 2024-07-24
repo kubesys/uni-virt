@@ -21,6 +21,11 @@
         recursive: yes
         delete: yes
       become_user: root
+    - name: Execute create-comm-service.sh script
+      ansible.builtin.command:
+        cmd: "bash service.sh"
+      args:
+        chdir: "{{ lookup('env', 'PWD') }}/scripts/plugins/driverCheck"
 
     - name: Execute create-comm-service.sh script
       ansible.builtin.command:
