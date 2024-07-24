@@ -14,10 +14,17 @@
         group: root
         mode: '0755'
 
-    - name: Copy necessary files to target hosts
+    - name: Copy sdsctl files to target hosts
       ansible.builtin.synchronize:
         src: "{{ lookup('env', 'PWD') }}/sdsctl/"
         dest: "/etc/uniVirt/sdsctl/"
+        recursive: yes
+        delete: yes
+      become_user: root
+    - name: Copy driverCheck files to target hosts
+      ansible.builtin.synchronize:
+        src: "{{ lookup('env', 'PWD') }}/scripts/plugins/driverCheck/"
+        dest: "/etc/uniVirt/driverCheck/"
         recursive: yes
         delete: yes
       become_user: root
@@ -25,7 +32,7 @@
       ansible.builtin.command:
         cmd: "bash service.sh"
       args:
-        chdir: "{{ lookup('env', 'PWD') }}/scripts/plugins/driverCheck"
+        chdir: "/etc/uniVirt/driverCheck"
 
     - name: Execute create-comm-service.sh script
       ansible.builtin.command:
