@@ -86,6 +86,14 @@ else
     echo "    Success compile <virshplus>."
 fi
 cp -f ./dist/ubuntu22/virshplus ../../dist/ubuntu22
+pyinstaller --distpath ./dist/ubuntu22/ -F nvidia_driver_manager.py
+if [ $? -ne 0 ]; then
+    echo "    Failed to compile <nvidia_driver_manager>!"
+    exit 1
+else
+    echo "    Success compile <nvidia_driver_manager>."
+fi
+cp -f ./dist/ubuntu22/nvidia_driver_manager ../../dist/ubuntu22
 cd ../../
 #cp -rf ../SDS ./
 #cd ./SDS
