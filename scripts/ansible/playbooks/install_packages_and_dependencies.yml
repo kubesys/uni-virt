@@ -184,6 +184,7 @@
       apt:
         update_cache: yes
       when: ansible_os_family == 'Debian'
+      ignore_errors: true
 
     - name: Install required packages
       apt:
