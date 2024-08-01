@@ -11,6 +11,7 @@
         name:
           - bzip2
           - wget
+          - ca-certificates
         state: present
       when: ansible_os_family == 'RedHat'
 
