@@ -93,7 +93,7 @@ def main():
             #             pass
             #         _check_vm_power_state(KIND, vm)
             #     ha_check = False
-            _patch_node_status()
+            # _patch_node_status()
             if ha_enable:
                 _check_and_enable_HA()
                 ha_enable = False
