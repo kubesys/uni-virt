@@ -59,6 +59,8 @@ spec:
             mountPath: /root/.ssh
           - name: bin
             mountPath: /bin
+          - name: usersbin
+            mountPath: /user/sbin
       - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtlet:v1.0.0
         command: 
         - bash
@@ -99,6 +101,8 @@ spec:
             mountPath: /root/.ssh
           - name: bin
             mountPath: /bin
+          - name: usersbin
+            mountPath: /user/sbin
       - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-libvirtwatcher:v1.0.0
         command: 
         - bash
@@ -139,6 +143,8 @@ spec:
             mountPath: /root/.ssh
           - name: bin
             mountPath: /bin
+          - name: usersbin
+            mountPath: /user/sbin
       - image: g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtmonitor:v1.0.0
         command: 
         - bash
@@ -179,6 +185,8 @@ spec:
             mountPath: /root/.ssh
           - name: bin
             mountPath: /bin
+          - name: usersbin
+            mountPath: /user/sbin
       volumes: 
         - name: varlog
           hostPath: 
@@ -219,3 +227,6 @@ spec:
         - name: bin
           hostPath:
             path: /bin
+        - name: usersbin
+          hostPath:
+            path: /usr/sbin
