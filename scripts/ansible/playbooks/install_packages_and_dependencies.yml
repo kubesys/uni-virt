@@ -18,11 +18,16 @@
     - name: Download Anaconda3 installer
       get_url:
         url: https://repo.anaconda.com/archive/Anaconda3-2021.11-Linux-x86_64.sh
-        dest: /tmp/Anaconda3-2021.11-Linux-x86_64.sh
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server') and offline is none
+        dest: /tmp/Anaconda3.sh
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' and ansible_machine == 'x86_64') and offline is none
+    - name: Download Anaconda3 installer
+      get_url:
+        url: https://repo.anaconda.com/archive/Anaconda3-2024.06-1-Linux-aarch64.sh
+        dest: /tmp/Anaconda3.sh
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' and ansible_machine == 'aarch64') and offline is none
 
     - name: Run Anaconda3 installer
-      command: bash /tmp/Anaconda3-2021.11-Linux-x86_64.sh -b -p /opt/anaconda3
+      command: bash /tmp/Anaconda3.sh -b -p /opt/anaconda3
       args:
         creates: /opt/anaconda3  # Ensure the installer is not run if Anaconda is already installed
       when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server')  and offline is none
