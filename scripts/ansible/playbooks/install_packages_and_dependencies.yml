@@ -6,6 +6,10 @@
     offline:
 
   tasks:
+    - name: Set python interpreter for Kylin
+      set_fact:
+        ansible_python_interpreter: /usr/bin/python3
+      when: ansible_os_family=='Kylin Linux Advanced Server'
     - name: Install required packages
       yum:
         name:
