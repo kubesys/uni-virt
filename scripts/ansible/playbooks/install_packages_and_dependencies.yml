@@ -120,7 +120,7 @@
         state: present
       tags: 
         - packages
-      when: ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server'
+      when: ansible_os_family == 'RedHat'
 
     - name: Install required packages
       yum:
