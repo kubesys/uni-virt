@@ -127,7 +127,7 @@
           -  https://dl.fedoraproject.org/pub/epel/10/Everything/aarch64/Packages/e/epel-release-10-2.el10_0.noarch.rpm
       tags:
         - packages
-      when: ansible_os_family=='Kylin Linux Advanced Server' and offline is not none
+      when: ansible_os_family=='Kylin Linux Advanced Server' and offline is none
     - name: Install required packages
       yum:
         name:
