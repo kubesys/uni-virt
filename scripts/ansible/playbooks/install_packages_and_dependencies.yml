@@ -112,7 +112,7 @@
       yum:
         enablerepo: "local"
       when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server') and offline is not none
-    - name: Install EPEL release and OpenStack Rocky repository
+    - name: Install EPEL release and OpenStack Rocky repository for x86
       yum:
         name:
           - epel-release
@@ -121,7 +121,13 @@
       tags: 
         - packages
       when: ansible_os_family == 'RedHat'
-
+    - name:  Install EPEL release and OpenStack Rocky repository for arch
+      yum:
+        name:
+          -  https://dl.fedoraproject.org/pub/epel/10/Everything/aarch64/Packages/e/epel-release-10-2.el10_0.noarch.rpm
+      tags:
+        - packages
+      when: ansible_os_family=='Kylin Linux Advanced Server' and offline is not none
     - name: Install required packages
       yum:
         name:
