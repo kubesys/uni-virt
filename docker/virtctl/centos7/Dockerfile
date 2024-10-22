@@ -20,10 +20,9 @@ ADD virtctl /home/kubevmm/core/virtctl
 
 ADD kubeovn-adm /home/kubevmm/bin/
 
-ADD kubevmm-adm /home/kubevmm/bin/
 
 ADD virshplus /home/kubevmm/bin/
-
+ADD nvidia_driver_manager /home/kubevmm/bin/
 #ADD kubesds-adm /home/kubevmm/bin/
 ADD sdsctl /home/kubevmm/bin/
 

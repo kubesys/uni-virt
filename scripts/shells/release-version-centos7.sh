@@ -19,7 +19,7 @@ fi
 
 VERSION=$1
 
-echo -e "\033[3;30;47m*** Pull latest version from Github.\033[0m"
+echo -e "\033[3;30;47m*** Pull latest version of uniVirt from Github.\033[0m"
 git pull
 if [ $? -ne 0 ]; then
     echo "    Failed to pull latest version from Github!"
@@ -27,6 +27,8 @@ if [ $? -ne 0 ]; then
 else
     echo "    Success pull latest version."
 fi
+
+cd
 
 ##############################patch stuff#########################################
 SHELL_FOLDER=$(dirname $(readlink -f "$0"))
@@ -86,10 +88,18 @@ else
     echo "    Success compile <virshplus>."
 fi
 cp -f ./dist/centos7/virshplus ../../dist/centos7
-cd ../../
+
 #cp -rf ../SDS ./
 #cd ./SDS
-
+pyinstaller --distpath ./dist/centos7/ -F nvidia_driver_manager.py
+if [ $? -ne 0 ]; then
+    echo "    Failed to compile <nvidia_driver_manager>!"
+    exit 1
+else
+    echo "    Success compile <nvidia_driver_manager>."
+fi
+cp -f ./dist/centos7/nvidia_driver_manager ../../dist/centos7
+cd ../../
 #git clone https://gitlink.org.cn/kubestack/sdsctl.git
 cd ./sdsctl/cmd/sdsctl
 go build -o sdsctl main.go
