@@ -158,7 +158,7 @@
         state: present
       tags: 
         - packages
-      when: ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or or ansible_os_family=='UOS'
+      when: ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS'
 
     - name: Install and upgrade Python packages
       pip:
@@ -184,7 +184,7 @@
         executable: pip3
       tags: 
         - python_packages
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or or ansible_os_family=='UOS') and offline is none
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
 
     - name: Enable and start libvirtd service
       systemd:
@@ -193,7 +193,7 @@
         state: started
       tags: 
         - services
-      when: ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or or ansible_os_family=='UOS'
+      when: ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS'
 
 - name: Install and configure packages
   hosts: master:worker
