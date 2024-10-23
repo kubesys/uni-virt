@@ -17,13 +17,13 @@
           - wget
           - ca-certificates
         state: present
-      when: ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server'
+      when: ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS'
 
     - name: Download Anaconda3 installer for x86_64
       get_url:
         url: https://repo.anaconda.com/archive/Anaconda3-2021.11-Linux-x86_64.sh
         dest: /tmp/Anaconda3.sh
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' and ansible_machine == 'x86_64') and offline is none
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS' and ansible_machine == 'x86_64') and offline is none
     - name: Download Anaconda3 installer for arch
       get_url:
         url: https://mirrors.tuna.tsinghua.edu.cn/github-release/conda-forge/miniforge/Release%2024.7.1-2/Miniforge3-24.7.1-2-Linux-aarch64.sh
@@ -34,27 +34,27 @@
       command: bash /tmp/Anaconda3.sh -b -p /opt/anaconda3
       args:
         creates: /opt/anaconda3  # Ensure the installer is not run if Anaconda is already installed
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server')  and offline is none
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS')  and offline is none
 
     - name: Add Anaconda3 to PATH
       lineinfile:
         dest: "{{ ansible_env.HOME }}/.bashrc"
         line: 'export PATH=/opt/anaconda3/bin:$PATH'
         create: yes
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server') and offline is none
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
 
     - name: Reload bashrc to apply changes
       shell: bash --rcfile "{{ ansible_env.HOME }}/.bashrc"
       async: 60  # 设置一个合适的超时时间
       poll: 0    # 非阻塞，立即返回结果
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server') and offline is none
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
 
 
     - name: Install Python 3.9.7 using conda
       shell: /opt/anaconda3/bin/conda install -y python=3.9.7
       register: conda_install_output
       ignore_errors: true
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server') and offline is none
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
 
 #    - name: Debug conda installation output
 #      debug:
@@ -73,14 +73,14 @@
       shell: /opt/anaconda3/bin/python3.9 -m ensurepip
       args:
         creates: /usr/local/bin/pip3.9
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server') and offline is none
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
 
     - name: Create symbolic link for python3.9
       file:
         src: /opt/anaconda3/bin/python
         dest: /usr/local/bin/python3.9
         state: link
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server') and offline is none
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
 
     - name: Create symbolic link for pip3.9
       file:
@@ -88,14 +88,14 @@
         dest: /usr/local/bin/pip3.9
         state: link
         force: yes
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server') and offline is none
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
 
     - name: Create symbolic link for python3
       file:
         src: /opt/anaconda3/bin/python
         dest: /usr/local/bin/python3
         state: link
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server') and offline is none
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
 
     - name: Create symbolic link for pip3
       file:
@@ -103,11 +103,11 @@
         dest: /usr/local/bin/pip3
         state: link
         force: yes
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server') and offline is none
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
 
     - name: Verify Python and pip installation
       command: python3 --version && pip3 --version && python3.9 --version && pip3.9 --version
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server') and offline is none
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
     - name: Set yum repository
       yum:
         enablerepo: "local"
