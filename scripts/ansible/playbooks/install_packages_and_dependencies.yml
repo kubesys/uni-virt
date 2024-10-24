@@ -167,7 +167,7 @@
           - pip
           - threadpool
           - prometheus_client
-          - kubernetes
+          - kubernetes==26.1.0
           - libvirt-python
           - xmljson
           - xmltodict
