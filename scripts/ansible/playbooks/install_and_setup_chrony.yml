@@ -18,7 +18,7 @@
           when: ansible_os_family == 'Debian'
 
     - name: Set timezone to Asia/Shanghai
-      ansible.builtin.command: timedatectl set-timezone Asia/Shanghai
+      command: timedatectl set-timezone Asia/Shanghai
 
     - name: Configure Chrony servers
       block:
