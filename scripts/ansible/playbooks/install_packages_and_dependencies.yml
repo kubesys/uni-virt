@@ -160,11 +160,17 @@
         - packages
       when: ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS'
 
+    - name: downgrade pip
+      pip:
+        name:
+          - pip<=23.3.2
+      executable: pip3
+      tags:
+        - python_packages
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
     - name: Install and upgrade Python packages
       pip:
-
         name:
-          - pip==23.3.2
           - threadpool
           - prometheus_client
           - kubernetes==26.1.0
