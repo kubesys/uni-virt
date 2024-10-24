@@ -26,6 +26,9 @@
       file: path=/tmp/ssh/ state=absent
       run_once: true
 
+    - name: create  /tmp/ssh/ # Delete temporary public key directory
+      file: path=/tmp/ssh/ state=present
+
     - name: fetch copy # Copy public keys from other machines to local machine
       fetch: src=/root/.ssh/id_rsa.pub dest=/tmp/ssh/
 
