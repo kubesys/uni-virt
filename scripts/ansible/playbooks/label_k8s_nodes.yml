@@ -6,7 +6,7 @@
   tasks:
     - name: Label centos7 nodes
       command: "kubectl label node {{ inventory_hostname }} doslab/virt.tool.centos="
-      when: ansible_os_family == 'RedHat'
+      when: ansible_os_family == 'RedHat' or ansible_os_family=='UOS'
 
     - name: Label ubuntu22 nodes
       command: "kubectl label node {{ inventory_hostname }} doslab/virt.tool.ubuntu="
