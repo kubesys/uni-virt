@@ -164,7 +164,7 @@
       pip:
         name:
           - pip<=23.3.2
-      executable: pip3
+        executable: pip3
       tags:
         - python_packages
       when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
