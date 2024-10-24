@@ -2,21 +2,31 @@
 - name: Download and Extract Go
   hosts: master:worker
   become: yes
-
+  vars:
+    offline:
   tasks:
     - name: Download Go archive
       get_url:
         url: "https://golang.google.cn/dl/go1.19.1.linux-amd64.tar.gz"
         dest: "/tmp/go1.19.1.linux-amd64.tar.gz"
+      when: offline is none
 
     - name: Extract Go archive
       ansible.builtin.unarchive:
         src: "/tmp/go1.19.1.linux-amd64.tar.gz"
         dest: "/usr/local/"
         remote_src: yes
+      when: offline is none
+    - name: Extract Go archive in offline mode
+      ansible.builtin.unarchive:
+        src: "/root/go1.19.1.linux-amd64.tar.gz"
+        dest: "/usr/local/"
+        remote_src: yes
+      when: offline is not none
+
 
     - name: Set Go environment variables in /root/.bashrc and source the file for current session
-      ansible.builtin.shell: |
+      shell: |
         echo 'export GOROOT=/usr/local/go' >> /root/.bashrc
         echo 'export GOPATH={{ ansible_env.HOME }}/go' >> /root/.bashrc
         echo 'export PATH=/usr/local/go/bin:{{ ansible_env.HOME }}/go/bin:$PATH' >> /root/.bashrc
