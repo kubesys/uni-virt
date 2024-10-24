@@ -164,7 +164,7 @@
       pip:
 
         name:
-          - pip==24.0
+          - pip==23.3.2
           - threadpool
           - prometheus_client
           - kubernetes==26.1.0
