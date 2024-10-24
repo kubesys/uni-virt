@@ -54,12 +54,12 @@
 
     - name: Ensure Chrony service is enabled and started
       service:
-        name: "{{ 'chronyd' if ansible_os_family == 'RedHat' else 'chrony' }}"
+        name: "{{ 'chronyd' if ansible_os_family == 'RedHat' or ansible_os_family == 'UOS' else 'chrony' }}"
         state: started
         enabled: yes
 
   handlers:
     - name: Restart Chrony
       service:
-        name: "{{ 'chronyd' if ansible_os_family == 'RedHat' else 'chrony' }}"
+        name: "{{ 'chronyd' if ansible_os_family == 'RedHat' or ansible_os_family == 'UOS' else 'chrony' }}"
         state: restarted
