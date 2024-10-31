@@ -28,7 +28,6 @@ else
     echo "    Success pull latest version."
 fi
 
-cd
 
 ##############################patch stuff#########################################
 SHELL_FOLDER=$(dirname $(readlink -f "$0"))
