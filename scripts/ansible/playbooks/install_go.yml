@@ -5,6 +5,10 @@
   vars:
     offline:
   tasks:
+    - name: Ansible delete previous go file
+      file:
+        path: /usr/local/go
+        state: absent
     - name: Download Go archive
       get_url:
         url: "https://golang.google.cn/dl/go1.19.1.linux-amd64.tar.gz"
