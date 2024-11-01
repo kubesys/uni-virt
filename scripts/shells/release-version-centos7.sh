@@ -240,7 +240,7 @@ docker buildx create --name mybuilder --driver docker-container
 docker buildx use mybuilder
 docker run --privileged --rm tonistiigi/binfmt --install all
 
-docker buildx build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest --platform linux/amd64 --push
+#docker buildx build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest --platform linux/amd64 --push
 
 if [ $? -ne 0 ]; then
     echo "    Failed to build base/centos7!"
