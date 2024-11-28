@@ -89,7 +89,7 @@ cp -f ./dist/centos7/kubevmm-adm ../../dist/centos7
 #    echo "    Success compile <virshplus>."
 #fi
 cp -f ./dist/centos7/virshplus ../../dist/centos7
-cd ../../../
+cd ../../others/
 #cp -rf ../SDS ./
 #cd ./SDS
 tar xzvf go1.19.1.linux-amd64.tar.gz
