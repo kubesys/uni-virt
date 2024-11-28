@@ -89,6 +89,7 @@ cp -f ./dist/centos7/kubevmm-adm ../../dist/centos7
 #    echo "    Success compile <virshplus>."
 #fi
 cp -f ./dist/centos7/virshplus ../../dist/centos7
+cp -f ./dist/centos7/nvidia_driver_manager ../../dist/centos7
 cd ../../../others/
 #cp -rf ../SDS ./
 #cd ./SDS
@@ -146,6 +147,7 @@ echo 'export PATH=/usr/local/go/bin:$HOME/go/bin:$PATH' >> /root/.bashrc
 cd ../uni-virt
 cp -rf ./dist/centos7/sdsctl docker/virtctl/centos7
 cp -rf ./dist/centos7/commctl docker/virtctl/centos7
+cp -rf ./dist/centos7/nvidia_driver_manager docker/virtctl/centos7
 #cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/kubeovn-adm ./dist/centos7/device-passthrough ./dist/centos7/virt-monitor ./dist/centos7/monitor docker/virtctl
 cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/kubeovn-adm ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/device-passthrough ./dist/centos7/plugins docker/virtctl/centos7
 cp -rf ./dist/centos7/arraylist.cfg docker/virtlet/centos7
