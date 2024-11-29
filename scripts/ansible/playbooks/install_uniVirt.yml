@@ -12,6 +12,7 @@
       command: cp -f {{ yaml_directory }}/centos7/virt-tool-centos.yaml.tmp {{ yaml_directory }}/centos7/virt-tool-centos.yaml
       register: copy_output
       ignore_errors: true
+      when: ansible_os_family == 'RedHat'
 
     - name: Print copy output
       debug:
@@ -22,6 +23,7 @@
         path: "{{ yaml_directory }}/centos7/virt-tool-centos.yaml"
         regexp: 'v1.0.0'
         replace: '{{ ver }}'
+      when: ansible_os_family == 'RedHat'
 
     - name: Replace ImagePullPolicy in virt-tool-centos.yaml
       ansible.builtin.replace:
@@ -33,11 +35,13 @@
     - name: Apply Kubernetes YAMLs for CentOS7
       command: "kubectl apply -f {{ yaml_directory }}/centos7/"
       ignore_errors: true
+      when: ansible_os_family == 'RedHat'
 
     - name: Copy virt-tool-ubuntu.yaml.tmp to virt-tool-ubuntu.yaml
       command: cp -f {{ yaml_directory }}/ubuntu22/virt-tool-ubuntu.yaml.tmp {{ yaml_directory }}/ubuntu22/virt-tool-ubuntu.yaml
       register: copy_output
       ignore_errors: true
+      when: ansible_os_family == 'Debian'
 
     - name: Print copy output
       debug:
@@ -48,7 +52,9 @@
         path: "{{ yaml_directory }}/ubuntu22/virt-tool-ubuntu.yaml"
         regexp: 'v1.0.0'
         replace: '{{ ver }}'
+      when: ansible_os_family == 'Debian'
 
     - name: Apply Kubernetes YAMLs for Ubuntu22
       command: "kubectl apply -f {{ yaml_directory }}/ubuntu22/"
       ignore_errors: true
+      when: ansible_os_family == 'Debian'
