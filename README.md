@@ -463,7 +463,7 @@ ansible-playbook -i inventory.ini scripts/ansible/playbooks/label_k8s_nodes.yml
 6. 安装指定版本的 `uniVirt`，例如：v1.0.0.lab，则修改v1.0.0.lab参数
 ```shell
 bash scripts/shells/release-offline-centos7.sh v1.0.0.lab
-ansible-playbook -i localhost -e "ver=v1.0.0.lab,offline=1" scripts/ansible/playbooks/install_uniVirt.yml
+ansible-playbook -i localhost -e "ver=v1.0.0.lab offline=1" scripts/ansible/playbooks/install_uniVirt.yml
 ```
 
 7. 配置、启动外部服务
