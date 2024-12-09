@@ -1355,9 +1355,16 @@ def main():
                     repeated=True
                 if HOSTNAME == node:
                     observe(observer,'vmdi')
+            except ssl.SSLEOFError as ssl_err:
+                # 针对 SSL 握手失败，记录日志并重试
+                logger.error("SSL handshake failed. Retrying...", exc_info=ssl_err)
+                sleep(5)  # 避免高频重试导致压力
             except Exception as e:
-                logger.warning('Oops! ', exc_info=1)
+                # 处理其他可能的异常
+                logger.warning('Unexpected error occurred.', exc_info=e)
+                sleep(5)  # 避免高频重试导致压力
             finally:
+                # 每次循环后延时 1 秒，避免空转
                 sleep(1)
     except KeyboardInterrupt:
         observer.stop()
