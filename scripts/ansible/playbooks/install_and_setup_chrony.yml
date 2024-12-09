@@ -9,7 +9,7 @@
           yum:
             name: chrony
             state: present
-          when: ansible_os_family == 'RedHat'
+          when: ansible_os_family == 'RedHat' or ansible_os_family == 'UOS'
 
         - name: Install Chrony on Ubuntu
           apt:
@@ -18,7 +18,7 @@
           when: ansible_os_family == 'Debian'
 
     - name: Set timezone to Asia/Shanghai
-      ansible.builtin.command: timedatectl set-timezone Asia/Shanghai
+      command: timedatectl set-timezone Asia/Shanghai
 
     - name: Configure Chrony servers
       block:
@@ -54,12 +54,12 @@
 
     - name: Ensure Chrony service is enabled and started
       service:
-        name: "{{ 'chronyd' if ansible_os_family == 'RedHat' else 'chrony' }}"
+        name: "{{ 'chronyd' if ansible_os_family == 'RedHat' or ansible_os_family == 'UOS' else 'chrony' }}"
         state: started
         enabled: yes
 
   handlers:
     - name: Restart Chrony
       service:
-        name: "{{ 'chronyd' if ansible_os_family == 'RedHat' else 'chrony' }}"
+        name: "{{ 'chronyd' if ansible_os_family == 'RedHat' or ansible_os_family == 'UOS' else 'chrony' }}"
         state: restarted

@@ -19,7 +19,7 @@ fi
 
 VERSION=$1
 
-echo -e "\033[3;30;47m*** Pull latest version from Github.\033[0m"
+echo -e "\033[3;30;47m*** Pull latest version of uniVirt from Github.\033[0m"
 git pull
 if [ $? -ne 0 ]; then
     echo "    Failed to pull latest version from Github!"
@@ -27,6 +27,7 @@ if [ $? -ne 0 ]; then
 else
     echo "    Success pull latest version."
 fi
+
 
 ##############################patch stuff#########################################
 SHELL_FOLDER=$(dirname $(readlink -f "$0"))
@@ -86,10 +87,18 @@ else
     echo "    Success compile <virshplus>."
 fi
 cp -f ./dist/centos7/virshplus ../../dist/centos7
-cd ../../
+
 #cp -rf ../SDS ./
 #cd ./SDS
-
+pyinstaller --distpath ./dist/centos7/ -F nvidia_driver_manager.py
+if [ $? -ne 0 ]; then
+    echo "    Failed to compile <nvidia_driver_manager>!"
+    exit 1
+else
+    echo "    Success compile <nvidia_driver_manager>."
+fi
+cp -f ./dist/centos7/nvidia_driver_manager ../../dist/centos7
+cd ../../
 #git clone https://gitlink.org.cn/kubestack/sdsctl.git
 cd ./sdsctl/cmd/sdsctl
 go build -o sdsctl main.go
@@ -134,6 +143,7 @@ cd ../../
 #cp -rf ./dist/ansible docker/base/centos7
 cp -rf ./dist/centos7/sdsctl docker/virtctl/centos7
 cp -rf ./dist/centos7/commctl docker/virtctl/centos7
+cp -rf ./dist/centos7/nvidia_driver_manager docker/virtctl/centos7
 #cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/kubeovn-adm ./dist/centos7/device-passthrough ./dist/centos7/virt-monitor ./dist/centos7/monitor docker/virtctl
 cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/kubeovn-adm ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/device-passthrough ./dist/centos7/plugins docker/virtctl/centos7
 cp -rf ./dist/centos7/arraylist.cfg docker/virtlet/centos7
@@ -230,7 +240,7 @@ docker buildx create --name mybuilder --driver docker-container
 docker buildx use mybuilder
 docker run --privileged --rm tonistiigi/binfmt --install all
 
-docker buildx build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest --platform linux/amd64 --push
+#docker buildx build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest --platform linux/amd64 --push
 
 if [ $? -ne 0 ]; then
     echo "    Failed to build base/centos7!"

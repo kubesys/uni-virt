@@ -6,16 +6,16 @@
   tasks:
     - name: Label centos7 nodes
       command: "kubectl label node {{ inventory_hostname }} doslab/virt.tool.centos="
-      when: ansible_os_family == 'RedHat'
+      when: ansible_os_family == 'RedHat' or ansible_os_family=='UOS'
 
     - name: Label ubuntu22 nodes
       command: "kubectl label node {{ inventory_hostname }} doslab/virt.tool.ubuntu="
       when: ansible_os_family == 'Debian'
 
-    - name: Fetch node IP
-      command: "hostname -i"
-      register: node_ip_result
+#    - name: Fetch node IP
+#      command: "hostname -i"
+#      register: node_ip_result
 
     - name: Set metadata-annotations-THISIP
-      command: "kubectl annotate node {{ inventory_hostname }} THISIP={{ node_ip_result.stdout }} --overwrite"
+      command: "kubectl annotate node {{ inventory_hostname }} THISIP={{ ansible_default_ipv4.address }} --overwrite"
 
