@@ -1614,14 +1614,32 @@ def get_all_nodes_name():
 
 
 def get_1st_ready():
-    client=KubernetesClient(config=TOKEN)
-    names=get_all_nodes_name()
-    for name in names:
-        nodestatus=client.getResourceStatus(kind='Node',name=name).get('status')
-        if nodestatus and nodestatus.get('conditions'):
-            condition=nodestatus.get('conditions')[-1]
-            if condition.get('type')=='Ready' and condition.get('status')=='True':
-                return name
+    try:
+        client = KubernetesClient(config=TOKEN)
+        names = get_all_nodes_name()
+        if not names:
+            logger.warning("No nodes found in the cluster.")
+            return None
+
+        for name in names:
+            try:
+                # 获取节点状态
+                nodestatus = client.getResourceStatus(kind='Node', name=name).get('status')
+                if nodestatus and nodestatus.get('conditions'):
+                    # 遍历 conditions，找到状态为 Ready 的节点
+                    for condition in nodestatus.get('conditions'):
+                        if condition.get('type') == 'Ready' and condition.get('status') == 'True':
+                            logger.info(f"Node '{name}' is Ready.")
+                            return name
+            except Exception as e:
+                logger.error(f"Failed to get status for node '{name}'.", exc_info=e)
+
+        logger.warning("No Ready nodes found.")
+        return None
+    except Exception as e:
+        logger.error("Failed to retrieve the first ready node.", exc_info=e)
+        return None
+
 
 def get_node_label_value(nodes, label):
     """:type nodes: str:type label: str:rtype: str"""

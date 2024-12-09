@@ -1345,26 +1345,31 @@ def main():
 
         # vmp and vmdi event handler
         # OLD_PATH_WATCHERS = {}
-        repeated=False
+        repeated = False
         while True:
             try:
-                # observe(observer,'vmd')
+                # 获取第一个处于 Ready 状态的节点
                 node = get_1st_ready()
+                if node is None:
+                    logger.warning("No Ready nodes available. Retrying...")
+                    sleep(5)  # 如果没有 Ready 节点，延时后重试
+                    continue
                 if not repeated:
-                    logger.info(f"VMDI is listened on {node}")
-                    repeated=True
+                    logger.info(f"VMDI is being listened on node: {node}")
+                    repeated = True
+                # 如果当前主机是第一个 Ready 节点，则执行观察逻辑
                 if HOSTNAME == node:
-                    observe(observer,'vmdi')
+                    observe(observer, 'vmdi')
             except ssl.SSLEOFError as ssl_err:
-                # 针对 SSL 握手失败，记录日志并重试
-                logger.error("SSL handshake failed. Retrying...", exc_info=ssl_err)
-                sleep(5)  # 避免高频重试导致压力
+                # 针对 SSL 握手失败的特殊处理
+                logger.error("SSL handshake failed. Retrying in 5 seconds...", exc_info=ssl_err)
+                sleep(5)  # 避免高频重试
             except Exception as e:
-                # 处理其他可能的异常
-                logger.warning('Unexpected error occurred.', exc_info=e)
-                sleep(5)  # 避免高频重试导致压力
+                # 处理其他未预料到的异常
+                logger.warning("Unexpected error occurred during node monitoring.", exc_info=e)
+                sleep(5)  # 避免高频重试
             finally:
-                # 每次循环后延时 1 秒，避免空转
+                # 每次循环后延时 1 秒，避免空转和过高的 CPU 使用率
                 sleep(1)
     except KeyboardInterrupt:
         observer.stop()
