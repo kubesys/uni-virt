@@ -1188,7 +1188,7 @@ def _parse_pci_info(gpu_id, gpu_id_value):
 
     # Update the dictionary with 'inUse' values
     # Vms
-    in_use = None
+    in_use = "free"
     bus_id = gpu_id_value.split(":")[0] if ":" in gpu_id_value else gpu_id_value.lower()
     if info_dict.get('kernelDriverInUse') == 'vfio-pci':
         info_dict['useMode'] = "passthrough"
