@@ -143,7 +143,7 @@ cd ../../
 #cp -rf ./dist/ansible docker/base/ubuntu22
 cp -rf ./dist/ubuntu22/sdsctl docker/virtctl/ubuntu22
 cp -rf ./dist/ubuntu22/commctl docker/virtctl/ubuntu22
-cp -rf ./dist/ubuntu22/yamls/ ./VERSION ./dist/ubuntu22/kubeovn-adm ./dist/ubuntu22/arraylist.cfg ./dist/ubuntu22/virshplus ./dist/ubuntu22/kubevmm-adm ./dist/ubuntu22/device-passthrough ./dist/ubuntu22/plugins docker/virtctl/ubuntu22
+cp -rf ./dist/ubuntu22/yamls/ ./VERSION ./dist/ubuntu22/kubeovn-adm ./dist/ubuntu22/arraylist.cfg ./dist/ubuntu22/virshplus ./dist/ubuntu22/kubevmm-adm ./dist/ubuntu22/device-passthrough ./dist/ubuntu22/plugins ./dist/ubuntu22/nvidia_driver_manager docker/virtctl/ubuntu22
 cp -rf ./dist/ubuntu22/arraylist.cfg docker/virtlet/ubuntu22
 cp -rf ./dist/ubuntu22/arraylist.cfg docker/libvirtwatcher/ubuntu22
 if [ $? -ne 0 ]; then
