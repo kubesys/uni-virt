@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
-#LOCALIP="localhost"
-#registry=$LOCALIP:58001
-#if [ "$LOCALIP" = "localhost" ]; then
-#		echo "���ipδ�޸�,���޸ĳ��㲿���ip"
-#		exit 1
-#fi
-##############################init###############################################
+# Copyright (2024) Institute of Software, Chinese Academy of Sciences
+# @author: liujiexin@otcaix.iscas.ac.cn
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 if [ ! -n "$1" ] ;then
     echo "error: please input a release version number!"
     echo "Usage $0 <version number>"
@@ -24,21 +32,56 @@ fi
 
 VERSION=$1
 
-#echo -e "\033[3;30;47m*** Pull latest version from Github.\033[0m"
-#git pull
-#if [ $? -ne 0 ]; then
-#    echo "    Failed to pull latest version from Github!"
-#    exit 1
-#else
-#    echo "    Success pull latest version."
-#fi
-
 ##############################patch stuff#########################################
 SHELL_FOLDER=$(dirname $(readlink -f "$0"))
-cd ${SHELL_FOLDER}/../../
-if [ ! -d "./dist/centos7" ]; then
-	mkdir -p ./dist/centos7
+WORKSPACE_ROOT=${SHELL_FOLDER}/../../../..
+
+# 检查 others 目录是否存在
+if [ ! -d "${WORKSPACE_ROOT}/others" ]; then
+    echo "错误: others 目录不存在: ${WORKSPACE_ROOT}/others"
+    exit 1
 fi
+
+# 自动检测项目目录名称
+PROJECT_NAMES=("uni-virt" "univirt" "uniVirt")
+PROJECT_ROOT=""
+
+for name in "${PROJECT_NAMES[@]}"; do
+    if [ -d "${WORKSPACE_ROOT}/others/${name}" ]; then
+        PROJECT_ROOT="${WORKSPACE_ROOT}/others/${name}"
+        echo "找到项目目录: ${name}"
+        break
+    fi
+done
+
+if [ -z "${PROJECT_ROOT}" ]; then
+    echo "错误: 未找到项目目录。请确保项目目录(uni-virt/univirt/uniVirt)存在于 ${WORKSPACE_ROOT}/others/ 下"
+    exit 1
+fi
+
+# 检查必要的目录是否存在
+required_dirs=(
+    "${PROJECT_ROOT}/dist/centos7"
+    "${PROJECT_ROOT}/docker/virtctl/centos7"
+    "${PROJECT_ROOT}/docker/virtlet/centos7"
+    "${PROJECT_ROOT}/docker/libvirtwatcher/centos7"
+    "${PROJECT_ROOT}/docker/virtmonitor/centos7"
+    "${PROJECT_ROOT}/ovnctl/src"
+    "${PROJECT_ROOT}/core/plugins"
+    "${PROJECT_ROOT}/core/utils"
+    "${PROJECT_ROOT}/scripts/yamls"
+    "${PROJECT_ROOT}/scripts/plugins"
+)
+
+for dir in "${required_dirs[@]}"; do
+    if [ ! -d "$dir" ]; then
+        echo "错误: 目录不存在: $dir"
+        exit 1
+    fi
+done
+
+cd ${PROJECT_ROOT}
+
 cp -f ./ovnctl/src/kubeovn-adm ./
 chmod +x kubeovn-adm
 gzexe ./kubeovn-adm
@@ -49,220 +92,87 @@ gzexe ./core/plugins/device-passthrough
 cp -f ./core/plugins/device-passthrough ./dist/centos7
 gzexe -d ./core/plugins/device-passthrough
 rm -f ./core/plugins/device-passthrough~
-# gzexe ../scripts/kubevirt-ctl
-# cp -f ../scripts/kubevirt-ctl ./dist/centos7
-# gzexe -d ../scripts/kubevirt-ctl
-# rm -f ../scripts/kubevirt-ctl~
-#cp -f ./core/plugins/ovn-ovsdb.service ./dist/centos7
+
 cp -f ./core/utils/arraylist.cfg ./dist/centos7
 cp -rf ./scripts/yamls ./dist/centos7
 cp -rf ./scripts/plugins ./dist/centos7
-#if [ ! -d "./dist/ansible/playbooks" ]; then
-#	mkdir -p ./dist/ansible/playbooks
-#fi
-#cp -rf ./scripts/ansible/playbooks/install_packages_and_dependencies.yml ./dist/ansible/playbooks
-#inventory_file="./dist/ansible/inventory.ini"
-
-#cat <<EOF > "$inventory_file"
-#[centos]
-#localhost
-#
-#[ubuntu]
-#
-#EOF
 
 echo ${VERSION} > ./VERSION
 cd ./core/plugins
-#pyinstaller --distpath ./dist/centos7/ -F kubevmm_adm.py -n kubevmm-adm
-#if [ $? -ne 0 ]; then
-#    echo "    Failed to compile <kubevmm-adm>!"
-#    exit 1
-#else
-#    echo "    Success compile <kubevmm-adm>."
-#fi
 cp -f ./dist/centos7/kubevmm-adm ../../dist/centos7
-#pyinstaller --distpath ./dist/centos7/ -F virshplus.py
-#if [ $? -ne 0 ]; then
-#    echo "    Failed to compile <virshplus>!"
-#    exit 1
-#else
-#    echo "    Success compile <virshplus>."
-#fi
 cp -f ./dist/centos7/virshplus ../../dist/centos7
 cp -f ./dist/centos7/nvidia_driver_manager ../../dist/centos7
-cd ../../../others/
-#cp -rf ../SDS ./
-#cd ./SDS
+
+# Go 环境设置
+cd ${WORKSPACE_ROOT}/others
+if [ ! -f "go1.19.1.linux-amd64.tar.gz" ]; then
+    echo "错误: 未找到 Go 安装包 (go1.19.1.linux-amd64.tar.gz)"
+    echo "请将 go1.19.1.linux-amd64.tar.gz 放置在 ${WORKSPACE_ROOT}/others 目录下"
+    exit 1
+fi
+
 tar xzvf go1.19.1.linux-amd64.tar.gz
 if [ ! -d "$HOME/local" ]; then
-	mkdir -p $HOME/local
+    echo "错误: 目录不存在: $HOME/local"
+    exit 1
 fi
 cp -rf go $HOME/local
-echo 'export GOROOT=/usr/local/go' >> /root/.bashrc
-echo 'export GOPATH=$HOME/go' >> /root/.bashrc
-echo 'export PATH=/usr/local/go/bin:$HOME/go/bin:$PATH' >> /root/.bashrc
-. /root/.bashrc
-#git clone https://gitlink.org.cn/kubestack/sdsctl.git
-#cd ./sdsctl/cmd/sdsctl
-#go build -o sdsctl main.go
-#cp -f sdsctl ../../../dist/centos7
-#cd ../commctl
-#go build -o commctl main.go
-#cp -f commctl ../../../dist/centos7
-#cd ../../grpcservice
-#bash create-comm-service.sh
-#cd ../../
-#rm -rf sdsctl
 
-#pyinstaller --distpath ./dist/centos7/ -F kubesds-adm.py
-#if [ $? -ne 0 ]; then
-    #    echo "    Failed to compile <kubesds-adm>!"
-    #exit 1
-#else
-    #    echo "    Success compile <kubesds-adm>."
-#fi
-#pyinstaller --distpath ./dist/centos7/ -F kubesds-rpc-service.py
-#if [ $? -ne 0 ]; then
-    #    echo "    Failed to compile <kubesds-rpc>!"
-    #exit 1
-#else
-    #    echo "    Success compile <kubesds-rpc>."
-#fi
-#cp -f ./kubesds-ctl.sh ../docker/virtctl
-#cp -f ./kubesds-ctl.sh ../dist/centos7
-#cp -f ./kubesds.service ../dist/centos7
-#cp -f ./dist/centos7/kubesds-adm ../docker/virtctl
-#cp -f ./dist/centos7/kubesds-adm ../dist/centos7
-#cp -f ./dist/centos7/kubesds-rpc-service ../docker/virtctl
-#cp -f ./dist/centos7/kubesds-rpc-service ../dist/centos7
-#cd ..
-#rm -rf ./SDS
-
-#rm -rf $HOME/rpmbuild/
-#mkdir -p -p $HOME/rpmbuild/SOURCES/
-#find ${SHELL_FOLDER}/dist/centos7 -maxdepth 1 -type f -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
-#find ${SHELL_FOLDER}/dist/centos7 -type d -exec ln -s {} $HOME/rpmbuild/SOURCES/ \;
-
-#cp -rf ./dist/ansible docker/base/centos7
-cd ../uni-virt
-cp -rf ./dist/centos7/sdsctl docker/virtctl/centos7
-cp -rf ./dist/centos7/commctl docker/virtctl/centos7
-cp -rf ./dist/centos7/nvidia_driver_manager docker/virtctl/centos7
-#cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/kubeovn-adm ./dist/centos7/device-passthrough ./dist/centos7/virt-monitor ./dist/centos7/monitor docker/virtctl
-cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/kubeovn-adm ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/device-passthrough ./dist/centos7/plugins docker/virtctl/centos7
-cp -rf ./dist/centos7/arraylist.cfg docker/virtlet/centos7
-cp -rf ./dist/centos7/arraylist.cfg docker/libvirtwatcher/centos7
-if [ $? -ne 0 ]; then
-    echo "    Failed to copy stuff to docker/virtctl!"
-    exit 1
-else
-    echo "    Success copy stuff to docker/virtctl."
+# 设置 Go 环境变量
+if ! grep -q "GOROOT=/usr/local/go" /root/.bashrc; then
+    echo 'export GOROOT=/usr/local/go' >> /root/.bashrc
+    echo 'export GOPATH=$HOME/go' >> /root/.bashrc
+    echo 'export PATH=/usr/local/go/bin:$HOME/go/bin:$PATH' >> /root/.bashrc
 fi
+source /root/.bashrc
 
-##############################patch image#########################################
+cd ${PROJECT_ROOT}
 
-# step 1 copy file
+# 复制文件到 docker 目录
+cp -rf ./dist/centos7/sdsctl docker/virtctl/centos7/ || true
+cp -rf ./dist/centos7/commctl docker/virtctl/centos7/ || true
+cp -rf ./dist/centos7/nvidia_driver_manager docker/virtctl/centos7/ || true
+
+cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/kubeovn-adm ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/device-passthrough ./dist/centos7/plugins docker/virtctl/centos7/
+cp -rf ./dist/centos7/arraylist.cfg docker/virtlet/centos7/
+cp -rf ./dist/centos7/arraylist.cfg docker/libvirtwatcher/centos7/
+
+# 检查核心目录
+core_dirs=(
+    "../docker/virtctl/centos7/utils"
+    "../docker/virtlet/centos7/utils"
+    "../docker/libvirtwatcher/centos7/utils"
+    "../docker/virtmonitor/centos7/utils"
+)
+
 cd ./core
-if [ ! -d "../docker/virtctl/centos7/utils" ]; then
-	mkdir -p ../docker/virtctl/centos7/utils
-fi
-if [ ! -d "../docker/virtlet/centos7/utils" ]; then
-	mkdir -p ../docker/virtlet/centos7/utils
-fi
-if [ ! -d "../docker/libvirtwatcher/centos7/utils" ]; then
-	mkdir -p ../docker/libvirtwatcher/centos7/utils
-fi
-if [ ! -d "../docker/virtmonitor/centos7/utils" ]; then
-	mkdir -p ../docker/virtmonitor/centos7/utils
-fi
+for dir in "${core_dirs[@]}"; do
+    if [ ! -d "$dir" ]; then
+        echo "错误: 目录不存在: $dir"
+        exit 1
+    fi
+done
+
 cp -rf utils/*.py ../docker/virtctl/centos7/utils/
 cp -rf utils/*.py ../docker/virtlet/centos7/utils/
 cp -rf utils/*.py ../docker/libvirtwatcher/centos7/utils/
 cp -rf utils/*.py ../docker/virtmonitor/centos7/utils/
-cp -rf virtctl/ ../docker/virtctl/centos7
-cp -rf virtlet/ ../docker/virtlet/centos7
-cp -rf libvirtwatcher/ ../docker/libvirtwatcher/centos7
-cp -rf virtmonitor/ ../docker/virtmonitor/centos7
-cd ..
-#cd ./core
-#if [ ! -d "./compile" ]; then
-#	mkdir -p ./compile
-#fi
-#cp -rf utils/ virtctl/ virtlet/ ./compile
-#cd ./compile
-#find ./ -name *.py | xargs python3 -m py_compile
-#find ./ -name *.py | xargs rm -f
-#cp -f virtctl/__pycache__/virtctl.*.pyc virtctl/virtctl.pyc
-#cp -f virtctl/__pycache__/virtctl_in_docker.*.pyc virtctl/virtctl_in_docker.pyc
-#cp -f virtlet/__pycache__/virtlet.*.pyc virtlet/virtlet.pyc
-#cp -f virtlet/__pycache__/virtlet_in_docker.*.pyc virtlet/virtlet_in_docker.pyc
-#cp -rf virtctl/ utils/ ../../docker/virtctl
-#cp -rf virtlet/ utils/ ../../docker/virtlet
-#cd ..
-#rm -rf ./compile
-#cd ..
 
-#step 2 docker build & push
-cd docker
-#DOCKER_HUB_URL=registry.cn-beijing.aliyuncs.com
-#IMAGE_TAG_PREFIX=${DOCKER_HUB_URL}/dosproj
+cp -rf virtctl/ ../docker/virtctl/centos7/
+cp -rf virtlet/ ../docker/virtlet/centos7/
+cp -rf libvirtwatcher/ ../docker/libvirtwatcher/centos7/
+cp -rf virtmonitor/ ../docker/virtmonitor/centos7/
 
-#DOCKER_USER=netgenius201
+cd ${PROJECT_ROOT}/docker
 
-#echo -e "\033[3;30;47m*** Login docker image repository.\033[0m"
-#echo "Username: $DOCKER_USER"
-#docker login --username=bigtree0613@126.com registry.cn-hangzhou.aliyuncs.com
-#docker login -u ${DOCKER_USER} ${DOCKER_HUB_URL}
-#docker login -u containers-1701096977881 -p 12dc49b311d6efd88014314e08eb6eda138b3816 g-ubjg5602-docker.pkg.coding.net
-#docker login $registry/pixiuio -u admin -p admin123
-#if [ $? -ne 0 ]; then
-#    echo "    Failed to login coding repository!"
-#    exit 1
-#else
-#    echo "    Success login...Pushing images!"
-#fi
-
-# use docker buildx
-#docker buildx create --name mybuilder --driver docker-container
-#docker buildx use mybuilder
-#docker run --privileged --rm tonistiigi/binfmt --install all
-#
-#docker buildx build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest --platform linux/amd64 --push
-#
-#if [ $? -ne 0 ]; then
-#    echo "    Failed to build base/centos7!"
-#    exit 1
-#else
-#    echo "    Success build base/centos7."
-#fi
-#
-#docker buildx build virtlet/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION} --platform linux/amd64
-
-#docker buildx build virtctl/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION} --platform linux/amd64
-
-#docker buildx build libvirtwatcher/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION} --platform linux/amd64
-
-#docker buildx build virtmonitor/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:${VERSION} --platform linux/amd64
-
-
-#docker build base/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest
-#docker tag base:latest g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest
+# Docker 构建
 docker build virtlet/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION}
 docker build virtctl/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION}
 docker build libvirtwatcher/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION}
 docker build virtmonitor/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:${VERSION}
 
-#step 3 docker push
-
-#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-base:latest
-#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION}
-#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION}
-#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION}
-#docker push g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:${VERSION}
-
-###############################patch version to SPECS/kubevmm.spec######################################################
-echo -e "\033[3;30;47m*** Patch release version number to SPECS/kubevmm.spec\033[0m"
-cd ..
+# 更新版本号
+cd ${PROJECT_ROOT}
 sed "4s/.*/%define         _verstr      ${VERSION}/" ./scripts/specs/kubevmm.spec > ./scripts/specs/kubevmm.spec.new
 mv ./scripts/specs/kubevmm.spec.new ./scripts/specs/kubevmm.spec
 if [ $? -ne 0 ]; then
@@ -271,16 +181,3 @@ if [ $? -ne 0 ]; then
 else
     echo "    Success patch version number to SPECS/kubevmm.spec."
 fi
-
-#echo -e "\033[3;30;47m*** Push new SPECS/kubevmm.spec to Github.\033[0m"
-#git add ./scripts/specs/kubevmm.spec
-## git add ./kubeovn-adm
-#git commit -m "new release version ${VERSION}"
-#git push
-#if [ $? -ne 0 ]; then
-    #    echo "    Failed to push SPECS/kubevmm.spec to Github!"
-    #exit 1
-#else
-    #    echo "    Success push SPECS/kubevmm.spec to Github."
-#fi
-
