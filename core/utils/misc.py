@@ -20,19 +20,23 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
 import sys
 import json
 from json import loads, load, dumps, dump
+import os
+
+# 添加core目录到Python路径
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from utils.libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
     from utils.exception import InternalServerError, NotFound, Forbidden, BadRequest,ExecuteException
     from utils.k8s_handler import Event,InvolvedObject,Metadata
-    from utils import constants
+    from utils import constants,logger
     from kubesys.client import KubernetesClient
     from kubesys.exceptions import HTTPError
-except:
-    from libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
-    from exception import InternalServerError, NotFound, Forbidden, BadRequest,ExecuteException
-    from k8s_handler import Event,InvolvedObject,Metadata
-    import constants
+except ImportError:
+    from .libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
+    from .exception import InternalServerError, NotFound, Forbidden, BadRequest,ExecuteException
+    from .k8s_handler import Event,InvolvedObject,Metadata
+    from . import constants,logger
     sys.path.append("..")
     sys.path.append('./core/')
     from kubesys.client import KubernetesClient
@@ -65,8 +69,9 @@ Import third party libs
 # from kubernetes import client, config
 # # from kubernetes.client import V1DeleteOptions
 # # from kubernetes.client.rest import ApiException
-from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_message,retry_if_result
-
+from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_message,retry_if_result, wait_exponential, retry_if_exception_type
+from requests.exceptions import HTTPError
+from typing import Optional
 
 TOKEN = constants.KUBERNETES_TOKEN_FILE
 TOKEN_ORIGIN = constants.KUBERNETES_TOKEN_FILE_ORIGIN
@@ -1633,6 +1638,7 @@ def get_1st_ready():
                             return name
             except Exception as e:
                 logger.error(f"Failed to get status for node '{name}'.", exc_info=e)
+                continue
 
         logger.warning("No Ready nodes found.")
         return None
@@ -1653,35 +1659,49 @@ def get_node_label_value(nodes, label):
         return None
 
 
-def push_node_label_value(node, label, value):
-    """:type node: str:type label: str:type value: str"""
+@retry(
+    stop=stop_after_attempt(10),  # 可适当增加重试次数
+    wait=wait_exponential(multiplier=2, min=2, max=20),
+    retry=retry_if_exception_type(HTTPError)
+)
+def push_node_label_value(node_name: str, label_key: str, label_value: Optional[str]):
+    """
+    Update node labels using strategic merge patch
+    """
     client = KubernetesClient(config=TOKEN)
-    jsonDict=client.getResource(kind='Node',name=node)
-    body = {label: value}
-    jsonDict['metadata']['labels'].update(body)
-    if node in get_all_nodes_name():
-        client.updateResource(jsonDict)
+    
+    if label_value is None:
+        # Remove the label
+        patch_data = {
+            "metadata": {
+                "labels": {
+                    label_key: None  # null value will remove the label
+                }
+            }
+        }
     else:
-        raise BadRequest("node %s does not exist" % node)
-
+        # Add or update the label
+        patch_data = {
+            "metadata": {
+                "labels": {
+                    label_key: label_value
+                }
+            }
+        }
+    
+    return client.patchResource(
+        kind="Node",
+        name=node_name,
+        patch_data=patch_data,
+        patch_type="strategic"
+    )
 
 
 class UserDefinedEvent(object):
-    swagger_types = {
-        'event_metadata_name': 'str',
-        'time_start': 'datetime',
-        'time_end': 'datetime',
-        'involved_object_name': 'str',
-        'involved_object_kind': 'str',
-        'message': 'str',
-        'reason': 'str',
-        'event_type': 'str'
-    }
-
-    def __init__(self, action,controller,event_metadata_name, time_start, time_end, involved_object_name, involved_object_kind, message,
-                 reason, event_type):
-        self.action=action
-        self.controller=controller
+    def __init__(self, action, controller, event_metadata_name, time_start, time_end, involved_object_name, 
+                 involved_object_kind, message, reason, event_type, event_id=None):  # 添加 event_id 参数
+        self.action = action
+        self.controller = controller
         self.event_metadata_name = event_metadata_name
         self.time_start = time_start
         self.time_end = time_end
@@ -1690,26 +1710,32 @@ class UserDefinedEvent(object):
         self.message = message
         self.reason = reason
         self.event_type = event_type
+        self.event_id = event_id or randomUUID()  # 如果没有提供 event_id，则生成一个新的
 
     def registerKubernetesEvent(self):
-        '''
-        More details please @See:
-            https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/V1Event.md
-        '''
-        # involved_object = client.V1ObjectReference(name=self.involved_object_name, kind=self.involved_object_kind,
-        #                                            namespace='default')
-        # metadata = client.V1ObjectMeta(name=self.event_metadata_name, namespace='default')
-        # body = client.CoreV1Event(first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
-        #                           involved_object=involved_object, message=self.message, reason=self.reason,
-        #                           type=self.event_type)
-        # client.CoreV1Api().replace_namespaced_event(self.event_metadata_name, 'default', body, pretty='true')
-        involved_object=InvolvedObject(name=self.involved_object_name, kind=self.involved_object_kind,namespace='default')
-        metadata=Metadata(name=self.event_metadata_name, namespace='default')
-        body=Event(action=self.action,controller=self.controller,first_timestamp=self.time_start, last_timestamp=self.time_end, metadata=metadata,
-                   involved_object=involved_object, message=self.message, reason=self.reason,
-                   type=self.event_type)
-        KubernetesClient(config=TOKEN).updateResource(body.__dict__,pretty=True)
-
+        involved_object = InvolvedObject(
+            name=self.involved_object_name, 
+            kind=self.involved_object_kind,
+            namespace='default'
+        )
+        metadata = Metadata(
+            name=self.event_metadata_name, 
+            namespace='default'
+        )
+        body = Event(
+            action=self.action,
+            reportingController=self.controller,  # 改用 reportingController
+            first_timestamp=self.time_start, 
+            last_timestamp=self.time_end, 
+            metadata=metadata,
+            involved_object=involved_object, 
+            message=self.message, 
+            reason=self.reason,
+            type=self.event_type,
+            reportingComponent="kubevmm.event",
+            reportingInstance=self.event_id
+        )
+        KubernetesClient(config=TOKEN).updateResource(body.__dict__, pretty=True)
 
     def updateKubernetesEvent(self):
         '''
@@ -2033,3 +2059,19 @@ if __name__ == '__main__':
 #     volume.get('volume').update(get_volume_snapshots('/var/lib/libvirt/images/test1.qcow2'))
 #     print(volume)
 #     print(get_volume_snapshots('/var/lib/libvirt/images/test4.qcow2'))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
