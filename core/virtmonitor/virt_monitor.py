@@ -367,15 +367,21 @@ def get_vm_metrics(vm, zone):
     try:
         global LAST_TAGS
         global LAST_RESOURCE_UTILIZATION
-    #     delete_duplicated_data = False
-    #     tags = {}
-    #     config.load_kube_config(config_file=TOKEN)
-        labels = get_field_in_kubernetes_by_index(vm, KIND, ['metadata', 'labels'])
-        this_tags = {'zone': zone, 'host': HOSTNAME, 'owner': labels.get('owner'), 
-                         "router": labels.get('router'), "autoscalinggroup": labels.get('autoscalinggroup'), 
-                         "cluster": labels.get('cluster')}
+        
+        # 获取标签，并添加默认值处理
+        labels = get_field_in_kubernetes_by_index(vm, KIND, ['metadata', 'labels']) or {}
+        
+        # 使用字典的get方法，提供默认值
+        this_tags = {
+            'zone': zone,
+            'host': HOSTNAME,
+            'owner': labels.get('owner', ''),  # 提供空字符串作为默认值
+            'router': labels.get('router', ''),
+            'autoscalinggroup': labels.get('autoscalinggroup', ''),
+            'cluster': labels.get('cluster', '')
+        }
+        
         if vm in LAST_TAGS.keys() and operator.ne(LAST_TAGS[vm], this_tags):
-    #         print("need delete")
             delete_vm_metrics(vm, LAST_TAGS[vm].get('zone'))
     #         delete_duplicated_data = True
     #         tags = {'zone': LAST_TAGS[vm].get('zone'), 'host': LAST_TAGS[vm].get('host'), 'owner': LAST_TAGS[vm].get('owner'), 
@@ -384,11 +390,20 @@ def get_vm_metrics(vm, zone):
     #     labels_str = dumps(labels)
     #     if delete_duplicated_data:
         LAST_TAGS[vm] = this_tags
-        resource_utilization = {'vm': vm, 'cpu_metrics': {}, 'mem_metrics': {},
-                                'disks_metrics': [], 'networks_metrics': [], 'cluster': labels.get('cluster'), 'router': labels.get('router'),
-                                'owner': labels.get('owner'), 'autoscalinggroup': labels.get('autoscalinggroup')}
-    #     cpus = len(get_vcpus(vm)[0])
-    #     print(cpus)
+        
+        # 同样为resource_utilization添加默认值处理
+        resource_utilization = {
+            'vm': vm,
+            'cpu_metrics': {},
+            'mem_metrics': {},
+            'disks_metrics': [],
+            'networks_metrics': [],
+            'cluster': labels.get('cluster', ''),
+            'router': labels.get('router', ''),
+            'owner': labels.get('owner', ''),
+            'autoscalinggroup': labels.get('autoscalinggroup', '')
+        }
+        
         cpu_stats = runCmdRaiseException('timeout 2 virsh domstats --vcpu %s | grep time | awk \'{split($0,a,\"=\");print a[2]}\'' % vm)
         cpu_time = 0.00
         cpu_number = 0
@@ -585,8 +600,19 @@ def get_vm_metrics(vm, zone):
             vm_network_send_packages_per_secend.labels(zone, HOSTNAME, vm, labels.get('owner'), labels.get('router'), labels.get('autoscalinggroup'), labels.get('cluster'), net_metrics['device']).set(net_metrics['network_write_packages_per_secend'])
         return resource_utilization
     except Exception as e:
-        logger.error('Oops! ', exc_info=1)
-        raise e
+        logger.error(f'Error in get_vm_metrics for VM {vm}: {str(e)}', exc_info=True)
+        # 可以选择返回一个默认的指标结构
+        return {
+            'vm': vm,
+            'cpu_metrics': {},
+            'mem_metrics': {},
+            'disks_metrics': [],
+            'networks_metrics': [],
+            'cluster': '',
+            'router': '',
+            'owner': '',
+            'autoscalinggroup': ''
+        }
 
 def delete_vm_metrics(vm, zone):
     global LAST_TAGS
