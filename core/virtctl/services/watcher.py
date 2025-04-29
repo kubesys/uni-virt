@@ -133,44 +133,26 @@ def doWatch(plural, k8s_object_kind):
 
     '''
     while True:
-        # watcher = watch.Watch()
         client=KubernetesClient(config=TOKEN)
-
-        # kwargs = {}
-        # kwargs['label_selector'] = get_label_selector()
-        # kwargs['watch'] = True
-        # kwargs['timeout_seconds'] = int(constants.KUBERNETES_WATCHER_TIME_OUT)
         params={'labelSelector':get_label_selector()}
-        # threads=[]
         try:
+            logger.info(f"Start watching kind={k8s_object_kind} in namespace=default with params={params}")
             handler=WatchHandler(add_func=lambda jsondict: doExecutor(plural, k8s_object_kind, jsondict),
                                  modify_func=lambda jsondict: doExecutor(plural, k8s_object_kind, jsondict),
                                  delete_func=lambda jsondict: doExecutor(plural, k8s_object_kind, jsondict))
-            watcher=client.watchResources(kind=k8s_object_kind,namespace='default',
+            
+            # 添加watch开始日志
+            logger.info(f"Creating watch connection for kind={k8s_object_kind}")
+            response = client.watchResources(kind=k8s_object_kind,namespace='default',
                                           watcherhandler=handler,**params)
-            time.sleep(int(constants.KUBERNETES_WATCHER_TIME_OUT))
-#             for jsondict in watcher.stream(client.CustomObjectsApi().list_cluster_custom_object,
-#                                            group=constants.KUBERNETES_GROUP, version=constants.KUBERNETES_API_VERSION,
-#                                            plural=plural, **kwargs):
-#                 logger.debug("watch here")
-#                 # logger.debug(jsondict)
-# #                 global current_event_id
-# #                 if is_not_valid_uuid(_getEventId(jsondict)):
-# #                     raise BadRequest('Event ID: %s is not valid uuid!' % _getEventId(jsondict))
-#                 thread = Thread(target=doExecutor, args=(plural, k8s_object_kind, jsondict))
-#                 thread.name = 'do_executor'
-#                 threads.append(thread)
-#                 thread.start()
-#             for i in threads:
-#                 i.join()
+            # 添加watch连接建立成功日志                              
+            logger.info(f"Watch connection established for kind={k8s_object_kind}")
+            
+            client.handle_watch_response(response, handler)
+            
         except Exception as e:
-            #             master_ip = change_master_and_reload_config(fail_times)
-            # config.load_kube_config(config_file=TOKEN)
-            #             fail_times += 1
-            #             logger.debug('retrying another master %s, retry times: %d' % (master_ip, fail_times))
-            # info = sys.exc_info()
-            logger.warning('Oops! ', exc_info=1)
-            #             vMWatcher(group=GROUP_VM, version=VERSION_VM, plural=PLURAL_VM)
+            # 改进异常日志，包含具体错误信息
+            logger.error(f"Watch failed for kind={k8s_object_kind}: {str(e)}", exc_info=1)
             time.sleep(3)
             continue
             
@@ -180,81 +162,98 @@ def doWatch(plural, k8s_object_kind):
 #     thread.start()
 
 def doExecutor(plural, k8s_object_kind, jsondict):
-    operation_type = jsondict.get('type')
-    logger.debug(operation_type)
-    metadata_name = _getMetadataName(jsondict)
-    logger.debug('metadata name: %s' % metadata_name)
-    '''convertor'''
-    if operation_type == 'DELETED':
-        # delete type特殊处理: kubectl delete vmp pooltest
-        if  k8s_object_kind==constants.KUBERNETES_KIND_VMP:
-            jsondict["spec"]['lifecycle']={"deletePool":dict()}
-        elif k8s_object_kind==constants.KUBERNETES_KIND_VMD:
-            poolName=jsondict["spec"]['volume']['pool']
-            logger.debug('vmd poolName: %s' % poolName)
-            jsondict["spec"]['lifecycle'] = {"deleteDisk": {"pool": poolName}}
-        elif k8s_object_kind==constants.KUBERNETES_KIND_VMDI:
-            poolName = jsondict["spec"]['volume']['pool']
-            logger.debug('vmdi poolName: %s' % poolName)
-            jsondict["spec"]['lifecycle'] = {"deleteDiskImage": {"pool": poolName}}
-        elif k8s_object_kind==constants.KUBERNETES_KIND_VMDSN:
-            volumeDict = jsondict["spec"]['volume']
-            poolName = volumeDict['pool']
-            logger.debug('vmdsn poolName: %s' % poolName)
-            domain=""
-            if "domain" in volumeDict.keys():
-                domain=volumeDict["domain"]
-            jsondict["spec"]['lifecycle'] = {"deleteDiskExternalSnapshot": {"pool": poolName,"source":volumeDict["disk"],"domain":domain}}
-    # 在此处检查lifecycle，只有带lifecycle的才继续处理
-    (policy, the_cmd_key, prepare_cmd, invoke_cmd, query_cmd) = toCmds(jsondict)
-    logger.debug(toCmds(jsondict))
-
-    # acquire lock
-    if the_cmd_key:
-        _acquire_mutex_lock(the_cmd_key)
     try:
-        # if the_cmd_key and operation_type != 'DELETED':
-        if the_cmd_key :
-            logger.debug("cmd key: %s, prepare cmd: %s, invoke cmd: %s, query cmd: %s" % (
-            the_cmd_key, prepare_cmd, invoke_cmd, query_cmd))
-            '''delete lifecycle in Kubernetes'''
-            delete_lifecycle_in_kubernetes(k8s_object_kind, metadata_name)
-            '''create Kubernetes event'''
-            event_id = _getEventId(jsondict)
-            event_doing = KubernetesEvent(metadata_name, the_cmd_key, k8s_object_kind, event_id)
-            event_doing.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DOING, constants.KUBEVMM_EVENT_TYPE_NORMAL)
-            event_done = KubernetesEvent(metadata_name, the_cmd_key, k8s_object_kind, event_id)
+        operation_type = jsondict.get('type')
+        metadata_name = _getMetadataName(jsondict)
+        # 添加更详细的事件接收日志
+        logger.info(f"Watch event received: kind={k8s_object_kind}, type={operation_type}, name={metadata_name}, content={jsondict}")
+        
+        # 添加lifecycle检查日志
+        if 'spec' in jsondict and 'lifecycle' in jsondict['spec']:
+            logger.info(f"Found lifecycle in event: {jsondict['spec']['lifecycle']}")
+        else:
+            logger.info(f"No lifecycle found in event")
+        logger.debug(operation_type)
+        '''convertor'''
+        if operation_type == 'DELETED':
+            # delete type特殊处理: kubectl delete vmp pooltest
+            if  k8s_object_kind==constants.KUBERNETES_KIND_VMP:
+                jsondict["spec"]['lifecycle']={"deletePool":dict()}
+            elif k8s_object_kind==constants.KUBERNETES_KIND_VMD:
+                poolName=jsondict["spec"]['volume']['pool']
+                logger.debug('vmd poolName: %s' % poolName)
+                jsondict["spec"]['lifecycle'] = {"deleteDisk": {"pool": poolName}}
+            elif k8s_object_kind==constants.KUBERNETES_KIND_VMDI:
+                poolName = jsondict["spec"]['volume']['pool']
+                logger.debug('vmdi poolName: %s' % poolName)
+                jsondict["spec"]['lifecycle'] = {"deleteDiskImage": {"pool": poolName}}
+            elif k8s_object_kind==constants.KUBERNETES_KIND_VMDSN:
+                volumeDict = jsondict["spec"]['volume']
+                poolName = volumeDict['pool']
+                logger.debug('vmdsn poolName: %s' % poolName)
+                domain=""
+                if "domain" in volumeDict.keys():
+                    domain=volumeDict["domain"]
+                jsondict["spec"]['lifecycle'] = {"deleteDiskExternalSnapshot": {"pool": poolName,"source":volumeDict["disk"],"domain":domain}}
+        # 在此处检查lifecycle，只有带lifecycle的才继续处理
+        (policy, the_cmd_key, prepare_cmd, invoke_cmd, query_cmd) = toCmds(jsondict)
+        logger.debug(toCmds(jsondict))
+
+        # acquire lock
+        if the_cmd_key:
+            _acquire_mutex_lock(the_cmd_key)
+        try:
+            # if the_cmd_key and operation_type != 'DELETED':
+            if the_cmd_key :
+                logger.debug("cmd key: %s, prepare cmd: %s, invoke cmd: %s, query cmd: %s" % (
+                the_cmd_key, prepare_cmd, invoke_cmd, query_cmd))
+                '''delete lifecycle in Kubernetes'''
+                delete_lifecycle_in_kubernetes(k8s_object_kind, metadata_name)
+                '''create Kubernetes event'''
+                event_id = _getEventId(jsondict)
+                event_doing = KubernetesEvent(metadata_name, the_cmd_key, k8s_object_kind, event_id)
+                event_doing.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DOING, constants.KUBEVMM_EVENT_TYPE_NORMAL)
+                event_done = KubernetesEvent(metadata_name, the_cmd_key, k8s_object_kind, event_id)
+                try:
+                    data = {}
+                    if invoke_cmd:
+                        '''executor'''
+                        executor = Executor(policy, prepare_cmd, invoke_cmd, query_cmd)
+                        _, data = executor.execute()
+                    '''write result, except migrateVM'''
+                    if the_cmd_key != 'migrateVM':
+                        write_result_to_kubernetes(k8s_object_kind, metadata_name, data)
+                    '''update Kubernetes event'''
+                    event_done.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_NORMAL)
+                except libvirtError:
+                    logger.error('Oops! ', exc_info=1)
+                    info = sys.exc_info()
+                    try:
+                        report_failure(metadata_name, 'LibvirtError', str(info[1]), k8s_object_kind)
+                    except:
+                        logger.warning('Oops! ', exc_info=1)
+                    event_done.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_ERROR)
+                except Exception as e:
+                    logger.error('Oops! ', exc_info=1)
+                    info = sys.exc_info()
+                    try:
+                        report_failure(metadata_name, 'Exception', str(info[1]),  k8s_object_kind)
+                    except:
+                        logger.warning('Oops! ', exc_info=1)
+                    event_done.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_ERROR)
+                finally:
+                    # 释放锁
+                    if the_cmd_key:
+                        _release_mutex_lock(the_cmd_key)
+        except Exception as e:
+            logger.error('Oops! ', exc_info=1)
+            info = sys.exc_info()
             try:
-                data = {}
-                if invoke_cmd:
-                    '''executor'''
-                    executor = Executor(policy, prepare_cmd, invoke_cmd, query_cmd)
-                    _, data = executor.execute()
-                '''write result, except migrateVM'''
-                if the_cmd_key != 'migrateVM':
-                    write_result_to_kubernetes(k8s_object_kind, metadata_name, data)
-                '''update Kubernetes event'''
-                event_done.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_NORMAL)
-            except libvirtError:
-                logger.error('Oops! ', exc_info=1)
-                info = sys.exc_info()
-                try:
-                    report_failure(metadata_name, 'LibvirtError', str(info[1]), k8s_object_kind)
-                except:
-                    logger.warning('Oops! ', exc_info=1)
-                event_done.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_ERROR)
-            except Exception as e:
-                logger.error('Oops! ', exc_info=1)
-                info = sys.exc_info()
-                try:
-                    report_failure(metadata_name, 'Exception', str(info[1]),  k8s_object_kind)
-                except:
-                    logger.warning('Oops! ', exc_info=1)
-                event_done.create_event(constants.KUBEVMM_EVENT_LIFECYCLE_DONE, constants.KUBEVMM_EVENT_TYPE_ERROR)
-            finally:
-                # 释放锁
-                if the_cmd_key:
-                    _release_mutex_lock(the_cmd_key)
+                report_failure(metadata_name, 'Exception', str(info[1]), k8s_object_kind)
+            except:
+                logger.warning('Oops! ', exc_info=1)
+
+
     except Exception as e:
         logger.error('Oops! ', exc_info=1)
         info = sys.exc_info()
