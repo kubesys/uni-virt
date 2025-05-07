@@ -715,7 +715,17 @@ class VmLibvirtXmlEventHandler(FSEHPreProcessing):
             vm, file_type = os.path.splitext(name)
             if file_type == '.xml' and is_vm_exists(vm):
                 try:
-                    myVmLibvirtXmlEventHandler('Create', vm, event.dest_path, self.group, self.version, self.plural)
+                    # 检查虚拟机是否已存在
+                    try:
+                        get_custom_object(VM_KIND, vm)
+                        # 如果存在，则触发Modify事件
+                        myVmLibvirtXmlEventHandler('Modify', vm, event.dest_path, self.group, self.version, self.plural)
+                    except HTTPError as e:
+                        if str(e).find('Not Found'):
+                            # 如果不存在，则触发Create事件
+                            myVmLibvirtXmlEventHandler('Create', vm, event.dest_path, self.group, self.version, self.plural)
+                        else:
+                            raise
                 except HTTPError:
                     logger.error('Oops! ', exc_info=1)
 
