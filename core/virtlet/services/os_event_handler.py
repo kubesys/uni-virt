@@ -19,8 +19,6 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
  * limitations under the License.
 '''
 import json
-import ssl
-import logging
 
 '''
 Import python libs
@@ -29,7 +27,7 @@ import os
 from time import time,sleep
 import traceback
 import sys
-import re
+import logging,re
 from json import loads
 from json import dumps
 from xml.etree.ElementTree import fromstring
@@ -49,14 +47,13 @@ Import local libs
 '''
 from utils.libvirt_util import get_pool_path, get_volume_path, refresh_pool, get_volume_xml, get_snapshot_xml, is_vm_exists, get_xml, \
     vm_state, _get_all_pool_path, get_vol_info_by_qemu,list_active_vms
-from utils import logger as univirt_logger
+from utils import logger
 from utils import constants
 from utils.misc import create_custom_object, delete_custom_object, get_custom_object, update_custom_object, add_spec_in_volume, updateDescription, addSnapshots, get_volume_snapshots, runCmdRaiseException, \
     addPowerStatusMessage, updateDomainSnapshot, updateDomain, report_failure, get_hostname_in_lower_case,get_1st_ready,\
     DiskImageHelper
 
 from kubesys.exceptions import HTTPError
-from kubesys.logger import logger as kubesys_logger
 
 GROUP = constants.KUBERNETES_GROUP
 VERSION = constants.KUBERNETES_API_VERSION
@@ -79,12 +76,9 @@ VMD_TEMPLATE_DIR = constants.KUBEVMM_DEFAULT_VMDI_DIR
 
 HOSTNAME = get_hostname_in_lower_case()
 NAMESPACE='default'
-logger = univirt_logger.set_logger(os.path.basename(__file__), constants.KUBEVMM_VIRTLET_LOG)
+logger = logger.set_logger(os.path.basename(__file__), constants.KUBEVMM_VIRTLET_LOG)
 CUT_OFF_TIME = 4
 event_mapper={}
-
-# 配置kubesys的logger输出到相同的日志文件
-logger.set_kubesys_logger(constants.KUBEVMM_VIRTLET_LOG)
 
 def xmlToJson(xmlStr):
     return dumps(bf.data(fromstring(xmlStr)), sort_keys=True, indent=4)
@@ -715,7 +709,17 @@ class VmLibvirtXmlEventHandler(FSEHPreProcessing):
             vm, file_type = os.path.splitext(name)
             if file_type == '.xml' and is_vm_exists(vm):
                 try:
-                    myVmLibvirtXmlEventHandler('Create', vm, event.dest_path, self.group, self.version, self.plural)
+                    # 检查虚拟机是否已存在
+                    try:
+                        get_custom_object(VM_KIND, vm)
+                        # 如果存在，则触发Modify事件
+                        myVmLibvirtXmlEventHandler('Modify', vm, event.dest_path, self.group, self.version, self.plural)
+                    except HTTPError as e:
+                        if str(e).find('Not Found'):
+                            # 如果不存在，则触发Create事件
+                            myVmLibvirtXmlEventHandler('Create', vm, event.dest_path, self.group, self.version, self.plural)
+                        else:
+                            raise
                 except HTTPError:
                     logger.error('Oops! ', exc_info=1)
 
@@ -1396,23 +1400,3 @@ if __name__ == "__main__":
             logger.error('Oops! ', exc_info=1)
             time.sleep(5)
             continue
-
-# 在服务启动时设置kubesys使用uni-virt的logger
-def init_logging():
-    """初始化日志系统"""
-    # 创建文件处理器
-    file_handler = logging.handlers.RotatingFileHandler(
-        filename=constants.KUBEVMM_VIRTLET_LOG,
-        maxBytes=int(constants.KUBEVMM_LOG_FILE_SIZE_BYTES),
-        backupCount=int(constants.KUBEVMM_LOG_FILE_RESERVED)
-    )
-    
-    # 使用相同的格式
-    formatter = logging.Formatter(
-        "%(asctime)s %(name)s %(lineno)s %(levelname)s %(message)s",
-        "%Y-%m-%d %H:%M:%S"
-    )
-    file_handler.setFormatter(formatter)
-    
-    # 添加到kubesys logger
-    kubesys_logger.addHandler(file_handler)
