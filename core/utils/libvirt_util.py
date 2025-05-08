@@ -1202,3 +1202,54 @@ if __name__ == '__main__':
 #     print(is_volume_in_use('disktest22', 'pooltest22'))
 #     vol_xml = get_vol_info_by_qemu('/var/lib/libvirt/pooltest/disktest/disktest')
 #     print vol_xml
+
+def memtune(vm_, hard_limit=None, soft_limit=None, swap_hard_limit=None, config=False):
+    '''
+    Configure memory parameters for a guest domain.
+    The VM must be shutdown for this to work.
+    
+    Parameters:
+        vm_: domain name
+        hard_limit: maximum memory in KB
+        soft_limit: memory in KB 
+        swap_hard_limit: maximum memory plus swap in KB
+        config: if True then modify the config as well
+        
+    CLI Example::
+        salt '*' virt.memtune myvm hard_limit=1048576 soft_limit=524288
+    '''
+    if vm_state(vm_).get(vm_) != 'Shutdown':
+        return False
+
+    dom = _get_dom(vm_)
+
+    # libvirt has a funny bitwise system for the flags in that the flag
+    # to affect the "current" setting is 0, which means that to set the
+    # current setting we have to call it a second time with just 0 set
+    flags = libvirt.VIR_DOMAIN_MEM_MAXIMUM
+    if config:
+        flags = flags | libvirt.VIR_DOMAIN_AFFECT_CONFIG
+
+    try:
+        # 设置内存参数
+        params = {}
+        if hard_limit is not None:
+            params['hard_limit'] = hard_limit
+        if soft_limit is not None:
+            params['soft_limit'] = soft_limit  
+        if swap_hard_limit is not None:
+            params['swap_hard_limit'] = swap_hard_limit
+
+        # 设置最大限制
+        ret1 = dom.setMemoryParameters(params, flags)
+        
+        # 设置当前限制
+        ret2 = dom.setMemoryParameters(params, libvirt.VIR_DOMAIN_AFFECT_CURRENT)
+
+        # return True if both calls succeeded
+        return ret1 == ret2 == 0
+
+    except Exception as e:
+        print(str(e))
+        return False
+

@@ -108,6 +108,7 @@ RESIZE_MAX_RAM_CMD                 = "default,domain,none,virsh setmaxmem,virshp
 RESIZE_VM_CMD                      = "default,domain,none,virsh blockresize,virshplus dumpxml"
 TUNE_DISK_QOS_CMD                  = "default,domain,none,virsh blkdeviotune,virshplus dumpxml"
 TUNE_NIC_QOS_CMD                   = "default,domain,none,virsh domiftune,virshplus dumpxml"
+TUNE_MEMORY_QOS_CMD                = "default,domain,none,virsh memtune,virshplus dumpxml"
 SET_BOOT_ORDER_CMD                 = "default,domain,none,virshplus set_boot_order,virshplus dumpxml"
 SET_VNC_PASSWORD_CMD               = "default,domain,none,virshplus set_vnc_password,virshplus dumpxml"
 UNSET_VNC_PASSWORD_CMD             = "default,domain,none,virshplus unset_vnc_password,virshplus dumpxml"
