@@ -18,34 +18,29 @@ Copyright (2024, ) Institute of Software, Chinese Academy of Sciences
  * limitations under the License.
 '''
 
-# ... 保持现有代码不变 ...
+try:
+    from utils import constants
+except:
+    import constants
 
-def set_kubesys_logger(log_file):
-    """
-    配置kubesys的日志输出
+import logging
+import logging.handlers
+
+def set_logger(header,fn):
+    logger = logging.getLogger(header)
     
-    Args:
-        log_file: 日志文件路径
-    """
-    from kubesys.logger import logger as kubesys_logger
+    handler1 = logging.StreamHandler()
+    handler2 = logging.handlers.RotatingFileHandler(filename=fn, maxBytes=int(constants.KUBEVMM_LOG_FILE_SIZE_BYTES), 
+                                                    backupCount=int(constants.KUBEVMM_LOG_FILE_RESERVED))
     
-    # 创建处理器
-    handler = logging.handlers.RotatingFileHandler(
-        filename=log_file,
-        maxBytes=int(constants.KUBEVMM_LOG_FILE_SIZE_BYTES),
-        backupCount=int(constants.KUBEVMM_LOG_FILE_RESERVED)
-    )
+    logger.setLevel(logging.DEBUG)
+    handler1.setLevel(logging.ERROR)
+    handler2.setLevel(logging.DEBUG)
     
-    # 设置格式化器
-    formatter = logging.Formatter(
-        fmt="%(asctime)s %(name)s %(lineno)s %(levelname)s %(message)s",
-        datefmt='%Y-%m-%d  %H:%M:%S'
-    )
-    handler.setFormatter(formatter)
-    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(fmt="%(asctime)s %(name)s %(lineno)s %(levelname)s %(message)s",datefmt = '%Y-%m-%d  %H:%M:%S')
+    handler1.setFormatter(formatter)
+    handler2.setFormatter(formatter)
     
-    # 配置kubesys logger
-    kubesys_logger._logger.handlers.clear()  # 清除现有handlers
-    kubesys_logger._logger.addHandler(handler)
-    kubesys_logger._logger.setLevel(logging.DEBUG)
-    kubesys_logger._logger.propagate = False
+    logger.addHandler(handler1)
+    logger.addHandler(handler2)
+    return logger
