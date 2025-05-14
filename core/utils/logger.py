@@ -26,7 +26,22 @@ except:
 import logging
 import logging.handlers
 
-def set_logger(header, fn):
+def set_logger(header, fn, log_level=logging.DEBUG, set_kubesys_logger=True):
+    """
+    设置日志记录器
+    
+    Args:
+        header: 日志记录器名称
+        fn: 日志文件路径
+        log_level: 日志级别，默认为DEBUG
+        set_kubesys_logger: 是否同时设置kubesys的日志记录器
+    
+    Returns:
+        配置好的logger对象
+    """
+    # 恢复默认的LogRecord工厂，确保uni-virt的日志正常
+    logging.setLogRecordFactory(logging.LogRecord)
+    
     logger = logging.getLogger(header)
     
     # 如果logger已经有handlers，先清除
@@ -40,12 +55,12 @@ def set_logger(header, fn):
         backupCount=int(constants.KUBEVMM_LOG_FILE_RESERVED)
     )
     
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(log_level)
     handler1.setLevel(logging.ERROR)
-    handler2.setLevel(logging.DEBUG)
+    handler2.setLevel(log_level)
     
     formatter = logging.Formatter(
-        fmt="%(asctime)s %(name)s %(lineno)s %(levelname)s %(message)s",
+        fmt="%(asctime)s %(filename)s:%(lineno)s %(levelname)s %(message)s",
         datefmt='%Y-%m-%d  %H:%M:%S'
     )
     handler1.setFormatter(formatter)
@@ -56,6 +71,20 @@ def set_logger(header, fn):
     
     # 确保不会重复记录日志
     logger.propagate = False
+    
+    # 如果需要，同时设置kubesys的日志记录器
+    if set_kubesys_logger:
+        try:
+            from kubesys.logger import logger as kubesys_logger
+            # 使用新的set_logger方法直接设置外部logger
+            kubesys_logger.set_logger(logger)
+        except (ImportError, AttributeError) as e:
+            # 如果kubesys模块不可用或没有set_logger方法，则尝试使用旧方法
+            try:
+                kubesys_logger.add_external_handler(handler2)
+            except (AttributeError):
+                # 如果都不可用，则忽略
+                pass
     
     return logger
 
