@@ -26,6 +26,7 @@ import errno
 from functools import wraps
 import os, sys, time, signal, atexit, subprocess
 from xml.dom import minidom
+import xml.etree.ElementTree as ET
 
 '''
 Import third party libs
@@ -1086,11 +1087,52 @@ def unplug_nic(params):
     operation_queue = _get_network_operations_queue(the_cmd_key, config_dict, metadata_name)
     _runOperationQueue(operation_queue)
     
+def _get_next_available_disk_slot(metadata_name):
+    """
+    获取虚拟机下一个可用的磁盘插槽位置
+    
+    Args:
+        metadata_name: 虚拟机名称
+        
+    Returns:
+        str: 下一个可用的磁盘插槽位置，如'vdb'
+    """
+    # 获取虚拟机XML
+    vm_xml = get_xml(metadata_name)
+    tree = ET.fromstring(vm_xml)
+    
+    # 获取所有已使用的磁盘设备
+    used_slots = set()
+    for disk in tree.findall('.//devices/disk'):
+        if disk.get('device') == 'disk':
+            target = disk.find('target')
+            if target is not None:
+                used_slots.add(target.get('dev'))
+    
+    # 找到第一个可用的磁盘插槽
+    for letter in 'bcdefghijklmnopqrstuvwxyz':
+        slot = f'vd{letter}'
+        if slot not in used_slots:
+            return slot
+            
+    raise BadRequest('No available disk slots found')
+
 def plug_disk(params):
     the_cmd_key = 'plugDisk'
     metadata_name = _get_param('--domain', params)
     disk_config = _get_params(params)
     logger.debug(disk_config)
+    
+    # 如果没有指定target，自动获取下一个可用的磁盘位置
+    if 'target' not in disk_config:
+        try:
+            next_slot = _get_next_available_disk_slot(metadata_name)
+            disk_config['target'] = next_slot
+            logger.debug(f'Auto-selected disk slot: {next_slot}')
+        except Exception as e:
+            logger.error(f'Failed to get next available disk slot: {str(e)}')
+            raise BadRequest(f'Failed to get next available disk slot: {str(e)}')
+    
     config_dict = _disk_config_parser_json(the_cmd_key, disk_config)
     logger.debug(config_dict)
     operation_queue = _get_disk_operations_queue(the_cmd_key, config_dict, metadata_name)
