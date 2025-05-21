@@ -45,36 +45,27 @@ class Metadata:
     def to_json(self):
         return json.dumps(self.__dict__)
 
-class KubernetesObject:
-    """Base class for all Kubernetes objects"""
-    def __init__(self):
-        self.kind = self.__class__.__name__
-        # apiVersion will be determined dynamically by KubernetesClient
-
-    def to_dict(self):
-        return {k: v for k, v in self.__dict__.items() if v is not None}
+class Event:
+    def __init__(self,action='',controller='',first_timestamp:datetime=None, involved_object:InvolvedObject=None, last_timestamp:datetime=None,
+                 message=None, metadata:Metadata=None, reason=None, type:str=None):
+        self.firstTimestamp=first_timestamp.isoformat()
+        self.action=action
+        self.lastTimestamp=last_timestamp.isoformat()
+        self.eventTime=last_timestamp.isoformat()
+        self.metadata=metadata.__dict__
+        self.regarding=involved_object.__dict__
+        self.reportingController=controller
+        self.reportingInstance=self.reportingController+'-'+metadata.name
+        self.note=message
+        self.reason=reason
+        self.type=type
+        self.kind='Event'
+        self.apiVersion='events.k8s.io/v1'
 
     def to_json(self):
-        return json.dumps(self.to_dict())
+        return json.dumps(self.__dict__)
 
-class Event(KubernetesObject):
-    def __init__(self, action='', first_timestamp=None, involved_object=None, 
-                 last_timestamp=None, message=None, metadata=None, reason=None, 
-                 type=None, reportingComponent=None, reportingInstance=None, reportingController=None):
-        super().__init__()
-        self.firstTimestamp = first_timestamp.isoformat()
-        self.action = action
-        self.lastTimestamp = last_timestamp.isoformat()
-        self.eventTime = last_timestamp.isoformat()
-        self.metadata = metadata.__dict__
-        self.regarding = involved_object.__dict__
-        self.reportingController = reportingController
-        self.reportingInstance = f"{reportingController}-{metadata.name}"
-        self.note = message
-        self.reason = reason
-        self.type = type
-        self.reportingComponent = reportingComponent
-        self.reportingInstance = reportingInstance
+
 
 class Node:
     class Status:
@@ -100,20 +91,14 @@ class Node:
 
 
     def __init__(self,metadata:Metadata=None, spec:Spec=None, status:Status=None):
-        super().__init__()
-        self.metadata = metadata.__dict__
-        self.spec = spec.__dict__
-        self.status = status.__dict__
+        self.apiVersion='v1'
+        self.kind='Node'
+        self.metadata=metadata.__dict__
+        self.spec=spec.__dict__
+        self.status=status.__dict__
 
     def to_json(self):
-        return json.dumps(self.to_dict())
-
-
-
-
-
-
-
+        return json.dumps(self.__dict__)
 
 
 

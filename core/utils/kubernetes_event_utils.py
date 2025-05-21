@@ -50,18 +50,11 @@ class KubernetesEvent:
                   % (self.involved_object_kind, self.involved_object_name, self.involved_cmd_key, status,
                      self.reporter, self.event_id, (time_end - self.time_start).total_seconds())
         event = UserDefinedEvent(
-            action=self.involved_cmd_key,
-            controller=self.reporter,
-            event_metadata_name=self.event_metadata_name,
-            time_start=self.time_start,
-            time_end=time_end,
-            involved_object_name=self.involved_object_name,
-            involved_object_kind=self.involved_object_kind,
-            message=message,
-            reason=self.involved_cmd_key,
-            event_type=event_type,
-            event_id=self.event_id  # 传递 event_id
-        )
+            action=self.involved_cmd_key,controller=self.reporter,event_metadata_name=self.event_metadata_name,
+            time_start=self.time_start, time_end=time_end,involved_object_name=self.involved_object_name,
+            involved_object_kind=self.involved_object_kind,message=message, reason=self.involved_cmd_key,
+            event_type=event_type)
+        # config.load_kube_config(config_file=TOKEN)
         return event
 
     @retry(stop=stop_after_attempt(10),wait=wait_random(min=1,max=3),reraise=True)
@@ -75,8 +68,3 @@ class KubernetesEvent:
         event=self.event_helper(status,event_type)
         event.updateKubernetesEvent()
         return
-
-
-
-
-
