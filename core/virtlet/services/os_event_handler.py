@@ -31,7 +31,7 @@ import logging,re
 from json import loads
 from json import dumps
 from xml.etree.ElementTree import fromstring
-
+import ssl
 '''
 Import third party libs
 '''
@@ -1359,7 +1359,7 @@ def main():
         while True:
             try:
                 # 获取第一个处于 Ready 状态的节点
-                node = get_1st_ready()
+                node = get_1st_ready(logger)
                 if node is None:
                     logger.warning("No Ready nodes available. Retrying...")
                     sleep(5)  # 如果没有 Ready 节点，延时后重试

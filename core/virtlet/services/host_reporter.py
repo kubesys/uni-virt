@@ -189,8 +189,8 @@ def _check_ha_and_autostart_vm(kind, metadata_name):
             start(metadata_name)
         
 def _check_and_enable_HA():
-    push_node_label_value(HOSTNAME, "nodeHA", None)
-#     runCmd("kubectl label node --kubeconfig=%s %s nodeHA-" % (TOKEN_ORIGIN,HOSTNAME))
+ #   push_node_label_value(HOSTNAME, "nodeHA", None)
+    runCmd("kubectl label node --kubeconfig=%s %s nodeHA-" % (TOKEN_ORIGIN,HOSTNAME))
 
 
 def _check_vm_power_state(kind, metadata_name):

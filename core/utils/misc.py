@@ -25,14 +25,14 @@ try:
     from utils.libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
     from utils.exception import InternalServerError, NotFound, Forbidden, BadRequest,ExecuteException
     from utils.k8s_handler import Event,InvolvedObject,Metadata
-    from utils import constants
+    from utils import constants,logger
     from kubesys.client import KubernetesClient
     from kubesys.exceptions import HTTPError
 except:
     from libvirt_util import get_graphics, is_snapshot_exists, is_pool_exists, get_pool_path
     from exception import InternalServerError, NotFound, Forbidden, BadRequest,ExecuteException
     from k8s_handler import Event,InvolvedObject,Metadata
-    import constants
+    import constants,logger
     sys.path.append("..")
     sys.path.append('./core/')
     from kubesys.client import KubernetesClient
@@ -66,6 +66,8 @@ Import third party libs
 # # from kubernetes.client import V1DeleteOptions
 # # from kubernetes.client.rest import ApiException
 from tenacity import retry, stop_after_attempt, wait_random, retry_if_exception_message,retry_if_result
+LOG = constants.KUBEVMM_VIRTCTL_LOG
+logger = logger.set_logger(os.path.basename(__file__), LOG)
 
 
 TOKEN = constants.KUBERNETES_TOKEN_FILE
@@ -1613,7 +1615,7 @@ def get_all_nodes_name():
     return names
 
 
-def get_1st_ready():
+def get_1st_ready(logger):
     try:
         client = KubernetesClient(config=TOKEN)
         names = get_all_nodes_name()
