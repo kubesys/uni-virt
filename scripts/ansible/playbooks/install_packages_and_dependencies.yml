@@ -154,7 +154,7 @@
         state: present
       tags: 
         - packages
-      when: ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS'
+      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS')  and offline is none
 
     - name: downgrade pip
       pip:
@@ -204,7 +204,7 @@
     - name: Update package list
       apt:
         update_cache: yes
-      when: ansible_os_family == 'Debian'
+      when: ansible_os_family == 'Debian' and offline is none
 
     - name: Install required packages
       apt:
@@ -220,19 +220,19 @@
           - bridge-utils
           - openvswitch-switch
         state: present
-      when: ansible_os_family == 'Debian'
+      when: ansible_os_family == 'Debian' and offline is none
 
     - name: Install ceph
       apt:
         name: ceph
         state: present
-      when: ansible_os_family == 'Debian'
+      when: ansible_os_family == 'Debian' and offline is none
 
     - name: Upgrade pip
       pip:
         name: pip
         state: latest
-      when: ansible_os_family == 'Debian'
+      when: ansible_os_family == 'Debian' and offline is none
 
     - name: Install Python packages
       pip:
@@ -253,7 +253,7 @@
           - psutil
           - tenacity
         state: latest
-      when: ansible_os_family == 'Debian'
+      when: ansible_os_family == 'Debian' and offline is none
 
 #    - name: Add line to file if pattern found
 #      ansible.builtin.lineinfile:
