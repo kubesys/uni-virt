@@ -61,11 +61,11 @@ fi
 
 # 检查必要的目录是否存在
 required_dirs=(
-    "${PROJECT_ROOT}/dist/centos7"
-    "${PROJECT_ROOT}/docker/virtctl/centos7"
-    "${PROJECT_ROOT}/docker/virtlet/centos7"
-    "${PROJECT_ROOT}/docker/libvirtwatcher/centos7"
-    "${PROJECT_ROOT}/docker/virtmonitor/centos7"
+    "${PROJECT_ROOT}/dist/ubuntu22"
+    "${PROJECT_ROOT}/docker/virtctl/ubuntu22"
+    "${PROJECT_ROOT}/docker/virtlet/ubuntu22"
+    "${PROJECT_ROOT}/docker/libvirtwatcher/ubuntu22"
+    "${PROJECT_ROOT}/docker/virtmonitor/ubuntu22"
     "${PROJECT_ROOT}/ovnctl/src"
     "${PROJECT_ROOT}/core/plugins"
     "${PROJECT_ROOT}/core/utils"
@@ -85,23 +85,23 @@ cd ${PROJECT_ROOT}
 cp -f ./ovnctl/src/kubeovn-adm ./
 chmod +x kubeovn-adm
 gzexe ./kubeovn-adm
-cp -f kubeovn-adm ./dist/centos7
+cp -f kubeovn-adm ./dist/ubuntu22
 gzexe -d ./kubeovn-adm
 rm -f ./kubeovn-adm~ ./kubeovn-adm
 gzexe ./core/plugins/device-passthrough
-cp -f ./core/plugins/device-passthrough ./dist/centos7
+cp -f ./core/plugins/device-passthrough ./dist/ubuntu22
 gzexe -d ./core/plugins/device-passthrough
 rm -f ./core/plugins/device-passthrough~
 
-cp -f ./core/utils/arraylist.cfg ./dist/centos7
-cp -rf ./scripts/yamls ./dist/centos7
-cp -rf ./scripts/plugins ./dist/centos7
+cp -f ./core/utils/arraylist.cfg ./dist/ubuntu22
+cp -rf ./scripts/yamls ./dist/ubuntu22
+cp -rf ./scripts/plugins ./dist/ubuntu22
 
 echo ${VERSION} > ./VERSION
 cd ./core/plugins
-cp -f ./dist/centos7/kubevmm-adm ../../dist/centos7
-cp -f ./dist/centos7/virshplus ../../dist/centos7
-cp -f ./dist/centos7/nvidia_driver_manager ../../dist/centos7
+cp -f ./dist/ubuntu22/kubevmm-adm ../../dist/ubuntu22
+cp -f ./dist/ubuntu22/virshplus ../../dist/ubuntu22
+cp -f ./dist/ubuntu22/nvidia_driver_manager ../../dist/ubuntu22
 
 # Go 环境设置
 cd ${WORKSPACE_ROOT}/others
@@ -129,20 +129,20 @@ source /root/.bashrc
 cd ${PROJECT_ROOT}
 
 # 复制文件到 docker 目录
-cp -rf ./dist/centos7/sdsctl docker/virtctl/centos7/ || true
-cp -rf ./dist/centos7/commctl docker/virtctl/centos7/ || true
-cp -rf ./dist/centos7/nvidia_driver_manager docker/virtctl/centos7/ || true
+cp -rf ./dist/ubuntu22/sdsctl docker/virtctl/ubuntu22/ || true
+cp -rf ./dist/ubuntu22/commctl docker/virtctl/ubuntu22/ || true
+cp -rf ./dist/ubuntu22/nvidia_driver_manager docker/virtctl/ubuntu22/ || true
 
-cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/kubeovn-adm ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/device-passthrough ./dist/centos7/plugins docker/virtctl/centos7/
-cp -rf ./dist/centos7/arraylist.cfg docker/virtlet/centos7/
-cp -rf ./dist/centos7/arraylist.cfg docker/libvirtwatcher/centos7/
+cp -rf ./dist/ubuntu22/yamls/ ./VERSION ./dist/ubuntu22/kubeovn-adm ./dist/ubuntu22/arraylist.cfg ./dist/ubuntu22/virshplus ./dist/ubuntu22/kubevmm-adm ./dist/ubuntu22/device-passthrough ./dist/ubuntu22/plugins docker/virtctl/ubuntu22/
+cp -rf ./dist/ubuntu22/arraylist.cfg docker/virtlet/ubuntu22/
+cp -rf ./dist/ubuntu22/arraylist.cfg docker/libvirtwatcher/ubuntu22/
 
 # 检查核心目录
 core_dirs=(
-    "../docker/virtctl/centos7/utils"
-    "../docker/virtlet/centos7/utils"
-    "../docker/libvirtwatcher/centos7/utils"
-    "../docker/virtmonitor/centos7/utils"
+    "../docker/virtctl/ubuntu22/utils"
+    "../docker/virtlet/ubuntu22/utils"
+    "../docker/libvirtwatcher/ubuntu22/utils"
+    "../docker/virtmonitor/ubuntu22/utils"
 )
 
 cd ./core
@@ -153,23 +153,23 @@ for dir in "${core_dirs[@]}"; do
     fi
 done
 
-cp -rf utils/*.py ../docker/virtctl/centos7/utils/
-cp -rf utils/*.py ../docker/virtlet/centos7/utils/
-cp -rf utils/*.py ../docker/libvirtwatcher/centos7/utils/
-cp -rf utils/*.py ../docker/virtmonitor/centos7/utils/
+cp -rf utils/*.py ../docker/virtctl/ubuntu22/utils/
+cp -rf utils/*.py ../docker/virtlet/ubuntu22/utils/
+cp -rf utils/*.py ../docker/libvirtwatcher/ubuntu22/utils/
+cp -rf utils/*.py ../docker/virtmonitor/ubuntu22/utils/
 
-cp -rf virtctl/ ../docker/virtctl/centos7/
-cp -rf virtlet/ ../docker/virtlet/centos7/
-cp -rf libvirtwatcher/ ../docker/libvirtwatcher/centos7/
-cp -rf virtmonitor/ ../docker/virtmonitor/centos7/
+cp -rf virtctl/ ../docker/virtctl/ubuntu22/
+cp -rf virtlet/ ../docker/virtlet/ubuntu22/
+cp -rf libvirtwatcher/ ../docker/libvirtwatcher/ubuntu22/
+cp -rf virtmonitor/ ../docker/virtmonitor/ubuntu22/
 
 cd ${PROJECT_ROOT}/docker
 
 # Docker 构建
-docker build virtlet/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtlet:${VERSION}
-docker build virtctl/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtctl:${VERSION}
-docker build libvirtwatcher/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-libvirtwatcher:${VERSION}
-docker build virtmonitor/centos7 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-centos7-virtmonitor:${VERSION}
+docker build virtlet/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtlet:${VERSION}
+docker build virtctl/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtctl:${VERSION}
+docker build libvirtwatcher/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-libvirtwatcher:${VERSION}
+docker build virtmonitor/ubuntu22 -t g-ubjg5602-docker.pkg.coding.net/iscas-system/containers/univirt-ubuntu22-virtmonitor:${VERSION}
 
 # 更新版本号
 cd ${PROJECT_ROOT}
