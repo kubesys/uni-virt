@@ -20,6 +20,7 @@ cp -rf /home/kubevmm/conf/* /etc/kubevmm/
 echo "--- Done: update conf file"
 # update binaries
 echo "+++ Processing: update binaries"
+chmod +x /home/kubevmm/bin/*
 cp -f /home/kubevmm/bin/* /usr/bin/
 echo "--- Done: update binaries"
 # apply kubevirtResource.yaml
