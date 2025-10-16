@@ -10,7 +10,7 @@ ADD libvirtwatcher /home/kubevmm/core/libvirtwatcher
 
 ADD utils /home/kubevmm/core/utils
 
-#ADD kubesys /home/kubevmm/core/kubesys
+ADD kubesys /home/kubevmm/core/kubesys
 
 ADD *.cfg /home/kubevmm/core/utils
 
