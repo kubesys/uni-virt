@@ -14,7 +14,7 @@ ADD utils /home/kubevmm/core/utils
 
 ADD *.cfg /home/kubevmm/core/utils
 
-ADD kubesys /home/kubevmm/core/kubesys
+#ADD kubesys /home/kubevmm/core/kubesys
 
 ADD virtctl /home/kubevmm/core/virtctl
 
