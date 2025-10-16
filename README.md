@@ -83,7 +83,7 @@
   requests-oauthlib==1.3.1
   rsa==4.9
   six==1.16.0
-  tenacity==8.2.3
+  tenacity==8.2.2
   threadpool==1.3.2
   typing_extensions==4.1.1
   urllib3==1.26.16
