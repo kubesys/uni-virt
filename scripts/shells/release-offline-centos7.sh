@@ -136,10 +136,10 @@ cp -rf ./dist/centos7/nvidia_driver_manager docker/virtctl/centos7/ || true
 cp -rf ./dist/centos7/yamls/ ./VERSION ./dist/centos7/kubeovn-adm ./dist/centos7/arraylist.cfg ./dist/centos7/virshplus ./dist/centos7/kubevmm-adm ./dist/centos7/device-passthrough ./dist/centos7/plugins docker/virtctl/centos7/
 cp -rf ./dist/centos7/arraylist.cfg docker/virtlet/centos7/
 cp -rf ./dist/centos7/arraylist.cfg docker/libvirtwatcher/centos7/
-cp -rf ./dist/kubesys/ docker/virtlet/centos7/
-cp -rf ./dist/kubesys/ docker/libvirtwatcher/centos7/
-cp -rf ./dist/kubesys/ docker/virtctl/centos7/
-cp -rf ./dist/kubesys/ docker/virtmonitor/centos7/
+cp -rf ./dist/centos7/kubesys/ docker/virtlet/centos7/
+cp -rf ./dist/centos7/kubesys/ docker/libvirtwatcher/centos7/
+cp -rf ./dist/centos7/kubesys/ docker/virtctl/centos7/
+cp -rf ./dist/centos7/kubesys/ docker/virtmonitor/centos7/
 
 # 检查核心目录
 core_dirs=(
