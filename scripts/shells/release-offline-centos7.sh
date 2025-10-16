@@ -148,8 +148,7 @@ core_dirs=(
 cd ./core
 for dir in "${core_dirs[@]}"; do
     if [ ! -d "$dir" ]; then
-        echo "错误: 目录不存在: $dir"
-        exit 1
+        mkdir -p $dir
     fi
 done
 
