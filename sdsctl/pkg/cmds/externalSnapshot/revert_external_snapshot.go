@@ -101,8 +101,7 @@ func revertExternalSnapshot(ctx *cli.Context) error {
 	}
 	backFile, err := virsh.GetBackFile(config["current"])
 	if err != nil {
-		logger.Errorf("GetBackFile err:%+v", err)
-		return err
+		return fmt.Errorf("get backing file failed: %v", err)
 	}
 
 	newFile := utils.GetUUID()
@@ -116,7 +115,7 @@ func revertExternalSnapshot(ctx *cli.Context) error {
 	}
 	// change vm disk
 	if domain != "" {
-		if err := virsh.ChangeVMDisk(domain, config["current"], newFilePath); err != nil {
+		if err := virsh.ChangeVMDisk(domain, config["current"], backFile); err != nil {
 			revertBackup(newFilePath)
 			logger.Errorf("ChangeVMDisk err:%+v", err)
 			return err
@@ -160,7 +159,8 @@ func revertExternalSnapshot(ctx *cli.Context) error {
 	}
 
 	// write config: current point to snapshot
-	config["current"] = newFilePath
+	revertBackup(config["current"])
+	config["current"] = backFile
 	virsh.CreateConfig(diskDir, config)
 
 	return nil
