@@ -1231,7 +1231,7 @@ def _parse_pci_info(gpu_id, gpu_id_value):
 
 
     # logger.debug(info_dict)
-    gpu_name = 'host-%s-type-%s-id-%s' % (HOSTNAME.lower(), info_dict.get('type', 'unknown').replace(' ', '-').lower(), bus_id.lower())
+    gpu_name = 'host-%s-type-%s-id-%s' % (HOSTNAME.lower(), info_dict.get('type', 'unknown').replace(' ', '-').replace('.', '-').lower(), bus_id.lower())
 
     # Modify the dictionary to include the desired keys and values
     gpu_info = {
