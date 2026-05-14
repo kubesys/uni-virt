@@ -3,128 +3,106 @@
   hosts: master:worker
   become: yes
   vars:
-    offline:
+    offline: None
 
   tasks:
     - name: Set python interpreter for Kylin
       set_fact:
         ansible_python_interpreter: /usr/bin/python3
-      when: ansible_os_family=='Kylin Linux Advanced Server'
-    - name: Install required packages
+      when: ansible_os_family == 'Kylin Linux Advanced Server'
+
+    - name: Install required packages (RHEL/CentOS/Kylin/UOS)
       yum:
         name:
           - bzip2
           - wget
           - ca-certificates
         state: present
-      when: ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS'
+      when: ansible_os_family == 'RedHat' or ansible_os_family == 'Kylin Linux Advanced Server' or ansible_os_family == 'UOS'
 
+    - name: Install required packages (Ubuntu/Debian)
+      apt:
+        name:
+          - bzip2
+          - wget
+          - ca-certificates
+        state: present
+      when: ansible_os_family == 'Debian'
+
+    # ========================= Anaconda 安装 =========================
     - name: Download Anaconda3 installer for x86_64
       get_url:
         url: https://repo.anaconda.com/archive/Anaconda3-2021.11-Linux-x86_64.sh
         dest: /tmp/Anaconda3.sh
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS' and ansible_machine == 'x86_64') and offline is none
-    - name: Download Anaconda3 installer for arch
+      when: (ansible_os_family in ['RedHat', 'Kylin Linux Advanced Server', 'UOS', 'Debian'] and ansible_machine == 'x86_64') and offline is none
+
+    - name: Download Anaconda3 installer for aarch64
       get_url:
         url: https://mirrors.tuna.tsinghua.edu.cn/github-release/conda-forge/miniforge/Release%2024.7.1-2/Miniforge3-24.7.1-2-Linux-aarch64.sh
         dest: /tmp/Anaconda3.sh
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' and ansible_machine == 'aarch64') and offline is none
+      when: (ansible_os_family in ['RedHat', 'Kylin Linux Advanced Server'] and ansible_machine == 'aarch64') and offline is none
 
     - name: Run Anaconda3 installer
       command: bash /tmp/Anaconda3.sh -b -p /opt/anaconda3
       args:
-        creates: /opt/anaconda3  # Ensure the installer is not run if Anaconda is already installed
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS')  and offline is none
+        creates: /opt/anaconda3
+      when: (ansible_os_family in ['RedHat', 'Kylin Linux Advanced Server', 'UOS', 'Debian']) and offline is none
 
     - name: Add Anaconda3 to PATH
       lineinfile:
         dest: "{{ ansible_env.HOME }}/.bashrc"
         line: 'export PATH=/opt/anaconda3/bin:$PATH'
         create: yes
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
+      when: (ansible_os_family in ['RedHat', 'Kylin Linux Advanced Server', 'UOS', 'Debian']) and offline is none
 
-    - name: Reload bashrc to apply changes
-      shell: bash --rcfile "{{ ansible_env.HOME }}/.bashrc"
-      async: 60  # 设置一个合适的超时时间
-      poll: 0    # 非阻塞，立即返回结果
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
+    - name: Reload bashrc
+      shell: bash -c "source {{ ansible_env.HOME }}/.bashrc"
+      when: (ansible_os_family in ['RedHat', 'Kylin Linux Advanced Server', 'UOS', 'Debian']) and offline is none
 
-
+    # ========================= Python 安装 =========================
     - name: Install Python 3.9.7 using conda
       shell: /opt/anaconda3/bin/conda install -y python=3.9.7
-      register: conda_install_output
       ignore_errors: true
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
-
-#    - name: Debug conda installation output
-#      debug:
-#        var: conda_install_output
-
-#    - name: Install development tools for Python within Anaconda
-#      shell: /opt/anaconda3/bin/conda install -y gcc_linux-64 gxx_linux-64 libgcc-ng
-#      register: conda_install_dev_tools_output
-#      ignore_errors: true
-
-#    - name: Debug conda installation of dev tools output
-#      debug:
-#        var: conda_install_dev_tools_output
+      when: (ansible_os_family in ['RedHat', 'Kylin Linux Advanced Server', 'UOS', 'Debian']) and offline is none
 
     - name: Install pip for Python 3.9.7
       shell: /opt/anaconda3/bin/python3.9 -m ensurepip
       args:
         creates: /usr/local/bin/pip3.9
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
+      when: (ansible_os_family in ['RedHat', 'Kylin Linux Advanced Server', 'UOS', 'Debian']) and offline is none
 
-    - name: Create symbolic link for python3.9
+    - name: Create symlink python3.9
       file:
         src: /opt/anaconda3/bin/python
         dest: /usr/local/bin/python3.9
         state: link
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
+      when: (ansible_os_family in ['RedHat', 'Kylin Linux Advanced Server', 'UOS', 'Debian']) and offline is none
 
-    - name: Create symbolic link for pip3.9
+    - name: Create symlink pip3.9
       file:
         src: /opt/anaconda3/bin/pip
         dest: /usr/local/bin/pip3.9
         state: link
         force: yes
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
+      when: (ansible_os_family in ['RedHat', 'Kylin Linux Advanced Server', 'UOS', 'Debian']) and offline is none
 
-    - name: Create symbolic link for python3
+    - name: Create symlink python3
       file:
         src: /opt/anaconda3/bin/python
         dest: /usr/local/bin/python3
         state: link
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
+      when: (ansible_os_family in ['RedHat', 'Kylin Linux Advanced Server', 'UOS', 'Debian']) and offline is none
 
-    - name: Create symbolic link for pip3
+    - name: Create symlink pip3
       file:
         src: /opt/anaconda3/bin/pip
         dest: /usr/local/bin/pip3
         state: link
         force: yes
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
+      when: (ansible_os_family in ['RedHat', 'Kylin Linux Advanced Server', 'UOS', 'Debian']) and offline is none
 
-    - name: Verify Python and pip installation
-      command: python3 --version && pip3 --version && python3.9 --version && pip3.9 --version
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
-    - name: Install EPEL release and OpenStack Rocky repository for x86
-      yum:
-        name:
-          - epel-release
-          - centos-release-openstack-rocky.noarch
-        state: present
-      tags: 
-        - packages
-      when: ansible_os_family == 'RedHat' and offline is none
-    - name:  Install EPEL release and OpenStack Rocky repository for arch
-      yum:
-        name:
-          -  https://dl.fedoraproject.org/pub/epel/10/Everything/aarch64/Packages/e/epel-release-10-2.el10_0.noarch.rpm
-      tags:
-        - packages
-      when: ansible_os_family=='Kylin Linux Advanced Server' and offline is none
-    - name: Install required packages
+    # ========================= 虚拟化依赖包（全系统支持） =========================
+    - name: Install virtualization packages (RHEL/Kylin/UOS)
       yum:
         name:
           - wget
@@ -136,35 +114,45 @@
           - libvirt-devel
           - gcc
           - gcc-c++
-          - glib-devel
-          - glibc-devel
           - libvirt
           - virt-install
           - qemu-kvm
           - ceph
-          - glusterfs-client-xlators
-          - glusterfs-cli
-          - glusterfs-fuse
           - openvswitch
-          - python-openvswitch
-          - openvswitch-test
-          - openvswitch-devel
-          - openvswitch-ipsec
           - jq
         state: present
-      tags: 
-        - packages
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS')  and offline is none
+      when: ansible_os_family == 'RedHat' or ansible_os_family == 'Kylin Linux Advanced Server' or ansible_os_family == 'UOS'
 
-    - name: downgrade pip
-      pip:
+    - name: Install virtualization packages (Ubuntu/Debian)
+      apt:
         name:
-          - pip<=23.3.2
+          - wget
+          - cloud-utils
+          - usbutils
+          - libguestfs-tools
+          - virt-manager
+          - python3-dev
+          - libvirt-dev
+          - gcc
+          - g++
+          - libvirt-daemon-system
+          - libvirt-clients
+          - virtinst
+          - qemu-kvm
+          - ceph
+          - openvswitch-switch
+          - jq
+        state: present
+      when: ansible_os_family == 'Debian'
+
+    # ========================= Python 依赖 =========================
+    - name: Downgrade pip
+      pip:
+        name: pip<=23.3.2
         executable: pip3
-      tags:
-        - python_packages
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
-    - name: Install and upgrade Python packages
+      when: ansible_os_family in ['RedHat', 'Kylin Linux Advanced Server', 'UOS', 'Debian'] and offline is none
+
+    - name: Install Python packages
       pip:
         name:
           - threadpool
@@ -184,87 +172,11 @@
           - requests
         state: latest
         executable: pip3
-      tags: 
-        - python_packages
-      when: (ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS') and offline is none
+      when: ansible_os_family in ['RedHat', 'Kylin Linux Advanced Server', 'UOS', 'Debian'] and offline is none
 
-    - name: Enable and start libvirtd service
-      systemd:
-        name: libvirtd
-        enabled: yes
-        state: started
-      tags: 
-        - services
-      when: ansible_os_family == 'RedHat' or ansible_os_family=='Kylin Linux Advanced Server' or ansible_os_family=='UOS'
-
-- name: Install and configure packages
-  hosts: master:worker
-  become: yes
-  tasks:
-    - name: Update package list
-      apt:
-        update_cache: yes
-      when: ansible_os_family == 'Debian' and offline is none
-
-    - name: Install required packages
-      apt:
-        name:
-          - pkg-config
-          - python3-pip
-          - python3-libvirt
-          - qemu-kvm
-          - libvirt-dev
-          - libvirt-daemon-system
-          - virtinst
-          - libvirt-clients
-          - bridge-utils
-          - openvswitch-switch
-        state: present
-      when: ansible_os_family == 'Debian' and offline is none
-
-    - name: Install ceph
-      apt:
-        name: ceph
-        state: present
-      when: ansible_os_family == 'Debian' and offline is none
-
-    - name: Upgrade pip
-      pip:
-        name: pip
-        state: latest
-      when: ansible_os_family == 'Debian' and offline is none
-
-    - name: Install Python packages
-      pip:
-        name:
-          - pyinstaller
-          - setuptools
-          - wheel
-          - threadpool
-          - prometheus_client
-          - kubernetes==26.1.0
-          - xmljson
-          - xmltodict
-          - watchdog
-          - pyyaml
-          - grpcio
-          - grpcio-tools
-          - protobuf
-          - psutil
-          - tenacity
-        state: latest
-      when: ansible_os_family == 'Debian' and offline is none
-
-#    - name: Add line to file if pattern found
-#      ansible.builtin.lineinfile:
-#        path: /usr/local/lib/python3.10/dist-packages/urllib3/response.py
-#        insertafter: 'line = line.split(b";", 1)[0]'
-#        line: '        line = (len(line)>0 and line or "0")     # added this line'
-#      when: ansible_os_family == 'Debian'
-
+    # ========================= 启动服务（全系统通用） =========================
     - name: Enable and start libvirtd
       systemd:
         name: libvirtd
-        state: started
         enabled: yes
-      when: ansible_os_family == 'Debian'
+        state: started
