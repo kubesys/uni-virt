@@ -73,18 +73,18 @@ def set_logger(header, fn, log_level=logging.DEBUG, set_kubesys_logger=True):
     logger.propagate = False
     
     # 如果需要，同时设置kubesys的日志记录器
-    if set_kubesys_logger:
-        try:
-            from kubesys.logger import logger as kubesys_logger
-            # 使用新的set_logger方法直接设置外部logger
-            kubesys_logger.set_logger(logger)
-        except (ImportError, AttributeError) as e:
-            # 如果kubesys模块不可用或没有set_logger方法，则尝试使用旧方法
-            try:
-                kubesys_logger.add_external_handler(handler2)
-            except (AttributeError):
-                # 如果都不可用，则忽略
-                pass
+    # if set_kubesys_logger:
+    #     try:
+    #         from kubesys.logger import logger as kubesys_logger
+    #         # 使用新的set_logger方法直接设置外部logger
+    #         kubesys_logger.set_logger(logger)
+    #     except (ImportError, AttributeError) as e:
+    #         # 如果kubesys模块不可用或没有set_logger方法，则尝试使用旧方法
+    #         try:
+    #             kubesys_logger.add_external_handler(handler2)
+    #         except (ImportError, AttributeError):
+    #             # 如果都不可用，则忽略
+    #             pass
     
     return logger
 
