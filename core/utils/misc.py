@@ -1631,7 +1631,7 @@ def get_1st_ready(logger):
                     # 遍历 conditions，找到状态为 Ready 的节点
                     for condition in nodestatus.get('conditions'):
                         if condition.get('type') == 'Ready' and condition.get('status') == 'True':
-                            logger.info(f"Node '{name}' is Ready.")
+                            # logger.info(f"Node '{name}' is Ready.")
                             return name
             except Exception as e:
                 logger.error(f"Failed to get status for node '{name}'.", exc_info=e)
