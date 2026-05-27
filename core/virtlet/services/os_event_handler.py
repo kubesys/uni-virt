@@ -1271,9 +1271,8 @@ def addNodeName(jsondict):
             jsondict['spec']['nodeName'] = HOSTNAME
     return jsondict
 
-
+OLD_PATH_WATCHERS = {}
 def observe(observer,kind):
-    OLD_PATH_WATCHERS = {}
     paths = _get_all_pool_path()
     paths_copy = paths.copy()
     for pool_name, pool_path in paths_copy.items():
