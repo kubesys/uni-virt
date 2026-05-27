@@ -1341,14 +1341,14 @@ def main():
             if not os.path.exists(LIBVIRT_XML_DIR):
                 os.makedirs(LIBVIRT_XML_DIR, 0x0711)
             event_handler = VmLibvirtXmlEventHandler('kvm', LIBVIRT_XML_DIR, GROUP, VERSION, PLURAL_VM)
-            observer.schedule(event_handler, LIBVIRT_XML_DIR, True)
+            observer.schedule(event_handler, LIBVIRT_XML_DIR, recursive=True)
             GPUCheckandUpdate()
             if os.path.exists(constants.KUBEVMM_GPU_NVIDIA_DIR):
                 event_handler = VmGPUEventHandler()
-                observer.schedule(event_handler, constants.KUBEVMM_GPU_NVIDIA_DIR, True)
+                observer.schedule(event_handler, constants.KUBEVMM_GPU_NVIDIA_DIR, recursive=True)
             if os.path.exists(constants.KUBEVMM_GPU_PCI_DIR):
                 event_handler = VmGPUEventHandler()
-                observer.schedule(event_handler, constants.KUBEVMM_GPU_PCI_DIR, True)
+                observer.schedule(event_handler, constants.KUBEVMM_GPU_PCI_DIR, recursive=True)
             observer.start()
         except:
             logger.warning('Oops! ', exc_info=1)
